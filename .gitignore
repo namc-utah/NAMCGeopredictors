@@ -1,0 +1,6 @@
+.httr-oauth
+.Rhistory
+.git/
+.Rproj.user/
+~/.secrets/R/NAMCr/.httr-oauth
+NAMCGeopa.Rproj
