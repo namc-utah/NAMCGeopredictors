@@ -117,11 +117,13 @@ for(iPred in seq_len( nrow(def_predictors) )){
 NAMCr::save(
   api_endpoint = "newSamplePredictorValue",
   sampleId = def_samples$sampleId[1],
+  predictorId = def_predictors$predictorId,
   data = media[  def_predictors$isTemporal ]
 )
 NAMCr::save(
   api_endpoint = "newSitePredictorValue",
   siteId = def_samples$siteId[1],
+  predictorId = def_predictors$predictorId,
   data = media[ !def_predictors$isTemporal ]
 )
 
