@@ -197,24 +197,31 @@ pecherecopoint<-PMIN_PT(AREMP2020.WGS.json.points)
 AREMP_model<-function(polygon2process, points2process){
   inputpolys<-polygon2process
   inputpoints<-points2process
+  REACHID<-as.data.frame(geojson_sf(AREMP2020.WGS.json.simp)$reachid)
+  REACHIDP<-as.data.frame(geojson_sf(AREMP2020.WGS.json.points)$reachid)
+  names(REACHID)<-"REACHID"
+  names(REACHIDP)<-"REACHIDP"
   ELVmean_WSS<-ELVmean_WS(inputpolys)
   ELVmin_WSS<-ELVmin_WS(inputpolys)
+  ELVmax_WSS<-ELVmax_WS(inputpolys)
+  WSA_SQKMS<-WSA_SQKM(inputpolys)
   KFACTS<-KFACT(inputpolys)
   PMIN_WSS<-PMIN_WS(inputpolys)
   RH_WSS<-RH_WS(inputpolys)
   TMAX_WSS<-TMAX_WS(inputpolys)
   TMEAN_WSS<-TMEAN_WS(inputpolys)
   TMEAN_PTT<-TMEAN_PT(inputpoints)
-  PMIN_PTT<-PMIN_PT(inputpolys)
-  dfpolys<-cbind(inputpolys$reachid,ELVmean_WSS,ELVmin_WSS,KFACTS,PMIN_WSS,RH_WSS,TMAX_WSS,TMEAN_WSS)
-  dfpoints<-cbind(inputpoints$reachid,TMEAN_PTT,PMIN_PTT)
-  df2render<-merge(dfpolys, dfpoints, by="reachid")
+  PMIN_PTT<-PMIN_PT(inputpoints)
+  dfpolys<-cbind(REACHID,WSA_SQKMS,ELVmean_WSS,ELVmin_WSS,ELVmax_WSS,KFACTS,PMIN_WSS,RH_WSS,TMAX_WSS,TMEAN_WSS)
+  #dfpolys<-cbind(REACHID,KFACTS,PMIN_WSS,RH_WSS,TMAX_WSS,TMEAN_WSS)
+  dfpoints<-cbind(REACHIDP,TMEAN_PTT,PMIN_PTT)
+  df2render<-merge(dfpolys, dfpoints, by.x="REACHID",by.y="REACHIDP")
   return(df2render)
 }
 
 
 ptm <- proc.time()
-AREMtest<-AREM_model(polygon2process = AREMP2020.WGS.json.simp, points2process = AREMP2020.WGS.json.points)
+AREMtest<-AREMP_model(polygon2process = AREMP2020.WGS.json.simp, points2process = AREMP2020.WGS.json.points)
 proc.time() - ptm
 
 pechereco<-ELVmean_WS(putin)
