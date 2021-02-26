@@ -3,7 +3,7 @@
 library(sf)
 library(raster)
 library(data.table)
-#setwd("/Users/alexhernandez/Desktop/BUG_BLM/ZonalTest")
+setwd("/Users/alexhernandez/Desktop/BUG_BLM/ZonalTest")
 library(here)
 library(ggpubr)
 library(mapview)
@@ -40,6 +40,21 @@ TMEAN_WS.ras<-raster("/Users/alexhernandez/Desktop/BUG_BLM/ZonalTest/GIS_Stats01
 
 #### list of functions for each predictor #######################
 
+WSA_SQKM<-function(polygon2process){
+  validgeometry<-st_make_valid(polygon2process)
+  validgeometry$WSA_SQKM<-drop_units(st_area(validgeometry)/1000000)
+  media<-as.data.frame(validgeometry$WSA_SQKM)
+  colnames(media)<-"WSA_SQKM"
+  return(media)
+}
+
+
+
+
+pechereco<-WSA_SQKM(putin)
+
+
+
 ELVmean_WS<-function(polygon2process){
   validgeometry<-st_make_valid(polygon2process)
   validgeometry$ELVmean_WS<-NA
@@ -75,6 +90,25 @@ ELVmin_WS<-function(polygon2process){
   colnames(media)<-"ELVmin_WS"
   return(media)
 }
+
+ELVmax_WS<-function(polygon2process){
+  validgeometry<-st_make_valid(polygon2process)
+  validgeometry$ELVmax_WS<-NA
+  ptm <- proc.time()
+  for (i in 1:nrow(validgeometry)){
+    tryCatch({ #if an error is found then it is printed, but the loop does not break and continues with the next iteration
+      objecto<-validgeometry[i,] # Take the first feature
+      elmean<-ee_extract(USGS_NED, objecto, fun = ee$Reducer$max(), scale=30)%>% as_tibble()
+      validgeometry[[4]][i]<-elmean
+    },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})  
+  }
+  proc.time() - ptm
+  validgeometry$ELVmax_WS<-unlist(validgeometry$ELVmax_WS)
+  media<-as.data.frame(validgeometry$ELVmax_WS)
+  colnames(media)<-"ELVmax_WS"
+  return(media)
+}
+
 
 KFACT<-function(polygon2process){
   validgeometry<-st_make_valid(polygon2process)
