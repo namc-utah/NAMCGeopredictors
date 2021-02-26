@@ -134,10 +134,10 @@ NAMCr::save(
 
 # Define environment for predictor function 
 # This will keep global environment clean and also allow functions to be called by name
-pred_fns = new.env( parent = emptyenv() )
+pred_fns = new.env( parent = emptyenv() )                                               # This line needs to be before "Loop through predictors"
 # This will source all files in a sub-directory named "predictor_fns". If all functions
 # are in that sub-directory this makes it easy to distinguish them
-sapply( list.files( "./predictor_fns", full.names = TRUE), source )
+sapply( list.files( "./predictor_fns", full.names = TRUE), source )                     # This line needs to be before "Loop through predictors"
 
 
 # Functions like below can be placed into separate R files have functions grouped by type
@@ -158,7 +158,7 @@ pred_fns$RH_WS<-function(polygon2process){
 pred_fns$basic_mean_fn = function(polygon2process, predictor_name, predictor_raster, formula_type){
   validgeometry<-st_make_valid(polygon2process)
   validgeometry[[predictor_name]]<-exact_extract(pred_raster,validgeometry,formula_type)
-  media<-as.data.frame(validgeometry[predictor_name])
+  media<-as.data.frame(validgeometry[[predictor_name]])
   colnames(media)<-predictor_name
   return(media)
 }
