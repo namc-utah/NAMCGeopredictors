@@ -15,13 +15,12 @@ def_samples = NAMCr::query(
   api_endpoint = "samples",
   include = c("sampleId","siteId"),
   sampleId = c(...),
-  boxId = c(...),
   ...
 )
 
 def_sites = NAMCr::query(
-  api_endpoint = "sites",
-  include = c("predictorId","abbreviation","usState","location","catchment"),
+  api_endpoint = "siteInfo",
+  include = c("siteId","siteName","usState","location","catchment"),
   siteId = def_samples$siteId
 )
 
@@ -33,7 +32,7 @@ def_sites = NAMCr::query(
 def_models = NAMCr::query(
   api_endpoint = "models",
   include = c("predictorId","abbreviation",""),
-  modelId = uniqu(def_sites_models$modelId  )
+  modelId = unique(def_sites_models$modelId  )
 )
 
 #**** Need missing API endpoint to join models to predictors
