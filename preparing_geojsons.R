@@ -20,3 +20,19 @@ geojson_write(arem.kmz.valid.json.simp, file = "/Users/alexhernandez/Desktop/NAM
 
 putin<-st_read("/Users/alexhernandez/Desktop/NAMC_Borrar/aremtestsimplified.geojson")
 #putin<-polygon2process
+
+############# Simulating a geojson #########
+
+AREMP2020<-st_read("C://Temp//AREMP//AREMPwatersheds.shp")
+AREMP2020.WGS<-st_transform(AREMP2020, crs = 4326)
+AREMP2020.WGS.json<-geojson_json(AREMP2020.WGS)
+AREMP2020.WGS.json.simp<-ms_simplify(AREMP2020.WGS.json)
+# sf object to use
+samplearemp<-geojson_sf(AREMP2020.WGS.json.simp)
+
+
+AREMP2020.points<-st_read("C://Temp//AREMP//AREMPpoints.shp")
+AREMP2020.WGS.points<-st_transform(AREMP2020.points, crs = 4326)
+AREMP2020.WGS.json.points<-geojson_json(AREMP2020.WGS.points)
+AREMP2020.WGS.json.simp.points<-ms_simplify(AREMP2020.WGS.json.points)
+
