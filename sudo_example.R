@@ -100,9 +100,9 @@ for(iPred in seq_len( nrow(def_predictors) )){
   media[iPred] = jsonlite::toJSON(
     pred_fns[[ def_predictors$calculationScript[iPred] ]](
       polygon2process = geojson_sf( def_sites$catchment[1] ),
-      predictor_name = def_predictors$abbreviation[1],
-      predictor_raster = pred_rasters[[ def_predictors$raster_name[1] ]],
-      formula_type = def_predictors$formula_type[1]
+      predictor_name = def_predictors$abbreviation[ iPred ],
+      predictor_raster = pred_rasters[[ def_predictors$raster_name[ iPred ] ]],
+      formula_type = def_predictors$formula_type[ iPred ]
     )
   )
 }
