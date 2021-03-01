@@ -28,7 +28,7 @@ requireNamespace("NAMCr")
 #                 flags all samples associated with that site as
 #                 "dirty" thereby indicating to the script that all 
 #                 site and sample level predictors need to be 
-#                 recalculated and overriden. Another database trigger 
+#                 recalculated and overridden. Another database trigger 
 #                 would trigger any time a new model is associated with 
 #                 a site or sample. This again would trigger a "dirty" state.
 #                 This model trigger is conservative and could cause
@@ -55,8 +55,6 @@ def_samples = NAMCr::query(
   sampleId = c(...),
   ...
 )
-
-# If we want to make this 
 
 
 
