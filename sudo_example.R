@@ -7,16 +7,58 @@ requireNamespace("NAMCr")
 # need to be determined via other means (i.e. model geofencing Or 
 # models assigned to Projects etc.)
 # 
+# I propose we have 5 predictor-states associated at the sample 
+# level which are controlled via automatic database triggers. Processing at the 
+# sample level guarantees that upon any change both temporal and non-temporal 
+# predictors get calculated when needed. This requires a new field in the 
+# sample table named "predictor_state" or something of that liking. 
+# Proposed states are:
+# 
+# 1. "pending" - (default) new samples added to the db automatically get assigned
+#                 this state. When processing predictors associated
+#                 with the sample if the site level (non-temporal)
+#                 predictors already exist only sample level temporals are calculated.
+#                 
+# 3. "noModel" -  This state is determined after attempting to process 
+#                 the first time. If no site->model link exists in the 
+#                 database the script sets this state. It comes out of
+#                 this state following the "dirty" state logic below.               
+#                 
+# 2. "dirty" -    Any time a site's coordinates or catchment changes a db trigger
+#                 flags all samples associated with that site as
+#                 "dirty" thereby indicating to the script that all 
+#                 site and sample level predictors need to be 
+#                 recalculated and overriden. Another database trigger 
+#                 would trigger any time a new model is associated with 
+#                 a site or sample. This again would trigger a "dirty" state.
+#                 This model trigger is conservative and could cause
+#                 the recalculation of already valid predictors (as some
+#                 models share predictors with others) but it would also
+#                 guarantee all predictors are up to date.
+#                 
+# 3. "complete" - Upon successfully processing a sample's predictors
+#                 without error this script marks the sample as complete.
+#                 
+# 4. "error"    - Upon this script failing to run due to some unknown
+#                 problem / error the sample gets marked as "error". This 
+#                 would trigger a notification to someone or at the
+#                 very least we have a query to get these problems
+#                 when they occur.
+# 
 # ---------------------------------------------------------------
 # Determine sample / site to process
 # ---------------------------------------------------------------
 # 
 def_samples = NAMCr::query(
   api_endpoint = "samples",
-  include = c("sampleId","siteId"),
+  include = c("sampleId","siteId","sampleDate","predictorState"),
   sampleId = c(...),
   ...
 )
+
+# If we want to make this 
+
+
 
 def_sites = NAMCr::query(
   api_endpoint = "siteInfo",
@@ -24,7 +66,7 @@ def_sites = NAMCr::query(
   siteId = def_samples$siteId
 )
 
-  
+
 # ---------------------------------------------------------------
 # Query for the model / predictor definitions
 # ---------------------------------------------------------------
@@ -50,14 +92,17 @@ def_predictors = NAMCr::query(
 # Query for previously calculated predictor values
 # ---------------------------------------------------------------
 #
-def_sitePredictorValues = NAMCr::query(
-  api_endpoint = "sitePredictorValues",
-  include = c("predictorId"),
-  siteId = def_samples$siteId
-)
-# Removed already calculated predictors from list to process
-def_predictors = def_predictors %>% 
-  filter( !(predictorId %in% def_sitePredictorValues$predictorId) )
+# If state is dirty allow the script to recalculate site predictors
+if( def_samples$predictorState[1] != "dirty" ) {
+  def_sitePredictorValues = NAMCr::query(
+    api_endpoint = "sitePredictorValues",
+    include = c("predictorId"),
+    siteId = def_samples$siteId
+  )
+  # Removed already calculated predictors from list to process
+  def_predictors = def_predictors %>% 
+    filter( !(predictorId %in% def_sitePredictorValues$predictorId) )
+}
 
 
 # ---------------------------------------------------------------
@@ -124,6 +169,12 @@ NAMCr::save(
   siteId = def_samples$siteId[1],
   predictorId = def_predictors$predictorId,
   data = media[ !def_predictors$isTemporal ]
+)
+# Predictor State is stored in the sample table see top of script for explanation
+NAMCr::save(
+  api_endpoint = "changeSamplePredictorState",
+  sampleId = def_samples$sampleId[1],
+  predictorState = "processed"
 )
 
 
