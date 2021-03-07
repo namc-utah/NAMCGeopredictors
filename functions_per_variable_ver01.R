@@ -23,8 +23,39 @@ library(rmapshaper)
 
 ee_Initialize()
 
-###### Define predictors
-USGS_NED<-ee$Image("USGS/NED")$select("elevation")
+###### Define predictors GEE
+USGS_NED<-ee$Image("USGS/NED")$select("elevation") # elevation
+slopegee<-ee$Terrain$slope(USGS_NED) # slope
+slopegee.perc<- slopegee$divide(180)$multiply(3.14159)$tan()$multiply(1)$rename("percent")#Slope percent
+
+## PRISM accumulated precipitation from May - April of the previous year
+curYear<-2019 # Insert the value of current year here: !!!
+prevYear1<-curYear-1
+prevYear0<-prevYear1-1
+WaterYearStart<-paste0(prevYear0,"-05-01")
+WaterYearEnd<-paste0(prevYear1,"-04-30")
+# Obtain a GEE image that has the accumulated precipitation
+prism.accum0<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(WaterYearStart, WaterYearEnd))$select('ppt')
+prism.accum.precip<-prism.accum0$sum()
+## Now preparing the PPT_2MoAvg variable 
+curYear.2month<-2019# Insert the value of current year here: !!!
+
+# Obtain a GEE image that has the monthly precipitation for those months where sample can occur -- in this case from February to November
+prism.1<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(paste0(curYear.2month,"-01-01"), paste0(curYear.2month,"-01-31")))$select('ppt')
+prism.2<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(paste0(curYear.2month,"-02-01"), paste0(curYear.2month,"-02-28")))$select('ppt')
+prism.3<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(paste0(curYear.2month,"-03-01"), paste0(curYear.2month,"-03-31")))$select('ppt')
+prism.4<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(paste0(curYear.2month,"-04-01"), paste0(curYear.2month,"-04-30")))$select('ppt')
+prism.5<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(paste0(curYear.2month,"-05-01"), paste0(curYear.2month,"-05-31")))$select('ppt')
+prism.6<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(paste0(curYear.2month,"-06-01"), paste0(curYear.2month,"-06-30")))$select('ppt')
+prism.7<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(paste0(curYear.2month,"-07-01"), paste0(curYear.2month,"-07-31")))$select('ppt')
+prism.8<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(paste0(curYear.2month,"-08-01"), paste0(curYear.2month,"-08-31")))$select('ppt')
+prism.9<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(paste0(curYear.2month,"-09-01"), paste0(curYear.2month,"-09-30")))$select('ppt')
+prism.10<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(paste0(curYear.2month,"-10-01"), paste0(curYear.2month,"-10-31")))$select('ppt')
+prism.11<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(paste0(curYear.2month,"-11-01"), paste0(curYear.2month,"-11-30")))$select('ppt')
+
+
+###### Define predictors 
+
 KFACT.ras<-raster("/Users/alexhernandez/Desktop/BUG_BLM/ZonalTest/GIS_Stats01/Soils/Data/kfact_usgs/w001001.adf")
 
 PMIN_WS.ras<-raster("/Users/alexhernandez/Desktop/BUG_BLM/ZonalTest/GIS_Stats01/Climate/Data/pmin_usgs/w001001.adf")
@@ -59,7 +90,7 @@ ELVmean_WS<-function(polygon2process){
   validgeometry<-st_make_valid(polygon2process)
   validgeometry$ELVmean_WS<-NA
   ptm <- proc.time()
-  for (i in 1:nrow(validgeometry)){
+  for (i in 1:10){
     tryCatch({ #if an error is found then it is printed, but the loop does not break and continues with the next iteration
       objecto<-validgeometry[i,] # Take the first feature
       elmean<-ee_extract(USGS_NED, objecto, fun = ee$Reducer$mean(), scale=30)%>% as_tibble()
@@ -73,6 +104,7 @@ ELVmean_WS<-function(polygon2process){
   return(media)
 }
 
+pechereco<-ELVmean_WS(putin)
 ELVmin_WS<-function(polygon2process){
   validgeometry<-st_make_valid(polygon2process)
   validgeometry$ELVmean_WS<-NA
