@@ -121,6 +121,21 @@ Wb_mx_area<-function(polygon2process){
   return(media)
 }
 
+Eco3_PT<-function(points2process){
+  sfobject<-geojson_sf(points2process)
+  validgeometry<-st_make_valid(sfobject)
+  myvars <- "US_L3CODE3"
+  Eco3_PT.vec <- Eco3_PT.vec[myvars]
+  validgeometry$Eco3_PT01<-st_intersection(validgeometry, Eco3_PT.vec)%>%pull(US_L3CODE)
+  validgeometry$Eco3_PT<- validgeometry %>%
+    mutate(Eco3_PT = case_when(
+      Eco3_PT01 == 23 ~ "Y",
+      Eco3_PT01 != 23 ~ "N"))%>%pull(Eco3_PT)
+  media<-as.data.frame(validgeometry$Eco3_PT)
+  colnames(media)<-"Eco3_PT"
+  return(media)
+}
+
 ########## Pure GEE ###########################
 
 
@@ -189,6 +204,65 @@ ELVmax_WS<-function(polygon2process){
   validgeometry$ELVmax_WS<-unlist(validgeometry$ELVmax_WS)
   media<-as.data.frame(validgeometry$ELVmax_WS)
   colnames(media)<-"ELVmax_WS"
+  return(media)
+}
+
+
+PPT_ACCUM_WS<-function(polygon2process){
+  sfobject<-geojson_sf(polygon2process)
+  validgeometry<-st_make_valid(sfobject)
+  validgeometry$PPT_ACCUM<-NA
+  ncolumn<-as.numeric(ncol(validgeometry))
+  ptm <- proc.time()
+  for (i in 1:nrow(validgeometry)){
+    tryCatch({ #if an error is found then it is printed, but the loop does not break and continues with the next iteration
+      objecto<-validgeometry[i,] # Take the first feature
+      pcpacum.extraction<-ee_extract(prism.accum.precip, objecto, fun = ee$Reducer$mean(), scale=50)%>% as_tibble()
+      pcpacum.extraction<-pcpacum.extraction[,ncolumn]# because the tibble is a long list of attributes 
+      validgeometry[[ncolumn]][i]<-pcpacum.extraction
+    },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})  
+  }
+  proc.time() - ptm
+  validgeometry$PPT_ACCUM<-unlist(validgeometry$PPT_ACCUM)
+  media<-as.data.frame(validgeometry$PPT_ACCUM)
+  colnames(media)<-"PPT_ACCUM"
+  return(media)
+}
+
+PPT_2MoAvg_WS<-function(polygon2process){
+  sfobject<-geojson_sf(polygon2process)
+  validgeometry<-st_make_valid(sfobject)
+  validgeometry$dates<-as.Date(validgeometry$SampleDate, "%m/%d/%y")
+  validgeometry$julian <- yday(validgeometry$dates)
+  validgeometry$PPT_2MoAvg<-NA
+  ncolumn<-as.numeric(ncol(validgeometry))
+  ncol.julian<-as.numeric(which(colnames(validgeometry) == "julian"))
+  ptm <- proc.time()
+  for (i in 1:nrow(validgeometry)){
+    tryCatch({ #if an error is found then it is printed, but the loop does not break and continues with the next iteration
+      juliandate<-validgeometry[[ncol.julian]][i] # Grab the Julian Date
+      month.cur<-as.Date(juliandate-1, origin = paste0(curYear.2month,"-01-01")) # Transform to a YYYY-MM-DD format
+      monthy.cur<-as.numeric(substr(month.cur, 6, 7)) # Estimate the CURRENT month number based on the YYYY-MM-DD format
+      monthy.pre<-monthy.cur-1 # Estimate the PREVIOUS month number based on the YYYY-MM-DD format
+      xx<-eval(parse(text = paste0("prism.",monthy.cur))) # Evaluations that are required so that a variable is recognized as such
+      xxx<-eval(parse(text = paste0("prism.",monthy.pre)))# Evaluations that are required so that a variable is recognized as such
+      objecto<-validgeometry[i,] # Take the first feature
+      pcp.extraction.cur<-ee_extract(xx, objecto, fun = ee$Reducer$mean(), scale=50)%>% as_tibble() # Compute pcp for CURRENT month
+      pcp.extraction.cur<-pcp.extraction.cur[,ncolumn]
+      pcp.extraction.pre<-ee_extract(xxx, objecto, fun = ee$Reducer$mean(), scale=50)%>% as_tibble()# Compute pcp for PREVIOUS month
+      pcp.extraction.pre<-pcp.extraction.pre[,ncolumn]
+      pcp.extraction<-((pcp.extraction.pre+pcp.extraction.cur)/2)*100 # Obtain average and multiply by 100 so it is similar to Olson
+      pcp.extraction<-pcp.extraction%>% as_tibble()
+      #print(site)
+      pcp.extraction<-pull(pcp.extraction)
+      print(pcp.extraction)
+      validgeometry[[ncolumn]][i]<-pcp.extraction
+    },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})  
+  }
+  proc.time() - ptm
+  validgeometry$PPT_2MoAvg<-unlist(validgeometry$PPT_2MoAvg)
+  media<-as.data.frame(validgeometry$PPT_2MoAvg)
+  colnames(media)<-"PPT_2MoAvg"
   return(media)
 }
 
@@ -437,20 +511,6 @@ PT_Tmin_PT<-function(points2process){
   return(media)
 }
 
-Eco3_PT<-function(points2process){
-  sfobject<-geojson_sf(points2process)
-  validgeometry<-st_make_valid(sfobject)
-  myvars <- "US_L3CODE3"
-  Eco3_PT.vec <- Eco3_PT.vec[myvars]
-  validgeometry$Eco3_PT01<-st_intersection(validgeometry, Eco3_PT.vec)%>%pull(US_L3CODE)
-  validgeometry$Eco3_PT<- validgeometry %>%
-    mutate(Eco3_PT = case_when(
-      Eco3_PT01 == 23 ~ "Y",
-      Eco3_PT01 != 23 ~ "N"))%>%pull(Eco3_PT)
-  media<-as.data.frame(validgeometry$Eco3_PT)
-  colnames(media)<-"Eco3_PT"
-  return(media)
-}
 
 
 
