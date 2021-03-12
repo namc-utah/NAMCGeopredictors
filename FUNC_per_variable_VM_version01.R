@@ -56,14 +56,23 @@ prism.11<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(pa
 
 ###### Define predictors stored in-house
 ## Climate !!!
-TMIN_WS.ras<-raster(here("/Climate/Data/tmin_oldtntp","w001001.adf"))
-PT_Tmin.ras<-raster(here("/Climate/Data/tmin_usgs","w001001.adf"))
+TMIN_WS.ras<-raster(here("/Climate/Data/tmin_oldtntp","w001001.adf")) 
+TMIN_UT_WS.ras<-raster(here("/Climate/Data/tmin_usgs","w001001.adf"))# UTDEQ version
+#PT_Tmin.ras<-raster(here("/Climate/Data/tmin_usgs","w001001.adf"))
+#TMIN_AVE.ras<-raster(here("/Climate/Data/tmin_usgs","w001001.adf"))# UTDEQ version
 KFACT.ras<-raster(here("/Soils/Data/kfact_usgs","w001001.adf"))
 PMIN_WS.ras<-raster(here("/Climate/Data/pmin_usgs","w001001.adf"))
-RH_WS.ras<-raster(here("/Climate/Data/rhmean_usgs","w001001.adf"))
-TMAX_WS.ras<-raster(here("/Climate/Data/tmax_usgs","w001001.adf"))
+RH_WS.ras<-raster(here("/Climate/Data/rhmean_usgs","w001001.adf"))# UTDEQ version is RH_AVE
+TMAX_WS.ras<-raster(here("/Climate/Data/tmax_usgs","w001001.adf")) # UTDEQ version is TMAX_AVE
 TMEAN_WS.ras<-raster(here("/Climate/Data/tmean_usgs","w001001.adf"))
+TMEAN_UT_WS.ras<-raster(here("/Climate/Data/tmean_usgsut","w001001.adf"))# UTDEQ version
 XWD_WS.ras<-raster(here("/Climate/Data/xwd_usgs","w001001.adf"))
+MEANP_WS.ras<-raster(here("/Climate/Data/meanp_usgs","w001001.adf"))# UTDEQ version
+MAXP_WS.ras<-raster(here("/Climate/Data/pmax_usgs","w001001.adf"))# UTDEQ version
+MAXWD_WS.ras<-raster(here("/Climate/Data/Wdmax_usgs","w001001.adf"))# UTDEQ version
+FST32F_WS.ras<-raster(here("/Climate/Data/fstfrz_usgs","w001001.adf"))# UTDEQ version
+
+
 
 ## Atmosphere !!!
 AtmCa.ras<-raster(here("/Atmos/Data/atm_ca","w001001.adf"))
@@ -77,7 +86,7 @@ Vol_ave.ras<-raster(here("/Geology/Data/vol","w001001.adf"))
 alru_dom.ras<-raster(here("/Vegetation/Data/alru_domrec","w001001.adf"))
 Evergr_ave.ras<-raster(here("/Vegetation/Data/evergr","w001001.adf"))
 EVI_AveAve.ras<-raster(here("/Vegetation/Data/evi_ave","w001001.adf"))
-
+EVI_MAX_AVE.ras<-raster(here("/Vegetation/Data/evi_max_10b.tif"))# UTDEQ version
 CaO_Mean.ras<-raster(here("/Geology/Data/cao_19jan10","w001001.adf"))
 TP_Mean.ras<-raster(here("/Geology/Data/p_19jan10","w001001.adf"))
 AWC_soil.ras<-raster(here("/Soils/Data/awc","w001001.adf"))
@@ -314,6 +323,70 @@ TMEAN_WS<-function(polygon2process){
   return(media)
 }
 
+TMEAN_UT_WS<-function(polygon2process){
+  sfobject<-geojson_sf(polygon2process)
+  validgeometry<-st_make_valid(sfobject)
+  validgeometry$TMEAN_UT_WS<-exact_extract(TMEAN_UT_WS.ras,validgeometry,'mean')
+  media<-as.data.frame(validgeometry$TMEAN_UT_WS)
+  colnames(media)<-"TMEAN_UT_WS"
+  return(media)
+}
+
+TMIN_UT_WS<-function(polygon2process){
+  sfobject<-geojson_sf(polygon2process)
+  validgeometry<-st_make_valid(sfobject)
+  validgeometry$TMIN_UT_WS<-exact_extract(TMIN_UT_WS.ras,validgeometry,'mean')
+  media<-as.data.frame(validgeometry$TMIN_UT_WS)
+  colnames(media)<-"TMIN_UT_WS"
+  return(media)
+}
+
+MEANP_WS<-function(polygon2process){
+  sfobject<-geojson_sf(polygon2process)
+  validgeometry<-st_make_valid(sfobject)
+  validgeometry$MEANP_WS<-exact_extract(MEANP_WS.ras,validgeometry,'mean')
+  media<-as.data.frame(validgeometry$MEANP_WS)
+  colnames(media)<-"MEANP_WS"
+  return(media)
+}
+
+MAXP_WS<-function(polygon2process){
+  sfobject<-geojson_sf(polygon2process)
+  validgeometry<-st_make_valid(sfobject)
+  validgeometry$MAXP_WS<-exact_extract(MAXP_WS.ras,validgeometry,'mean')
+  media<-as.data.frame(validgeometry$MAXP_WS)
+  colnames(media)<-"MAXP_WS"
+  return(media)
+}
+
+MAXWD_WS<-function(polygon2process){
+  sfobject<-geojson_sf(polygon2process)
+  validgeometry<-st_make_valid(sfobject)
+  validgeometry$MAXWD_WS<-exact_extract(MAXWD_WS.ras,validgeometry,'mean')
+  media<-as.data.frame(validgeometry$MAXWD_WS)
+  colnames(media)<-"MAXWD_WS"
+  return(media)
+}
+
+FST32F_WS<-function(polygon2process){
+  sfobject<-geojson_sf(polygon2process)
+  validgeometry<-st_make_valid(sfobject)
+  validgeometry$FST32F_WS<-exact_extract(FST32F_WS.ras,validgeometry,'mean')
+  media<-as.data.frame(validgeometry$FST32F_WS)
+  colnames(media)<-"FST32F_WS"
+  return(media)
+}
+
+EVI_MAX_WS<-function(polygon2process){
+  sfobject<-geojson_sf(polygon2process)
+  validgeometry<-st_make_valid(sfobject)
+  validgeometry$EVI_MAX_WS<-exact_extract(EVI_MAX_AVE.ras,validgeometry,'mean')
+  media<-as.data.frame(validgeometry$EVI_MAX_WS)
+  colnames(media)<-"EVI_MAX_WS"
+  return(media)
+}
+
+
 Vol_ave_WS<-function(polygon2process){
   sfobject<-geojson_sf(polygon2process)
   validgeometry<-st_make_valid(sfobject)
@@ -331,6 +404,7 @@ TMIN_WS<-function(polygon2process){
   colnames(media)<-"TMIN_WS"
   return(media)
 }
+
 
 XWD_WS<-function(polygon2process){
   sfobject<-geojson_sf(polygon2process)
@@ -457,6 +531,47 @@ TMEAN_PT<-function(points2process){
   return(media)
 }
 
+TMEAN_UT_PT<-function(points2process){
+  sfobject<-geojson_sf(points2process)
+  validgeometry<-st_make_valid(sfobject)
+  validgeometry$TMEAN_PT<-raster::extract(TMEAN_UT_WS.ras,validgeometry)
+  media<-as.data.frame(validgeometry$TMEAN_PT)
+  colnames(media)<-"TMEAN_PT"
+  return(media)
+}
+
+# For UTDEQ this variable is called TMAX_AVE
+TMAX_PT<-function(points2process){
+  sfobject<-geojson_sf(points2process)
+  validgeometry<-st_make_valid(sfobject)
+  validgeometry$TMAX_PT<-raster::extract(TMAX_WS.ras,validgeometry)
+  media<-as.data.frame(validgeometry$TMAX_PT)
+  colnames(media)<-"TMAX_PT"
+  return(media)
+}
+
+# Extract the Lat / Long
+DD_LAT_PT<-function(points2process){
+  sfobject<-geojson_sf(points2process)
+  validgeometry<-st_make_valid(sfobject)
+  validgeometry$DD_LAT_PT<-as.data.frame(st_coordinates(validgeometry))[,2]
+  media<-as.data.frame(validgeometry$DD_LAT_PT)
+  colnames(media)<-"DD_LAT_PT"
+  return(media)
+}
+
+# Extract the Lat / Long
+DD_LON_PT<-function(points2process){
+  sfobject<-geojson_sf(points2process)
+  validgeometry<-st_make_valid(sfobject)
+  validgeometry$DD_LON_PT<-as.data.frame(st_coordinates(validgeometry))[,1]
+  media<-as.data.frame(validgeometry$DD_LON_PT)
+  colnames(media)<-"DD_LON_PT"
+  return(media)
+}
+
+
+
 PMIN_PT<-function(points2process){
   sfobject<-geojson_sf(points2process)
   validgeometry<-st_make_valid(sfobject)
@@ -520,11 +635,54 @@ pecherecopoint<-PMIN_PT(AREMP2020.WGS.json.points)
 
 
 ##### Model functions
+UTDEQ_model<-function(polygon2process, points2process){
+  inputpolys<-polygon2process
+  inputpoints<-points2process
+  REACHID<-as.data.frame(geojson_sf(inputpolys)$reachid)
+  REACHIDP<-as.data.frame(geojson_sf(inputpoints)$reachid)
+  names(REACHID)<-"REACHID"
+  names(REACHIDP)<-"REACHIDP"
+  ELVmean_WSS<-ELVmean_WS(inputpolys)
+  WSA_SQKMS<-WSA_SQKM(inputpolys)
+  TMAX_WSS<-TMAX_WSS(inputpolys)
+  TMEAN_UT_WSS<-TMEAN_UT_WS(inputpolys)
+  TMIN_UT_WSS<-TMIN_UT_WS(inputpolys)
+  RH_WSS<-RH_WS(inputpolys)
+  MEANP_WSS<-MEANP_WS(inputpolys)
+  MAXP_WSS<-MAXP_WS(inputpolys)
+  MAXWD_WSS<-MAXWD_WS(inputpolys)
+  FST32F_WSS<-FST32F_WS(inputpolys)
+  EVI_MAX_WSS<-EVI_MAX_WS(inputpolys)
+  TMEAN_WSS<-TMEAN_WS(inputpolys)
+  TMAX_PTT<-TMAX_PT(inputpoints)
+  TMEAN_PTT<-TMEAN_UT_PT(inputpoints)
+  DD_LAT_PTT<-DD_LAT_PT(inputpoints) 
+  dfpolys<-cbind(REACHID,WSA_SQKMS,ELVmean_WSS,RH_WSS,TMAX_WSS,TMEAN_WSS,TMIN_UT_WSS,MEANP_WSS,
+                 MAXP_WSS,MAXWD_WSS,FST32F_WSS,EVI_MAX_WSS)
+  dfpoints<-cbind(REACHIDP,TMAX_PTT,TMEAN_PTT,DD_LAT_PTT)
+  df2render<-merge(dfpolys, dfpoints, by.x="REACHID",by.y="REACHIDP")
+  return(df2render)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 AREMP_model<-function(polygon2process, points2process){
   inputpolys<-polygon2process
   inputpoints<-points2process
-  REACHID<-as.data.frame(geojson_sf(AREMP2020.WGS.json.simp)$reachid)
-  REACHIDP<-as.data.frame(geojson_sf(AREMP2020.WGS.json.points)$reachid)
+  REACHID<-as.data.frame(geojson_sf(inputpolys)$reachid)
+  REACHIDP<-as.data.frame(geojson_sf(inputpoints)$reachid)
   names(REACHID)<-"REACHID"
   names(REACHIDP)<-"REACHIDP"
   ELVmean_WSS<-ELVmean_WS(inputpolys)
