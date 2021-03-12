@@ -36,3 +36,19 @@ AREMP2020.WGS.points<-st_transform(AREMP2020.points, crs = 4326)
 AREMP2020.WGS.json.points<-geojson_json(AREMP2020.WGS.points)
 AREMP2020.WGS.json.simp.points<-ms_simplify(AREMP2020.WGS.json.points)
 
+############# Simulating a geojson AIM2020 #########
+
+AIM2020<-st_read("C://Temp//AIM2020//All2020Sheds.shp")
+AIM2020.WGS<-st_transform(AIMP2020, crs = 4326)
+AIM2020.WGS.json<-geojson_json(AIMP2020.WGS)
+AIM2020.WGS.json.simp<-ms_simplify(AIMP2020.WGS.json)
+# sf object to use
+sampleaim<-geojson_sf(AIM2020.WGS.json.simp)
+
+
+AIMP2020.points<-st_read("C://Temp//AIM2020//All2020Points.shp")
+AIM2020.WGS.points<-st_transform(AIM2020.points, crs = 4326)
+AIM2020.WGS.json.points<-geojson_json(AIMP2020.WGS.points)
+AIM2020.WGS.json.simp.points<-ms_simplify(AIM0.WGS.json.points)
+
+
