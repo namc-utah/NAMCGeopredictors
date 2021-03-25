@@ -50,15 +50,16 @@ Eco3_PT<-function(points2process){
 
 
 ELVmean_WS<-function(polygon2process){
-  sfobject<-geojson_sf(polygon2process)
-  validgeometry<-st_make_valid(sfobject)
+  validgeometry<-geojson_sf(polygon2process)
+  #validgeometry<-sfobject
+  #validgeometry<-st_make_valid(sfobject)
   validgeometry$ELVmean_WS<-NA
   ncolumn<-as.numeric(ncol(validgeometry))
   ptm <- proc.time()
   for (i in 1:nrow(validgeometry)){
     tryCatch({ #if an error is found then it is printed, but the loop does not break and continues with the next iteration
       objecto<-validgeometry[i,] # Take the first feature
-      elmean<-ee_extract(USGS_NED, objecto, fun = ee$Reducer$mean(), scale=30)%>% as_tibble()
+      elmean<-ee_extract(USGS_NED, objecto, fun = ee$Reducer$mean(), scale=90)%>% as_tibble()
       elmean<-elmean[,ncolumn]
       validgeometry[[ncolumn]][i]<-elmean
     },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})  
@@ -73,15 +74,15 @@ ELVmean_WS<-function(polygon2process){
 
 
 ELVmin_WS<-function(polygon2process){
-  sfobject<-geojson_sf(polygon2process)
-  validgeometry<-st_make_valid(sfobject)
+  validgeometry<-geojson_sf(polygon2process)
+  #validgeometry<-st_make_valid(sfobject)
   validgeometry$ELVmin_WS<-NA
   ncolumn<-as.numeric(ncol(validgeometry))
   ptm <- proc.time()
   for (i in 1:nrow(validgeometry)){
     tryCatch({ #if an error is found then it is printed, but the loop does not break and continues with the next iteration
       objecto<-validgeometry[i,] # Take the first feature
-      elmean<-ee_extract(USGS_NED, objecto, fun = ee$Reducer$min(), scale=30)%>% as_tibble()
+      elmean<-ee_extract(USGS_NED, objecto, fun = ee$Reducer$min(), scale=90)%>% as_tibble()
       elmean<-elmean[,ncolumn]
       validgeometry[[ncolumn]][i]<-elmean
     },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})  
@@ -198,8 +199,8 @@ PMIN_WS<-function(polygon2process){
 
 
 RH_WS<-function(polygon2process){
-  sfobject<-geojson_sf(polygon2process)
-  validgeometry<-st_make_valid(sfobject)
+  validgeometry<-geojson_sf(polygon2process)
+  #validgeometry<-st_make_valid(sfobject)
   validgeometry$RH_WS<-exact_extract(RH_WS.ras,validgeometry,'mean')
   media<-as.data.frame(validgeometry$RH_WS)
   colnames(media)<-"RH_WS"
@@ -207,8 +208,8 @@ RH_WS<-function(polygon2process){
 }
 
 TMAX_WS<-function(polygon2process){
-  sfobject<-geojson_sf(polygon2process)
-  validgeometry<-st_make_valid(sfobject)
+  validgeometry<-geojson_sf(polygon2process)
+  #validgeometry<-st_make_valid(sfobject)
   validgeometry$TMAX_WS<-exact_extract(TMAX_WS.ras,validgeometry,'mean')
   media<-as.data.frame(validgeometry$TMAX_WS)
   colnames(media)<-"TMAX_WS"
@@ -225,8 +226,8 @@ TMEAN_WS<-function(polygon2process){
 }
 
 TMEAN_UT_WS<-function(polygon2process){
-  sfobject<-geojson_sf(polygon2process)
-  validgeometry<-st_make_valid(sfobject)
+  validgeometry<-geojson_sf(polygon2process)
+  #validgeometry<-st_make_valid(sfobject)
   validgeometry$TMEAN_UT_WS<-exact_extract(TMEAN_UT_WS.ras,validgeometry,'mean')
   media<-as.data.frame(validgeometry$TMEAN_UT_WS)
   colnames(media)<-"TMEAN_UT_WS"
@@ -234,8 +235,8 @@ TMEAN_UT_WS<-function(polygon2process){
 }
 
 TMIN_UT_WS<-function(polygon2process){
-  sfobject<-geojson_sf(polygon2process)
-  validgeometry<-st_make_valid(sfobject)
+  validgeometry<-geojson_sf(polygon2process)
+  #validgeometry<-st_make_valid(sfobject)
   validgeometry$TMIN_UT_WS<-exact_extract(TMIN_UT_WS.ras,validgeometry,'mean')
   media<-as.data.frame(validgeometry$TMIN_UT_WS)
   colnames(media)<-"TMIN_UT_WS"
@@ -243,8 +244,8 @@ TMIN_UT_WS<-function(polygon2process){
 }
 
 MEANP_WS<-function(polygon2process){
-  sfobject<-geojson_sf(polygon2process)
-  validgeometry<-st_make_valid(sfobject)
+  validgeometry<-geojson_sf(polygon2process)
+  #validgeometry<-st_make_valid(sfobject)
   validgeometry$MEANP_WS<-exact_extract(MEANP_WS.ras,validgeometry,'mean')
   media<-as.data.frame(validgeometry$MEANP_WS)
   colnames(media)<-"MEANP_WS"
@@ -252,8 +253,8 @@ MEANP_WS<-function(polygon2process){
 }
 
 MAXP_WS<-function(polygon2process){
-  sfobject<-geojson_sf(polygon2process)
-  validgeometry<-st_make_valid(sfobject)
+  validgeometry<-geojson_sf(polygon2process)
+  #validgeometry<-st_make_valid(sfobject)
   validgeometry$MAXP_WS<-exact_extract(MAXP_WS.ras,validgeometry,'mean')
   media<-as.data.frame(validgeometry$MAXP_WS)
   colnames(media)<-"MAXP_WS"
@@ -261,8 +262,8 @@ MAXP_WS<-function(polygon2process){
 }
 
 MAXWD_WS<-function(polygon2process){
-  sfobject<-geojson_sf(polygon2process)
-  validgeometry<-st_make_valid(sfobject)
+  validgeometry<-geojson_sf(polygon2process)
+  #validgeometry<-st_make_valid(sfobject)
   validgeometry$MAXWD_WS<-exact_extract(MAXWD_WS.ras,validgeometry,'mean')
   media<-as.data.frame(validgeometry$MAXWD_WS)
   colnames(media)<-"MAXWD_WS"
@@ -270,8 +271,8 @@ MAXWD_WS<-function(polygon2process){
 }
 
 FST32F_WS<-function(polygon2process){
-  sfobject<-geojson_sf(polygon2process)
-  validgeometry<-st_make_valid(sfobject)
+  validgeometry<-geojson_sf(polygon2process)
+  #validgeometry<-st_make_valid(sfobject)
   validgeometry$FST32F_WS<-exact_extract(FST32F_WS.ras,validgeometry,'mean')
   media<-as.data.frame(validgeometry$FST32F_WS)
   colnames(media)<-"FST32F_WS"
@@ -279,8 +280,8 @@ FST32F_WS<-function(polygon2process){
 }
 
 EVI_MAX_WS<-function(polygon2process){
-  sfobject<-geojson_sf(polygon2process)
-  validgeometry<-st_make_valid(sfobject)
+  validgeometry<-geojson_sf(polygon2process)
+  #validgeometry<-st_make_valid(sfobject)
   validgeometry$EVI_MAX_WS<-exact_extract(EVI_MAX_AVE.ras,validgeometry,'mean')
   media<-as.data.frame(validgeometry$EVI_MAX_WS)
   colnames(media)<-"EVI_MAX_WS"
@@ -424,8 +425,8 @@ Pct_Alfi_WS<-function(polygon2process){
 ################## Point Extractions ####################
 #########################################################
 TMEAN_PT<-function(points2process){
-  sfobject<-geojson_sf(points2process)
-  validgeometry<-st_make_valid(sfobject)
+  validgeometry<-geojson_sf(points2process)
+  #validgeometry<-st_make_valid(sfobject)
   validgeometry$TMEAN_PT<-raster::extract(TMEAN_WS.ras,validgeometry)
   media<-as.data.frame(validgeometry$TMEAN_PT)
   colnames(media)<-"TMEAN_PT"
@@ -433,8 +434,8 @@ TMEAN_PT<-function(points2process){
 }
 
 TMEAN_UT_PT<-function(points2process){
-  sfobject<-geojson_sf(points2process)
-  validgeometry<-st_make_valid(sfobject)
+  validgeometry<-geojson_sf(points2process)
+  #validgeometry<-st_make_valid(sfobject)
   validgeometry$TMEAN_PT<-raster::extract(TMEAN_UT_WS.ras,validgeometry)
   media<-as.data.frame(validgeometry$TMEAN_PT)
   colnames(media)<-"TMEAN_PT"
@@ -443,8 +444,8 @@ TMEAN_UT_PT<-function(points2process){
 
 # For UTDEQ this variable is called TMAX_AVE
 TMAX_PT<-function(points2process){
-  sfobject<-geojson_sf(points2process)
-  validgeometry<-st_make_valid(sfobject)
+  validgeometry<-geojson_sf(points2process)
+  #validgeometry<-st_make_valid(sfobject)
   validgeometry$TMAX_PT<-raster::extract(TMAX_WS.ras,validgeometry)
   media<-as.data.frame(validgeometry$TMAX_PT)
   colnames(media)<-"TMAX_PT"
@@ -453,8 +454,8 @@ TMAX_PT<-function(points2process){
 
 # Extract the Lat / Long
 DD_LAT_PT<-function(points2process){
-  sfobject<-geojson_sf(points2process)
-  validgeometry<-st_make_valid(sfobject)
+  validgeometry<-geojson_sf(points2process)
+  #validgeometry<-st_make_valid(sfobject)
   validgeometry$DD_LAT_PT<-as.data.frame(st_coordinates(validgeometry))[,2]
   media<-as.data.frame(validgeometry$DD_LAT_PT)
   colnames(media)<-"DD_LAT_PT"
@@ -463,8 +464,8 @@ DD_LAT_PT<-function(points2process){
 
 # Extract the Lat / Long
 DD_LON_PT<-function(points2process){
-  sfobject<-geojson_sf(points2process)
-  validgeometry<-st_make_valid(sfobject)
+  validgeometry<-geojson_sf(points2process)
+  #validgeometry<-st_make_valid(sfobject)
   validgeometry$DD_LON_PT<-as.data.frame(st_coordinates(validgeometry))[,1]
   media<-as.data.frame(validgeometry$DD_LON_PT)
   colnames(media)<-"DD_LON_PT"

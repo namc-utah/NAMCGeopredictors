@@ -11,8 +11,9 @@ UTDEQ_model<-function(polygon2process, points2process){
   names(REACHID)<-"SITECODE"
   names(REACHIDP)<-"SITECODEP"
   ELVmean_WSS<-ELVmean_WS(inputpolys)
+  ELVmin_WSS<-ELVmin_WS(inputpolys)
   WSA_SQKMS<-WSA_SQKM(inputpolys)
-  TMAX_WSS<-TMAX_WSS(inputpolys)
+  TMAX_WSS<-TMAX_WS(inputpolys)
   TMEAN_UT_WSS<-TMEAN_UT_WS(inputpolys)
   TMIN_UT_WSS<-TMIN_UT_WS(inputpolys)
   RH_WSS<-RH_WS(inputpolys)
@@ -21,29 +22,60 @@ UTDEQ_model<-function(polygon2process, points2process){
   MAXWD_WSS<-MAXWD_WS(inputpolys)
   FST32F_WSS<-FST32F_WS(inputpolys)
   EVI_MAX_WSS<-EVI_MAX_WS(inputpolys)
-  TMEAN_WSS<-TMEAN_WS(inputpolys)
   TMAX_PTT<-TMAX_PT(inputpoints)
   TMEAN_PTT<-TMEAN_UT_PT(inputpoints)
   DD_LAT_PTT<-DD_LAT_PT(inputpoints) 
-  dfpolys<-cbind(REACHID,WSA_SQKMS,ELVmean_WSS,RH_WSS,TMAX_WSS,TMEAN_WSS,TMIN_UT_WSS,MEANP_WSS,
+  dfpolys<-cbind(REACHID,WSA_SQKMS,ELVmean_WSS,ELVmin_WSS,RH_WSS,TMAX_WSS,TMEAN_UT_WSS,TMIN_UT_WSS,MEANP_WSS,
                  MAXP_WSS,MAXWD_WSS,FST32F_WSS,EVI_MAX_WSS)
+  names(dfpolys)<-c("SITECODE","SQ_KM","ELEV_MEAN","ELEV_MIN","RH_AVE","TMAX_AVE","TMEAN_AVE","TMIN_AVE","MEANP_AVE",
+                    "MAXP_AVE","MAXWD_AVE","FST32F_AVE","EVI_MAX_AVE")
+  #dfpolys<-cbind(REACHID,ELVmean_WSS)
   dfpoints<-cbind(REACHIDP,TMAX_PTT,TMEAN_PTT,DD_LAT_PTT)
+  names(dfpoints)<-c("SITECODEP","TMAX_PT","TMEANPT","DD_LAT_Y")
   df2render<-merge(dfpolys, dfpoints, by.x="SITECODE",by.y="SITECODEP")
   return(df2render)
 }
 
 
+# ptm <- proc.time()
+# AIMtest<-UTDEQ_model(polygon2process = AIM2020.WGS.json,
+#                       points2process = AIM2020.WGS.json.points)
+# proc.time() - ptm
+
 ptm <- proc.time()
-AIMtest<-UTDEQ_model(polygon2process = AIM2020.WGS.json.simp,
-                      points2process = AIM2020.WGS.json.points)
+AIMtest01<-UTDEQ_model(polygon2process = AIM2020.WGS.json.simpkeep,
+                     points2process = AIM2020.WGS.json.points)
 proc.time() - ptm
 
+write.csv(AIMtest01,"C:/Temp/AIM2020/ALL_AIM2020_UTDEQ15Predictors.csv")
+
+# ptm <- proc.time()
+# AIMtestELEV3<-UTDEQ_model(polygon2process = AIM2020.WGS.json075.simp,
+#                      points2process = AIM2020.WGS.json.points)
+# proc.time() - ptm
+# 
+# 
+# 
+# ptm <- proc.time()
+# AIMtestELEVNOSIMP2<-UTDEQ_model(polygon2process = AIM2020.WGS.json.simpkeep,
+#                           points2process = AIM2020.WGS.json.points)
+# proc.time() - ptm
+
+
+## Let's make comparisons // get a df with results from 
+## merging the results from NOT applying st_makevalid to
+## keeping points 0.5 and NOT simplifying
+df.corrs<-merge(AIMtestELEV55, AIMtestELEVNOSIMP2, by ="SITECODE")
 
 
 
+#### Debugging
 
+checkjsonerrors<-geojson_sf(AIM2020.WGS.json050.simp)
+checkjsonerrors_valid<-st_make_valid(checkjsonerrors)
 
-
+checkjsonerrors01<-subset(checkjsonerrors, SiteCode == "CN-RV-13082")
+checkjsonerrors02<-st_make_valid(subset(checkjsonerrors, SiteCode == "CN-RV-13082"))
 
 
 
