@@ -3,7 +3,7 @@
 library(sf)
 library(raster)
 library(data.table)
-setwd("Z://GIS//GIS_Stats")
+setwd("Z://GIS/GIS_Stats")
 library(here)
 library(ggpubr)
 library(mapview)
@@ -56,7 +56,7 @@ prism.11<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(pa
 
 ###### Define predictors stored in-house
 ## Climate !!!
-TMIN_WS.ras<-raster(here("/Climate/Data/tmin_oldtntp","w001001.adf")) 
+TMIN_WS.ras<-raster(here("Climate/Data/tmin_oldtntp/w001001.adf")) 
 TMIN_UT_WS.ras<-raster(here("/Climate/Data/tmin_usgs","w001001.adf"))# UTDEQ version
 #PT_Tmin.ras<-raster(here("/Climate/Data/tmin_usgs","w001001.adf"))
 #TMIN_AVE.ras<-raster(here("/Climate/Data/tmin_usgs","w001001.adf"))# UTDEQ version
