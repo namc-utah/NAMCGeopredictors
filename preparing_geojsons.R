@@ -58,3 +58,24 @@ AIM2020.WGS.json.points<-geojson_json(AIM2020.WGS.points)
 #AIM2020.WGS.json.simp.points<-ms_simplify(AIM2020.WGS.json.points)
 
 
+############# Simulating a geojson PIBO2020 #########
+
+PIBO2020<-st_read("C://Temp//PIBO//PIBOsheds.shp")
+length(unique(PIBO2020$Sample_ID))
+PIBO2020<-PIBO2020[,13]
+PIBO2020.WGS<-st_transform(PIBO2020, crs = 4326)
+PIBO2020.WGS.json<-geojson_json(PIBO2020.WGS)
+#AIM2020.WGS.json.simp<-ms_simplify(AIM2020.WGS.json)
+PIBO2020.WGS.json.simpkeep<-ms_simplify(PIBO2020.WGS.json,keep_shapes=TRUE) # this makes sure to keep all 
+# AIM2020.WGS.json025.simp<-ms_simplify(AIM2020.WGS.json, keep = 0.25)
+# AIM2020.WGS.json035.simp<-ms_simplify(AIM2020.WGS.json, keep = 0.35)
+# AIM2020.WGS.json050.simp<-ms_simplify(AIM2020.WGS.json, keep = 0.5, keep_shapes=TRUE)
+# AIM2020.WGS.json075.simp<-ms_simplify(AIM2020.WGS.json, keep = 0.75, keep_shapes=TRUE)
+# sf object to use
+sampleaim<-geojson_sf(AIM2020.WGS.json.simp)
+
+
+PIBO2020.points<-st_read("C://Temp//PIBO//PIBOshedPts.shp")
+PIBO2020.WGS.points<-st_transform(PIBO2020.points, crs = 4326)
+PIBO2020.WGS.json.points<-geojson_json(PIBO2020.WGS.points)
+#AIM2020.WGS.json.simp.points<-ms_simplify(AIM2020.WGS.json.points)

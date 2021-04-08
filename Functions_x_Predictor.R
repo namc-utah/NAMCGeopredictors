@@ -452,6 +452,19 @@ TMAX_PT<-function(points2process){
   return(media)
 }
 
+LOG_LT_PPT_PT<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  #validgeometry<-st_make_valid(sfobject)
+  validgeometry$LOG_LT_PPT_PT<-raster::extract(MEANP_PIBO_WS.ras,validgeometry)
+  media<-as.data.frame(log10(validgeometry$LOG_LT_PPT_PT))
+  colnames(media)<-"LOG_LT_PPT_PT"
+  return(media)
+}
+  
+  
+  
+  
+
 # Extract the Lat / Long
 DD_LAT_PT<-function(points2process){
   validgeometry<-geojson_sf(points2process)

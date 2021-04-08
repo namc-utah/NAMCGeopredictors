@@ -157,7 +157,7 @@ ELVmean_WS<-function(polygon2process){
   for (i in 1:nrow(validgeometry)){
     tryCatch({ #if an error is found then it is printed, but the loop does not break and continues with the next iteration
       objecto<-validgeometry[i,] # Take the first feature
-      elmean<-ee_extract(USGS_NED, objecto, fun = ee$Reducer$mean(), scale=30)%>% as_tibble()
+      elmean<-ee_extract(USGS_NED, objecto, fun = ee$Reducer$mean(), scale=90)%>% as_tibble()
       elmean<-elmean[,ncolumn]
       validgeometry[[ncolumn]][i]<-elmean
     },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})  

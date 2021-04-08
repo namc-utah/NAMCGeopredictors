@@ -71,7 +71,7 @@ MEANP_WS.ras<-raster(here("/Climate/Data/meanp_usgs","w001001.adf"))# UTDEQ vers
 MAXP_WS.ras<-raster(here("/Climate/Data/pmax_usgs","w001001.adf"))# UTDEQ version
 MAXWD_WS.ras<-raster(here("/Climate/Data/Wdmax_usgs","w001001.adf"))# UTDEQ version
 FST32F_WS.ras<-raster(here("/Climate/Data/fstfrz_usgs","w001001.adf"))# UTDEQ version
-
+MEANP_PIBO_WS.ras<-raster(here("/Climate/Data/meanppt_pibo.tif"))# UTDEQ version)
 
 
 ## Atmosphere !!!

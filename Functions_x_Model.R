@@ -49,6 +49,49 @@ proc.time() - ptm
 
 write.csv(AIMtest01,"C:/Temp/AIM2020/ALL_AIM2020_UTDEQ15Predictors.csv")
 
+
+PIBO_model<-function(polygon2process, points2process){
+  inputpolys<-polygon2process
+  inputpoints<-points2process
+  REACHID<-as.data.frame(geojson_sf(inputpolys)$Sample_ID)
+  REACHIDP<-as.data.frame(geojson_sf(inputpoints)$Sample_ID)
+  names(REACHID)<-"Sample_ID"
+  names(REACHIDP)<-"Sample_IDP"
+  Sq_km<-WSA_SQKM(inputpolys)
+  LOG_KM2<-log10(WSA_SQKM(inputpolys))
+  TMAX_PTT<-TMAX_PT(inputpoints)
+  LOG_LT_PPT_PTT<-LOG_LT_PPT_PT(inputpoints)
+  dfpolys<-cbind(REACHID,Sq_km,LOG_KM2)
+  names(dfpolys)<-c("Sample_ID","SQ_KM","LOG_KM2")
+  #dfpolys<-cbind(REACHID,ELVmean_WSS)
+  dfpoints<-cbind(REACHIDP,TMAX_PTT,LOG_LT_PPT_PTT)
+  names(dfpoints)<-c("Sample_IDP","TMAX_PT","LOG_LT_PPT_PT")
+  df2render<-merge(dfpolys, dfpoints, by.x="Sample_ID",by.y="Sample_IDP")
+  return(df2render)
+}
+
+ptm <- proc.time()
+PIBOtest01<-PIBO_model(polygon2process = PIBO2020.WGS.json.simpkeep,
+                       points2process = PIBO2020.WGS.json.points)
+proc.time() - ptm
+
+write.csv(PIBOtest01,"C:/Temp/PIBO/ALL_PIBO2020_Predictors.csv")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # ptm <- proc.time()
 # AIMtestELEV3<-UTDEQ_model(polygon2process = AIM2020.WGS.json075.simp,
 #                      points2process = AIM2020.WGS.json.points)
