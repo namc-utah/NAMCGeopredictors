@@ -1,5 +1,5 @@
 #install.packages("remotes")
-#remotes::install_github("namc-utah/NAMCr")
+remotes::install_github("namc-utah/NAMCr",force=TRUE)
 
 library(NAMCr)
 library(sf)
@@ -11,32 +11,31 @@ library(geojsonsf)
 
 ### list of watersheds
 
-AIMCatch<-read.csv("/Users/alexhernandez/Desktop/GitHubs/NAMCGeopa/2020_AIM_sites_with_catchments.csv",header = TRUE)
+AIMCatch<-read.csv("C://Users/alex.hernandez/Documents/GitHub/NAMCGeopa/2020_AIM_sites_with_catchments.csv",header = TRUE)
 AIMCatch<-as.data.frame(AIMCatch[,1])
 
 pirin<-list()
+# Start the clock!
+ptm <- proc.time()
 for (i in 1:nrow(AIMCatch)){
   ii<-AIMCatch[i,]
   print(ii)
-  ttcpurrunga<-NAMCr::query("siteInfo", siteId=ii)
-  ttcmaje<-ttcpurrunga[["catchment"]] # Extract the geojson object from the list
-  siteident<-ttcpurrunga[["siteName"]] # Extract the site identifier
-  sfttc<-geojson_sf(ttcmaje) # convert the geojson to sf object
+  ttcobjecto<-NAMCr::query("siteInfo", siteId=ii)
+  geobjecto<-ttcobjecto[["catchment"]] # Extract the geojson object from the list
+  siteident<-ttcobjecto[["siteName"]] # Extract the site identifier
+  sfttc<-geojson_sf(geobjecto) # convert the geojson to sf object
   sfttc$nombre<-NA 
   sfttc$nombre<-siteident # add the watershed identifier as an attribute to the sf object
   pirin[[i]]<-sfttc # fill the empty list
 }
-
+# Stop the clock
+proc.time() - ptm
 
 sftotal<-do.call(rbind, pirin) # get the list components and turn them into a full sf object
 
 mapview(sftotal)
 
 
-for (i in 1:nrow(purrunga)){
-  ii<-purrunga[i,]
-  print(ii)
-}
 
 
 
