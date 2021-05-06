@@ -8,25 +8,29 @@ library(geojsonR)
 library(geo)
 library(mapview)
 library(geojsonsf)
+library(units)
 
 ### list of watersheds
 
-AIMCatch<-read.csv("C://Users/alex.hernandez/Documents/GitHub/NAMCGeopa/2020_AIM_sites_with_catchments.csv",header = TRUE)
+AIMCatch<-read.csv("/Users/alexhernandez/Desktop/GitHubs/NAMCGeopa/sites_with_catchments02.csv",header = TRUE)
 AIMCatch<-as.data.frame(AIMCatch[,1])
 
 pirin<-list()
 # Start the clock!
 ptm <- proc.time()
 for (i in 1:nrow(AIMCatch)){
-  ii<-AIMCatch[i,]
-  print(ii)
-  ttcobjecto<-NAMCr::query("siteInfo", siteId=ii)
-  geobjecto<-ttcobjecto[["catchment"]] # Extract the geojson object from the list
-  siteident<-ttcobjecto[["siteName"]] # Extract the site identifier
-  sfttc<-geojson_sf(geobjecto) # convert the geojson to sf object
-  sfttc$nombre<-NA 
-  sfttc$nombre<-siteident # add the watershed identifier as an attribute to the sf object
-  pirin[[i]]<-sfttc # fill the empty list
+  tryCatch({
+    ii<-AIMCatch[i,]
+    print(ii)
+    ttcobjecto<-NAMCr::query("siteInfo", siteId=ii)
+    geobjecto<-ttcobjecto[["catchment"]] # Extract the geojson object from the list
+    siteident<-ttcobjecto[["siteName"]] # Extract the site identifier
+    sfttc<-geojson_sf(geobjecto) # convert the geojson to sf object
+    sfttc$nombre<-NA 
+    sfttc$nombre<-siteident # add the watershed identifier as an attribute to the sf object
+    sfttc$siteID<-ii
+    pirin[[i]]<-sfttc # fill the empty list
+  },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
 }
 # Stop the clock
 proc.time() - ptm
@@ -36,10 +40,58 @@ sftotal<-do.call(rbind, pirin) # get the list components and turn them into a fu
 mapview(sftotal)
 
 
+write_sf(sftotal, "/Users/alexhernandez/Desktop/GitHubs/NAMCGeopa/May05_test.shp")
+
+#### Testing functions with catchments
+list2test<-as.data.frame(sftotal$siteID)
+
+piringo<-list()
+# Start the clock!
+ptm <- proc.time()
+for (i in 1:15){
+  tryCatch({
+    ii<-list2test[i,]
+    print(ii)
+    ttcobjecto<-NAMCr::query("siteInfo", siteId=ii)
+    geobjecto<-ttcobjecto[["catchment"]] # Extract the geojson object from the list
+    siteident<-ttcobjecto[["siteName"]] # Extract the site identifier
+    sfttc<-CaO_Mean(geobjecto) # convert the geojson to sf object
+    print(sfttc) 
+    #sfttc$nombre<-siteident # add the watershed identifier as an attribute to the sf object
+    piringo[[i]]<-sfttc # fill the empty list
+  },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
+}
+# Stop the clock
+proc.time() - ptm
 
 
+dftotal<-do.call(rbind, piringo) # get the list components and turn them into a full df object
 
 
+#### Testing functions with locations
+list2test<-as.data.frame(sftotal$siteID)
+
+piringopoint<-list()
+# Start the clock!
+ptm <- proc.time()
+for (i in 1:15){
+  tryCatch({
+    ii<-list2test[i,]
+    print(ii)
+    ttcobjecto<-NAMCr::query("siteInfo", siteId=ii)
+    geobjecto<-ttcobjecto[["location"]] # Extract the geojson object from the list
+    siteident<-ttcobjecto[["siteName"]] # Extract the site identifier
+    sfttc<-ECO4(geobjecto) # convert the geojson to sf object
+    print(sfttc) 
+    #sfttc$nombre<-siteident # add the watershed identifier as an attribute to the sf object
+    piringopoint[[i]]<-sfttc # fill the empty list
+  },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
+}
+# Stop the clock
+proc.time() - ptm
+
+
+dftotalpoint<-do.call(rbind, piringopoint) # get the list components and turn them into a full df object
 
 
 

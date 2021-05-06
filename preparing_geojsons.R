@@ -38,7 +38,8 @@ AREMP2020.WGS.json.simp.points<-ms_simplify(AREMP2020.WGS.json.points)
 
 ############# Simulating a geojson AIM2020 #########
 
-AIM2020<-st_read("C://Temp//AIM2020//All2020Sheds.shp")
+AIM2020<-st_read("C://Temp//AIM2020//All2020Sheds.shp")# line @ NAMC server
+AIM2020<-st_read("/Users/alexhernandez/Desktop/BUG_BLM/Temps/AIM2020/All2020Sheds.shp")# line @ Alex
 AIM2020<-AIM2020[,2]
 AIM2020.WGS<-st_transform(AIM2020, crs = 4326)
 AIM2020.WGS.json<-geojson_json(AIM2020.WGS)
