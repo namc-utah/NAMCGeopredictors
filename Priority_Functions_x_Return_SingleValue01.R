@@ -175,9 +175,133 @@ LOG_KM2<-function(polygon2process){
 
 LOG_LT_PPT_PT<-function(points2process){
   validgeometry<-geojson_sf(points2process)
-  media<-log10(raster::extract(MEANP_PIBO_WS.ras,validgeometry))
+  media<-log10(raster::extract(LOG_LT_PPT_PT.ras,validgeometry))
   return(media)
 }
+
+LOG_XP_PT<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  media<-log10(raster::extract(LOG_XP_PT.ras,validgeometry))
+  return(media)
+}
+
+long<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  media<-st_coordinates(validgeometry)[,1]
+  return(media)
+}
+
+Lon_Dec<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  media<-st_coordinates(validgeometry)[,1]
+  return(media)
+}
+
+LPREM_mean<-function(polygon2process){
+  validgeometry<-geojson_sf(polygon2process)
+  media<-exact_extract(LPREM_mean.ras,validgeometry,'mean')
+  return(media)
+}
+
+MAXP_AVE<-function(polygon2process){
+  validgeometry<-geojson_sf(polygon2process)
+  media<-exact_extract(MAXP_AVE.ras,validgeometry,'mean')
+  return(media)
+}
+
+MAXWD_AVE<-function(polygon2process){
+  validgeometry<-geojson_sf(polygon2process)
+  media<-exact_extract(MAXWD_AVE.ras,validgeometry,'mean')
+  return(media)
+}
+
+MEANP_AVE<-function(polygon2process){
+  validgeometry<-geojson_sf(polygon2process)
+  media<-exact_extract(MEANP_AVE.ras,validgeometry,'mean')
+  return(media)
+}
+
+MgO_Mean<-function(polygon2process){
+  validgeometry<-geojson_sf(polygon2process)
+  media<-exact_extract(MgO_Mean.ras,validgeometry,'mean')
+  return(media)
+}
+
+N_MEAN<-function(polygon2process){
+  validgeometry<-geojson_sf(polygon2process)
+  media<-exact_extract(N_MEAN.ras,validgeometry,'mean')
+  return(media)
+}
+
+New_Lat<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  media<-st_coordinates(validgeometry)[,2]
+  return(media)
+}
+
+New_Long<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  media<-st_coordinates(validgeometry)[,1]
+  return(media)
+}
+
+PCT_SEDIM<-function(polygon2process){
+  validgeometry<-geojson_sf(polygon2process)
+  validgeometry<-st_make_valid(validgeometry)
+  crs2use<-crs(PCT_SEDIM.vec)
+  validgeometry<-st_transform(validgeometry,crs=crs2use)
+  PCT_SEDIM.vec<-st_make_valid(PCT_SEDIM.vec)
+  geo01<-st_intersection(PCT_SEDIM.vec, validgeometry)
+  geo02<-st_cast(geo01, "POLYGON")
+  geo03<-geo02 %>%
+    mutate(AREA_SQKM = drop_units(st_area(geo02)/1000000))%>%# update the AREA for subsequent calculations
+    mutate(PORC = ifelse(GEOnum == 5, round(AREA_SQKM/sum(AREA_SQKM)*100,2),0))
+  geo03<-geo03%>%
+    filter(GEOLOGY=='Sedimentary')
+  media<-sum(geo03$PORC)
+  return(media)
+}
+
+Pmax_PT<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  media<-raster::extract(Pmax_WS.ras,validgeometry)
+  return(media)
+}
+
+Pmax_WS<-function(polygon2process){
+  validgeometry<-geojson_sf(polygon2process)
+  media<-exact_extract(Pmax_WS.ras,validgeometry,'mean')
+  return(media)
+}
+
+Pmin_PT<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  media<-raster::extract(PMIN_WS.ras,validgeometry)
+  return(media)
+}
+
+Pmin_WS<-function(polygon2process){
+  validgeometry<-geojson_sf(polygon2process)
+  media<-exact_extract(PMIN_WS.ras,validgeometry,'mean')
+  return(media)
+}
+
+PPT_00_09<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  media<-raster::extract(PPT_00_09.ras,validgeometry)
+  return(media)
+}
+
+PRCPSHORTW<-function(points2process, CalendarYear){
+  validgeometry<-geojson_sf(points2process)
+  WaterYearStart<-paste0(CalendarYear,"-01-01")
+  WaterYearEnd<-paste0(CalendarYear,"-12-31")
+  prism.accum0<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(WaterYearStart, WaterYearEnd))$select('ppt')
+  prism.accum.precip<-prism.accum0$sum()
+  media<-ee_extract(prism.accum.precip, validgeometry, fun = ee$Reducer$mean(), scale=4000)
+  return(media)
+}
+  
 
 
 

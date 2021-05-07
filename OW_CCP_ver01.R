@@ -97,7 +97,7 @@ Pred_input<-Pred_input[,c(1,3)] # Keep only the Temperature and Precipitation co
 Oregon.Att.F<-st_intersection(Oregon_sf_Alberss ,Pred_input)
 
 # Now let's bring the Ecoregions layer
-Ecoregion<-st_read(here("Vectors","OR_EastWest_Eco.shp"))
+Ecoregion<-st_read(here("GIS_Stats01/Metrics/Oregon/Data","OR_EastWest_Eco.shp"))
 head(Ecoregion)
 Ecoregion<-Ecoregion[,c(2,11:12)] # Keep only the EastWest column
 Ecoregion$east<-0 # Add a dummy variable that depicts 1= East, 0= West
