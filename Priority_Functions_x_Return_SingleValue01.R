@@ -1,4 +1,5 @@
 
+### For all functions use the package::function sintaxis
 
 
 #### list of functions for each predictor #######################
@@ -7,19 +8,19 @@
 ####################################################################################################
 AREA_SQKM<-function(polygon2process){
   validgeometry<-geojson_sf(polygon2process)
-  media<-drop_units(st_area(validgeometry)/1000000)
+  media<-units::drop_units(sf::st_area(validgeometry)/1000000)
   return(media)
 }
 
 BDH_AVE<-function(polygon2process){
   validgeometry<-geojson_sf(polygon2process)
-  media<-exact_extract(BDH_AVE.ras,validgeometry,'mean')
+  media<-exactextractr::exact_extract(BDH_AVE.ras,validgeometry,'mean')
   return(media)
 }
 
 BFI_WS<-function(polygon2process){
   validgeometry<-geojson_sf(polygon2process)
-  media<-exact_extract(BFI_WS.ras,validgeometry,'mean')
+  media<-exactextractr::exact_extract(BFI_WS.ras,validgeometry,'mean')
   return(media)
 }
 
@@ -31,14 +32,13 @@ CaO_Mean<-function(polygon2process){
 
 DD_LAT_Y<-function(points2process){
   validgeometry<-geojson_sf(points2process)
-  #media<-as.data.frame(st_coordinates(validgeometry))[,2]
-  media<-st_coordinates(validgeometry)[,2]
+  media<-sf::st_coordinates(validgeometry)[,2]
   return(media)
 }
 
 east<-function(points2process){
   validgeometry<-geojson_sf(points2process)
-  EcoregionWGS<-st_transform(Ecoregion, crs = 4326)
+  EcoregionWGS<-st_transform(Ecoregion, crs = 4326)# transforming the input vector to the CRS of the geojson points
   temp01<-st_intersection(validgeometry,EcoregionWGS)
   temp01$east<-0
   temp01$east[temp01$EastWest=="East"]<-1
@@ -302,7 +302,116 @@ PRCPSHORTW<-function(points2process, CalendarYear){
   return(media)
 }
   
+precip<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  myvars <- "precip_mm"
+  Pred_Input_All_USGS.vec <- Pred_Input_All_USGS.vec[myvars]
+  Pred_Input_All_USGS.vec.WGS<-st_transform(Pred_Input_All_USGS.vec, crs = 4326)
+  media<-st_intersection(validgeometry, Pred_Input_All_USGS.vec.WGS)%>%pull(precip_mm)
+  return(media)
+}
 
+PRMH_AVE<-function(polygon2process){
+  validgeometry<-geojson_sf(polygon2process)
+  media<-exact_extract(PRMH_AVE.ras,validgeometry,'mean')
+  return(media)
+}
+
+RH_AVE<-function(polygon2process){
+  validgeometry<-geojson_sf(polygon2process)
+  media<-exact_extract(RH_AVE.ras,validgeometry,'mean')
+  return(media)
+}
+
+RH_WS<-function(polygon2process){
+  validgeometry<-geojson_sf(polygon2process)
+  media<-exact_extract(RH_AVE.ras,validgeometry,'mean')
+  return(media)
+}
+
+S_Mean<-function(polygon2process){
+  validgeometry<-geojson_sf(polygon2process)
+  media<-exact_extract(S_Mean.ras,validgeometry,'mean')
+  return(media)
+}
+
+SITE_ELEV<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  media<-ee_extract(USGS_NED, validgeometry, scale=90)/10 
+  return(media)
+}
+
+SQ_KM<-function(polygon2process){
+  validgeometry<-geojson_sf(polygon2process)
+  media<-drop_units(st_area(validgeometry)/1000000)
+  return(media)
+}
+
+SQRT_TOPO<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  crs2use<-crs(SQRT_TOPO.vec)
+  AOItrans<-st_transform(validgeometry, crs2use)
+  AOI_Buffer<-st_join(AOItrans, SQRT_TOPO.vec, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
+  media<-AOI_Buffer$TOPOCV
+  return(media)
+}
+
+SumAve_P<-function(polygon2process){
+  validgeometry<-geojson_sf(polygon2process)
+  media<-exact_extract(SumAve_P.ras,validgeometry,'mean')
+  return(media)
+}
+
+SUMMER<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  crs2use<-crs(SQRT_TOPO.vec)
+  AOItrans<-st_transform(validgeometry, crs2use)
+  AOI_Buffer<-st_join(AOItrans, SUMMER.vec, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
+  media<-AOI_Buffer$summer
+  return(media)
+}
+
+temp<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  myvars <- "temp_Cx10"
+  Pred_Input_All_USGS.vec <- Pred_Input_All_USGS.vec[myvars]
+  crs2use<-crs(Pred_Input_All_USGS.vec)
+  validgeometry<-st_transform(validgeometry, crs = crs2use)
+  #Pred_Input_All_USGS.vec.WGS<-st_transform(Pred_Input_All_USGS.vec, crs = 4326)
+  media<-st_intersection(validgeometry, Pred_Input_All_USGS.vec)%>%pull(temp_Cx10)
+  return(media)
+}
+
+TEMP_00_09<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  media<-raster::extract(TEMP_00_09.ras,validgeometry)
+  return(media)
+}
+
+Tmax_PT<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  media<-raster::extract(Tmax_WS.ras,validgeometry)/10
+  return(media)
+}
+
+TMAX_PT<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  media<-raster::extract(Tmax_WS.ras,validgeometry)/10
+  return(media)
+}
+
+
+TMAX_WS<-function(polygon2process){
+  validgeometry<-geojson_sf(polygon2process)
+  media<-exact_extract(Tmax_WS.ras,validgeometry,'mean')
+  return(media)
+}
+
+TMEAN_AVE<-function(polygon2process){
+  validgeometry<-geojson_sf(polygon2process)
+  media<-exact_extract(TMEAN_AVE.ras,validgeometry,'mean')
+  return(media)
+}
 
 
 ####################################################################################################

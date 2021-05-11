@@ -91,7 +91,7 @@ Oregon_sf_Alberss$elev<-(sqrt((Oregon_sf_Alberss$elevation*3.28084)/10))
 
 # Now let's bring the Precipitation and Temperature vectors that are utilized for the OR_WCCP model
 
-Pred_input<-st_read(here("Vectors","Pred_Input_All_USGS.shp"))
+Pred_input<-st_read(here("GIS_Stats01/Metrics/Oregon/Data","Pred_Input_All_USGS.shp"))
 Pred_input<-Pred_input[,c(1,3)] # Keep only the Temperature and Precipitation columns
 ## Extract the value of precipitation and temperature at site locations
 Oregon.Att.F<-st_intersection(Oregon_sf_Alberss ,Pred_input)
