@@ -86,7 +86,7 @@ for (i in 7:20){
     ttcobjecto<-NAMCr::query("siteInfo", siteId=ii)
     geobjecto<-ttcobjecto[["catchment"]] # Extract the geojson object from the list
     siteident<-ttcobjecto[["siteName"]] # Extract the site identifier
-    sfttc<-SQ_KM(geobjecto) # convert the geojson to sf object
+    sfttc<-XWD_WS(geobjecto) # convert the geojson to sf object
     print(sfttc) 
     #sfttc$nombre<-siteident # add the watershed identifier as an attribute to the sf object
     piringo[[i]]<-sfttc # fill the empty list
@@ -105,15 +105,15 @@ list2test<-as.data.frame(sftotal$siteID)
 piringopoint<-list()
 # Start the clock!
 ptm <- proc.time()
-for (i in c(377, 228, 296, 549, 241, 543, 408, 401, 334, 406)){
-#for (i in 1:17){
+#for (i in c(377, 228, 296, 549, 241, 543, 408, 401, 334, 406)){
+for (i in 1:25){
   tryCatch({
     ii<-list2test[i,]
     print(ii)
     ttcobjecto<-NAMCr::query("siteInfo", siteId=ii)
     geobjecto<-ttcobjecto[["location"]] # Extract the geojson object from the list
     siteident<-ttcobjecto[["siteName"]] # Extract the site identifier
-    sfttc<-SQRT_TOPO(geobjecto) # convert the geojson to sf object
+    sfttc<-PT_Tmin(geobjecto) # convert the geojson to sf object
     print(sfttc) 
     #sfttc$nombre<-siteident # add the watershed identifier as an attribute to the sf object
     piringopoint[[i]]<-sfttc # fill the empty list
@@ -168,8 +168,39 @@ dftotalpoint<-do.call(rbind, piringopoint) # get the list components and turn th
 
 
 
+##### PRISM complex vars ############
+
+piringopoint<-list()
+# Start the clock!
+ptm <- proc.time()
+for (i in 1:100){
+  tryCatch({
+    ii<-SampleDateCatch[i,]
+    print(ii)
+    ttcobjecto01<-NAMCr::query('sampleInfo', sampleId=ii)
+    sampledate<-ttcobjecto01[["sampleDate"]] # grab the sample date from the list
+    sampledate2<-as.Date(sampledate, format = "%Y-%m-%d")
+    sampledate3<-lubridate::yday(sampledate2)# Julian Date
+    siteID<-ttcobjecto01[["siteId"]]
+    print(str(sampledate2))
+    print(sampledate3)
+    Year<-as.numeric(substr(sampledate, start = 1, stop = 4)) # Current Year
+    print(str(Year))
+    print(siteID)
+    ttcobjecto<-NAMCr::query("siteInfo", siteId=siteID)
+    geobjecto<-ttcobjecto[["catchment"]] # Extract the geojson object from the list
+    siteident<-ttcobjecto[["siteName"]] # Extract the site identifier
+    sfttc<-PPT_ACCUM(geobjecto,Year) # convert the geojson to sf object
+    print(paste0("the pcp is...",sfttc))
+    #sfttc$nombre<-siteident # add the watershed identifier as an attribute to the sf object
+    piringopoint[[i]]<-sfttc # fill the empty list
+  },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})
+}
+# Stop the clock
+proc.time() - ptm
 
 
+dftotalpoint<-do.call(rbind, piringopoint) # get the list components and turn them into a full df object
 
 ############################################################################
 ############################################################################
