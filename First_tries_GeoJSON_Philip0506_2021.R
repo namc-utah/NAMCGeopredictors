@@ -105,15 +105,15 @@ list2test<-as.data.frame(sftotal$siteID)
 piringopoint<-list()
 # Start the clock!
 ptm <- proc.time()
-#for (i in c(377, 228, 296, 549, 241, 543, 408, 401, 334, 406)){
-for (i in 1:17){
+for (i in c(377, 228, 296, 549, 241, 543, 408, 401, 334, 406)){
+#for (i in 1:17){
   tryCatch({
     ii<-list2test[i,]
     print(ii)
     ttcobjecto<-NAMCr::query("siteInfo", siteId=ii)
     geobjecto<-ttcobjecto[["location"]] # Extract the geojson object from the list
     siteident<-ttcobjecto[["siteName"]] # Extract the site identifier
-    sfttc<-Tmax_PT(geobjecto) # convert the geojson to sf object
+    sfttc<-SQRT_TOPO(geobjecto) # convert the geojson to sf object
     print(sfttc) 
     #sfttc$nombre<-siteident # add the watershed identifier as an attribute to the sf object
     piringopoint[[i]]<-sfttc # fill the empty list

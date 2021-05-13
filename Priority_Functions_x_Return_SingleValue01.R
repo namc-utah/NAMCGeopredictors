@@ -346,7 +346,10 @@ SQ_KM<-function(polygon2process){
   media<-drop_units(st_area(validgeometry)/1000000)
   return(media)
 }
-
+#################################################
+### These are VERY LARGE vector datasets --- I am inclined to query what is needed directly from disk 
+### as opposed to load the entire vectors in memory
+### Regular version of a function that works with an object loaded to memory
 SQRT_TOPO<-function(points2process){
   validgeometry<-geojson_sf(points2process)
   crs2use<-crs(SQRT_TOPO.vec)
@@ -356,12 +359,29 @@ SQRT_TOPO<-function(points2process){
   return(media)
 }
 
+#### Super fast version - loads into memory ONLY WHAT is strictly necessary
+SQRT_TOPO<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  AOItrans<-st_transform(validgeometry, 5070) # must use the same EPSG as in the shapefile
+  AOItrans_wkt <- AOItrans %>% 
+    st_geometry() %>% # convert to sfc
+    st_buffer(150) %>% # buffer 150 meters
+    st_as_text() # convert to well known text
+  SQRT_TOPO.vec<-st_read(here("GIS_Stats01/Metrics/Colorado/Data","SQRT_TOPO6703.shp"), wkt_filter = AOItrans_wkt)
+  AOI_Buffer<-st_join(AOItrans, SQRT_TOPO.vec, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
+  media<-AOI_Buffer$TOPOCV
+  return(media)
+}
+#################################################
 SumAve_P<-function(polygon2process){
   validgeometry<-geojson_sf(polygon2process)
   media<-exact_extract(SumAve_P.ras,validgeometry,'mean')
   return(media)
 }
-
+#################################################
+### These are VERY LARGE vector datasets --- I am inclined to query what is needed directly from disk 
+### as opposed to load the entire vectors in memory
+### Regular version of a function that works with an object loaded to memory
 SUMMER<-function(points2process){
   validgeometry<-geojson_sf(points2process)
   crs2use<-crs(SQRT_TOPO.vec)
@@ -371,6 +391,20 @@ SUMMER<-function(points2process){
   return(media)
 }
 
+#### Super fast version - loads into memory ONLY WHAT is strictly necessary
+SUMMER<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  AOItrans<-st_transform(validgeometry, 5070) # must use the same EPSG as in the shapefile
+  AOItrans_wkt <- AOItrans %>% 
+    st_geometry() %>% # convert to sfc
+    st_buffer(150) %>% # buffer 150 meters
+    st_as_text() # convert to well known text
+  SUMMER.vec<-st_read(here("GIS_Stats01/Metrics/Colorado/Data","summer_6703.shp"), wkt_filter = AOItrans_wkt)
+  AOI_Buffer<-st_join(AOItrans, SUMMER.vec, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
+  media<-AOI_Buffer$summer
+  return(media)
+}
+#################################################
 temp<-function(points2process){
   validgeometry<-geojson_sf(points2process)
   myvars <- "temp_Cx10"
@@ -413,6 +447,69 @@ TMEAN_AVE<-function(polygon2process){
   return(media)
 }
 
+TMEAN_PT<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  media<-raster::extract(TMEAN_WS.ras,validgeometry)
+  return(media)
+}
+
+TMEAN_WS<-function(polygon2process){
+  validgeometry<-geojson_sf(polygon2process)
+  media<-exact_extract(TMEAN_WS.ras,validgeometry,'mean')
+  return(media)
+}
+
+TMEANPT<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  media<-raster::extract(TMEAN_AVE.ras,validgeometry)
+  return(media)
+}
+
+TMIN_AVE<-function(polygon2process){
+  validgeometry<-geojson_sf(polygon2process)
+  media<-exact_extract(TMIN_AVE.ras,validgeometry,'mean')
+  return(media)
+}
+
+WDmax_WS<-function(polygon2process){
+  validgeometry<-geojson_sf(polygon2process)
+  media<-exact_extract(WDmax_WS.ras,validgeometry,'mean')
+  return(media)
+}
+
+#################################################
+### These are VERY LARGE vector datasets --- I am inclined to query what is needed directly from disk 
+### as opposed to load the entire vectors in memory
+### Regular version of a function that works with an object loaded to memory
+WINTER<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  crs2use<-crs(WINTER.vec)
+  AOItrans<-st_transform(validgeometry, crs2use)
+  AOI_Buffer<-st_join(AOItrans, WINTER.vec, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
+  media<-AOI_Buffer$summer
+  return(media)
+}
+
+#### Super fast version - loads into memory ONLY WHAT is strictly necessary
+WINTER<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  AOItrans<-st_transform(validgeometry, 5070) # must use the same EPSG as in the shapefile
+  AOItrans_wkt <- AOItrans %>% 
+    st_geometry() %>% # convert to sfc
+    st_buffer(150) %>% # buffer 150 meters
+    st_as_text() # convert to well known text
+  WINTER.vec<-st_read(here("GIS_Stats01/Metrics/Colorado/Data","winter_6703.shp"), wkt_filter = AOItrans_wkt)
+  AOI_Buffer<-st_join(AOItrans, WINTER.vec, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
+  media<-AOI_Buffer$winter
+  return(media)
+}
+#################################################
+
+WSA_SQKM<-function(polygon2process){
+  validgeometry<-geojson_sf(polygon2process)
+  media<-drop_units(st_area(validgeometry)/1000000)
+  return(media)
+}
 
 ####################################################################################################
 ####################################################################################################
