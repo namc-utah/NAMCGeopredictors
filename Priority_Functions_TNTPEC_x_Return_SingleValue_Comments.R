@@ -7,6 +7,18 @@
 ####################################################################################################
 ####################################################################################################
 
+#' Percent of Alru landcover in the watershed
+#' This functions takes the GIS_Stats/Vegetation/Data/alru_dom dataset
+#' First it obtains the area in hectares --> drop_units(st_area(validgeometry)/10000) <-- for the watershed
+#' Then it obtains zonal statistics - the number of pixels of alru_dom -->exact_extract(alru_dom.ras,validgeometry,'count') <--
+#' Because each pixel is 30m it calculates the area of alru_dom by multiplying the count * 0.09 and then divides by the area to 
+#' obtain percentage
+#' @param polygon2process this is a geojson string for the watershed
+#' The geojson is converted to an object of type sf -->validgeometry<-geojson_sf(polygon2process)<--
+#' @return this functions returns one value which is the percentage of alru_dom
+#' @export
+#'
+#' @examples
 alru_dom<-function(polygon2process){
   validgeometry<-geojson_sf(polygon2process)
   validgeometry$AREAHA<-drop_units(st_area(validgeometry)/10000)
@@ -15,42 +27,104 @@ alru_dom<-function(polygon2process){
   return(media)
 }
 
+#' Area of the watershed in sq km
+#' It obtains the area in square kilometers --> drop_units(st_area(validgeometry)/1000000) <-- for the watershed
+#' @param polygon2process this is a geojson string for the watershed
+#' The geojson is converted to an object of type sf -->validgeometry<-geojson_sf(polygon2process)<--
+#' @return this functions returns one value which is the area of the watershed
+#' @export
+#'
+#' @examples
 AREA_SQKM<-function(polygon2process){
   validgeometry<-geojson_sf(polygon2process)
   media<-units::drop_units(sf::st_area(validgeometry)/1000000)
   return(media)
 }
 
+#' Atmospheric calcium at the point
+#' This functions takes the GIS_Stats/Atmos/Data/atm_ca dataset
+#' it extracts the value at the point  -->raster::extract(AtmCa.ras,validgeometry) <--
+#' @param points2process this is a geojson string for the pourpoint
+#' The geojson is converted to an object of type sf -->validgeometry<-geojson_sf(points2process)<--
+#' @return this functions returns one value which is the Raster value at the point
+#' @export
+#'
+#' @examples
 AtmCa<-function(points2process){
   validgeometry<-geojson_sf(points2process)
   media<-raster::extract(AtmCa.ras,validgeometry)
   return(media)
 }
 
+#' Atmospheric Mg at the point
+#' This functions takes the GIS_Stats/Atmos/Data/atm_mg dataset
+#' it extracts the value at the point  -->raster::extract(AtmMg.ras,validgeometry) <--
+#' @param points2process this is a geojson string for the pourpoint
+#' The geojson is converted to an object of type sf -->validgeometry<-geojson_sf(points2process)<--
+#' @return this functions returns one value which is the Raster value at the point
+#' @export
+#'
+#' @examples
 AtmMg<-function(points2process){
   validgeometry<-geojson_sf(points2process)
   media<-raster::extract(AtmMg.ras,validgeometry)
   return(media)
 }
 
+#' Atmospheric Na at the point
+#' This functions takes the GIS_Stats/Atmos/Data/atm_na dataset
+#' it extracts the value at the point  -->raster::extract(AtmNa.ras,validgeometry) <--
+#' @param points2process this is a geojson string for the pourpoint
+#' The geojson is converted to an object of type sf -->validgeometry<-geojson_sf(points2process)<--
+#' @return this functions returns one value which is the Raster value at the point
+#' @export
+#'
+#' @examples
 AtmNa<-function(points2process){
   validgeometry<-geojson_sf(points2process)
   media<-raster::extract(AtmNa.ras,validgeometry)
   return(media)
 }
 
+#' Atmospheric NO3 at the point
+#' This functions takes the GIS_Stats/Atmos/Data/atm_no3 dataset
+#' it extracts the value at the point  -->raster::extract(AtmNO3.ras,validgeometry) <--
+#' @param points2process this is a geojson string for the pourpoint
+#' The geojson is converted to an object of type sf -->validgeometry<-geojson_sf(points2process)<--
+#' @return this functions returns one value which is the Raster value at the point
+#' @export
+#'
+#' @examples
 AtmNO3<-function(points2process){
   validgeometry<-geojson_sf(points2process)
   media<-raster::extract(AtmNO3.ras,validgeometry)
   return(media)
 }
 
+#' Atmospheric SO4 at the point
+#' This functions takes the GIS_Stats/Atmos/Data/atm_so4 dataset
+#' it extracts the value at the point  -->raster::extract(AtmSO4.ras,validgeometry) <--
+#' @param points2process this is a geojson string for the pourpoint
+#' The geojson is converted to an object of type sf -->validgeometry<-geojson_sf(points2process)<--
+#' @return this functions returns one value which is the Raster value at the point
+#' @export
+#'
+#' @examples
 AtmSO4<-function(points2process){
   validgeometry<-geojson_sf(points2process)
   media<-raster::extract(AtmSO4.ras,validgeometry)
   return(media)
 }
 
+#' Soil Water Capacity across the watershed
+#' This functions takes the GIS_Stats/Soils/Data/awc dataset
+#' it extracts zonal statistics mean for the watershed  -->exact_extract(AWC_soil.ras,validgeometry,'mean') <--
+#' @param polygon2process this is a geojson string for the watershed
+#' The geojson is converted to an object of type sf -->validgeometry<-geojson_sf(polygon2process)<--
+#' @return this functions returns one value which is the mean of raster cells in the watershed
+#' @export
+#'
+#' @examples
 AWC_soil<-function(polygon2process){
   validgeometry<-geojson_sf(polygon2process)
   media<-exact_extract(AWC_soil.ras,validgeometry,'mean')
