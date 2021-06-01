@@ -81,7 +81,8 @@ AtmNa.ras<-raster(here("/Atmos/Data/atm_na","w001001.adf"))
 AtmNO3.ras<-raster(here("/Atmos/Data/atm_no3","w001001.adf"))
 
 
-Eco3_PT.vec<-st_read(here("/Ecoregions/Data","Eco_Level_III_US.shp"))
+Eco3_PT.vec<-st_read(here("Ecoregion/Data/Eco_Level_III_US.shp"))
+Eco4_PT.vec<-st_read(here("Ecoregion/Data/us_eco_l4_no_st.shp"))
 Vol_ave.ras<-raster(here("/Geology/Data/vol","w001001.adf"))
 alru_dom.ras<-raster(here("/Vegetation/Data/alru_domrec","w001001.adf"))
 Evergr_ave.ras<-raster(here("/Vegetation/Data/evergr","w001001.adf"))

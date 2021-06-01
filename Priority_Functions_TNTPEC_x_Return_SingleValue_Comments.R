@@ -160,7 +160,7 @@ Db3rdbar_WS<-function(polygon2process){
 #' The st_coordinates function returns the second column [,2] which is the latitude
 #' @param points2process 
 #'
-#' @return
+#' @return this functions returns one value which is the latitude of the point
 #' @export
 #'
 #' @examples
@@ -170,6 +170,18 @@ DD_LAT_Y<-function(points2process){
   return(media)
 }
 
+#' Assess if the point falls in an eastern Oregon ecoregion
+#' database used -- GIS_Data/Metrics/Oregon/Data/OR_EastWest_Eco
+#' The function first makes sure that the ecoregion is in the same CRS as the points
+#' Then in intersects the point with the ecoregions layer and creates a column named "east"
+#' this new column is filled with 0's. The functions then assesses if the points have the
+#' attribute "East" in the "EastWest" column. If they do, then assigns a value of 1, else 0
+#' @param points2process 
+#'
+#' @return a single value 1 or 0 - 1 if the point is the eastern Oregon ecoregion, else 0
+#' @export
+#'
+#' @examples
 east<-function(points2process){
   validgeometry<-geojson_sf(points2process)
   EcoregionWGS<-st_transform(Ecoregion, crs = 4326)# transforming the input vector to the CRS of the geojson points
@@ -180,6 +192,19 @@ east<-function(points2process){
   return(media)
 }
 
+#' Eco Region level 3 (number) of the point
+#' database used GIS_Stats/Ecoregion/Data/Eco_Level_III_US.shp
+#' The functions first makes sure that only one column "US_L3CODE" is present in the attribute table
+#' by creating a subset myvars <- "US_L3CODE" / Eco3_PT.vec <- Eco3_PT.vec[myvars]
+#' Then it transforms the Eco_Level_III_US.shp so that it shares the same CRS with the points
+#' it then intersects the point with the Eco_Level_III_US.shp layer and just pulls the value for the 
+#' "US_L3CODE" attribute
+#' @param points2process 
+#'
+#' @return a single value: the ecoregion level 3 for the point
+#' @export
+#'
+#' @examples
 ECO3<-function(points2process){
   validgeometry<-geojson_sf(points2process)
   myvars <- "US_L3CODE"
@@ -190,6 +215,19 @@ ECO3<-function(points2process){
 }
 
 
+#' Eco Region level 4 of the point
+#' database used GIS_Stats/Ecoregion/Data/us_eco_l4_no_st.shp
+#' The functions first makes sure that only one column "US_L4CODE" is present in the attribute table
+#' by creating a subset myvars <- "US_L4CODE" / Eco4_PT.vec[myvars]
+#' Then it transforms the us_eco_l4_no_st.shp so that it shares the same CRS with the points
+#' it then intersects the point with the Eco_Level_III_US.shp layer and just pulls the value for the 
+#' "US_L4CODE" attribute
+#' @param points2process 
+#'
+#' @return a single value: the ecoregion level 4 value for the point
+#' @export
+#'
+#' @examples
 ECO4<-function(points2process){
   validgeometry<-geojson_sf(points2process)
   myvars <- "US_L4CODE"
@@ -199,18 +237,53 @@ ECO4<-function(points2process){
   return(media)
 }
 
+#' Mean elevation across the watershed
+#' The function requires that a Google Earth Engine GEE object be created
+#' USGS_NED National Elevation Dataset. It uses rgee ee_extract function to conduct
+#' zonal statistics. The resolution (pixel size to use) can be changed if desired by
+#' modifying scale=. Now it is using a 90x90 m pixel size
+#' @param polygon2process 
+#'
+#' @return a single value the mean elevation value for the watershed
+#' @export
+#'
+#' @examples
 ELEV_MEAN<-function(polygon2process){
   validgeometry<-geojson_sf(polygon2process)
   media<-ee_extract(USGS_NED, validgeometry, fun = ee$Reducer$mean(), scale=90)
   return(media)
 }
 
+#' Average of min elevation in the watershed
+#' The function requires that a Google Earth Engine GEE object be created
+#' USGS_NED National Elevation Dataset. It uses rgee ee_extract function to conduct
+#' zonal statistics. The resolution (pixel size to use) can be changed if desired by
+#' modifying scale=. Now it is using a 90x90 m pixel size
+#' @param polygon2process 
+#'
+#' @return a single value the minimum elevation value for the watershed
+#' @export
+#'
+#' @examples
 ELEV_MIN<-function(polygon2process){
   validgeometry<-geojson_sf(polygon2process)
   media<-ee_extract(USGS_NED, validgeometry, fun = ee$Reducer$min(), scale=90)
   return(media)
 }
 
+#' Range between max and min elevations
+#' The function requires that a Google Earth Engine GEE object be created
+#' USGS_NED National Elevation Dataset. It uses rgee ee_extract function to conduct
+#' zonal statistics. The resolution (pixel size to use) can be changed if desired by
+#' modifying scale=. Now it is using a 90x90 m pixel size.
+#' The function first obtains the max elevation in the watershed, and then the minimum and finally
+#' it obtains the difference between the two values
+#' @param polygon2process 
+#'
+#' @return a single value, the elevation range in the watershed
+#' @export
+#'
+#' @examples
 ELEV_RANGE<-function(polygon2process){
   validgeometry<-geojson_sf(polygon2process)
   max<-ee_extract(USGS_NED, validgeometry, fun = ee$Reducer$max(), scale=90)
@@ -219,12 +292,38 @@ ELEV_RANGE<-function(polygon2process){
   return(media)
 }
 
+#' Elevation of the point
+#' The function requires that a Google Earth Engine GEE object be created
+#' USGS_NED National Elevation Dataset. It uses rgee ee_extract function to conduct
+#' zonal statistics. The resolution (pixel size to use) can be changed if desired by
+#' modifying scale=. Now it is using a 90x90 m pixel size.
+#' The rgee function ee_extract is used here without fun = ee$Reducer$min,mean,max()
+#' argument since it only needs the information at the point
+#' @param points2process 
+#'
+#' @return a single value which is the elevation at the point
+#' @export
+#'
+#' @examples
 ELEV_SITE<-function(points2process){
   validgeometry<-geojson_sf(points2process)
   media<-ee_extract(USGS_NED, validgeometry, scale=90)/10 
   return(media)
 }
 
+#' Square root of elevation at the point
+#' The function requires that a Google Earth Engine GEE object be created
+#' USGS_NED National Elevation Dataset. It uses rgee ee_extract function to conduct
+#' zonal statistics. The resolution (pixel size to use) can be changed if desired by
+#' modifying scale=. Now it is using a 90x90 m pixel size.
+#' the function first extracts the elevation at the point. This elevation is then divided by
+#' 10 and then the square root is extracted
+#' @param points2process 
+#'
+#' @return a single value which is the square root of the elevation at the point
+#' @export
+#'
+#' @examples
 elev_sqrt<-function(points2process){
   validgeometry<-geojson_sf(points2process)
   elevation<-ee_extract(USGS_NED, validgeometry, scale=90)
@@ -232,12 +331,40 @@ elev_sqrt<-function(points2process){
   return(media)
 }
 
+#' Mean elevation across the watershed
+#' The function requires that a Google Earth Engine GEE object be created
+#' USGS_NED National Elevation Dataset. It uses rgee ee_extract function to conduct
+#' zonal statistics. The resolution (pixel size to use) can be changed if desired by
+#' modifying scale=. Now it is using a 90x90 m pixel size.
+#' 
+#' @param polygon2process 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 ELEV_WS<-function(polygon2process){
   validgeometry<-geojson_sf(polygon2process)
   media<-ee_extract(USGS_NED, validgeometry, fun = ee$Reducer$mean(), scale=90)/100
   return(media)
 }
 
+#' Elevation coefficient of variation at the point
+#' The function requires that a Google Earth Engine GEE object be created
+#' USGS_NED National Elevation Dataset. It uses rgee ee_extract function to conduct
+#' zonal statistics. The resolution (pixel size to use) can be changed if desired by
+#' modifying scale=. Now it is using a 90x90 m pixel size.
+#' The function first makes sure that the point has a CRS information in meters
+#' because the st_buffer function does not work well with decimal degrees
+#' it then creates a area of influence AOI around the point of 150 meters (buffer). 
+#' Extracts the mean and the standard deviation of the elevation within this AOI, and then
+#' it calculates the coefficient of variation
+#' @param points2process 
+#'
+#' @return a single value, the coefficient of variation of elevation in an 150 m buffer around the point
+#' @export
+#'
+#' @examples
 ELVcv_PT<-function(points2process){
   validgeometry<-geojson_sf(points2process)
   AOI<-st_buffer(st_transform(validgeometry, 6703),150)
@@ -265,6 +392,21 @@ ELVmin_WS<-function(polygon2process){
   return(media)
 }
 
+#' Is the level 3 ecoregion number 23?  (Y or N)
+#' databased used GIS_Stats/Ecoregion/Data/Eco_Level_III_US.shp
+#' The point is first transformed to a CRS in meters
+#' The functions then makes sure that only one column "US_L3CODE" is present in the attribute table
+#' by creating a subset myvars <- "US_L3CODE" / Eco3_PT.vec[myvars]
+#' 
+#' Then it intersects the point with the Eco_Level_III_US.shp layer and just pulls the value for the 
+#' "US_L3CODE" attribute. A new column "ER13" is created whereby if the intersected value is 23 then it 
+#' will be populated with "Y", else it will be populated with "N"
+#' @param points2process 
+#'
+#' @return a single value "Y" if the ecoregion of the point is 23, "N" otherwise
+#' @export
+#'
+#' @examples
 ER13<-function(points2process){
   validgeometry<-geojson_sf(points2process)
   validgeometry<-st_transform(validgeometry, 5070)
@@ -279,6 +421,19 @@ ER13<-function(points2process){
   return(media)
 }
 
+#' Percent of Evergreen landcover in the watershed
+#' dataset used GIS_Stats/Vegetation/Data/evergr
+#' The function first obtains the watershed area in hectares drop_units(st_area(validgeometry)/10000)
+#' It then uses the exact_extract function to obtain zonal statistics for the raster, the sum of pixels within the watershed
+#' The sum is obtained because all the pixels have a value of 1. Then in converts the sum of pixels to area
+#' by multiplying 0.09 (30 x 30 m pixels equal 900 m2 equal 0.09 hectares). This value is then divided by the 
+#' area of the watershed and the percent (in decimal units is extracted)
+#' @param polygon2process 
+#'
+#' @return a single value of percent of evergreen landcover in the watershed in decimal values
+#' @export
+#'
+#' @examples
 Evergr_ave<-function(polygon2process){
   validgeometry<-geojson_sf(polygon2process)
   validgeometry$AREAHA<-drop_units(st_area(validgeometry)/10000)
@@ -288,6 +443,16 @@ Evergr_ave<-function(polygon2process){
   return(media)
 }
 
+#' Mean of Evi_ave in the watershed
+#' dataset used GIS_Stats/Vegetation/Data/evi_ave
+#' The exact_extract function is used to compute zonal statistics "mean" of the variable of interest
+#' within the spatial domain of the watershed
+#' @param polygon2process 
+#'
+#' @return a single value which is the mean value of EVI in the watershed
+#' @export
+#'
+#' @examples
 EVI_AveAve<-function(polygon2process){
   validgeometry<-geojson_sf(polygon2process)
   media<-exact_extract(EVI_AveAve.ras,validgeometry,'mean')
