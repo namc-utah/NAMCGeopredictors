@@ -32,16 +32,16 @@ ee_Initialize()
 
 # Register the points ///
 ## In this case we are trying to replicate reference predictors
-master.list<-st_read(here("Vectors","csci_reference_sites.shp"))
+master.list<-st_read(here("CSCI/CSCIsheds","CSCIpts.shp"))
 # Retaining attributes of interest: New_Lat, New_Long, siteid, StationCod
-master.list<-master.list[,c(1,2,6,11)]
+master.list<-master.list[,c(9,10,14,15)]
 
 # Read in polygons
 # Register the watersheds that are ready
 ## In this case we are trying to replicate reference predictors
-Wsheds.raw<-st_read(here("Vectors","csci_reference_catchments.shp"))
+Wsheds.raw<-st_read(here("CSCI/CSCIsheds","CSCIsheds.shp"))
 # Retaining attributes of interest:  siteid, StationC_1
-Wsheds.raw<-Wsheds.raw[,c(8,15)]
+Wsheds.raw<-Wsheds.raw[,c(14,15)]
 
 
 ## Define the projection to work throughout the project
@@ -54,6 +54,9 @@ crs2use<-crs(HUCs)
 # Project the watersheds
 Wsheds.albers<-st_transform(Wsheds.raw, crs2use)
 Points.albers<-st_transform(master.list, crs2use)
+
+Wsheds.albers<-Wsheds.raw
+Points.albers<-master.list
 
 
 ### Define the inputs that will be used for point extractions and zonal statistics
@@ -96,7 +99,7 @@ KFCT_AVE.ras<-raster(here("GIS_Stats01/Soils/Data/kfact_usgs","w001001.adf"))
 zones.albers.points2<-Points.albers # Make a copy of the object
 # Now let's extract the values at the points
 #ptm <- proc.time()
-zones.albers.points2$SITE_ELEV<-pull(ee_extract(USGS_NED, zones.albers.points2, scale=30)%>% as_tibble())/10
+zones.albers.points2$SITE_ELEV<-pull(ee_extract(x=USGS_NED, y=st_set_crs(zones.albers.points2,crs2use), scale=30)%>% as_tibble())/10
 zones.albers.points2$TEMP_00_09<-terra::extract(TEMP_00_09.ras,zones.albers.points2)
 zones.albers.points2$PPT_00_09<-terra::extract(PPT_00_09.ras,zones.albers.points2)
 
@@ -168,14 +171,14 @@ ptm <- proc.time()
 for (i in 1:nrow(Wsheds.albers)){
   tryCatch({ #if an error is found then it is printed, but the loop does not break and continues with the next iteration
     objecto<-Wsheds.albers[i,] # Take the first feature
-    elmax<-ee_extract(USGS_NED, objecto, fun = ee$Reducer$max(), scale=30)%>% as_tibble()
-    elmin<-ee_extract(USGS_NED, objecto, fun = ee$Reducer$min(), scale=30)%>% as_tibble()
+    elmax<-ee_extract(x=USGS_NED, y=st_set_crs(objecto,crs2use), fun = ee$Reducer$max(), scale=30)%>% as_tibble()
+    elmin<-ee_extract(x=USGS_NED, y=st_set_crs(objecto,crs2use), fun = ee$Reducer$min(), scale=30)%>% as_tibble()
     print(elmax)
     print(elmin)
     #slope.water<-pull(slope.water)
-    Wsheds.albers[[16]][i]<-elmax
-    Wsheds.albers[[17]][i]<-elmin
-    Wsheds.albers[[18]][i]<-(elmax - elmin)
+    Wsheds.albers[[15]][i]<-elmax
+    Wsheds.albers[[16]][i]<-elmin
+    Wsheds.albers[[17]][i]<-(elmax - elmin)
   },error=function(e){cat("ERROR :",conditionMessage(e), "\n")})  
 }
 proc.time() - ptm
@@ -202,7 +205,13 @@ points<-st_set_geometry(zones.albers.points2, NULL) # remove geometry, coerce to
 polys<-st_set_geometry(Wsheds.albers, NULL) # remove geometry, coerce to data.frame
 
 # Bring the point-based predictors
-master.deliver01<-merge(points, polys, by="siteid")
+master.deliver01<-merge(points, polys, by="reachid")
+
+# Just this time
+master.deliver01$SITE_ELEV<-master.deliver01$SITE_ELEV*10
+
+master.deliver01<-master.deliver01[,c(1:5,22,19,7,6,9,17,18,15)]
+colnames(master.deliver01[2:4])<-c("station","New_Lat","New_Long")
 
 keepvar<-c("New_Lat",    "New_Long","SITE_ELEV",  "TEMP_00_09", "PPT_00_09",   "SumAve_P",  
            "LPREM_mean", "PRMH_AVE" ,  "CaO_Mean" ,  "MgO_Mean" ,  "N_MEAN" ,    "P_MEAN",     "S_Mean",
@@ -211,7 +220,7 @@ keepvar<-c("New_Lat",    "New_Long","SITE_ELEV",  "TEMP_00_09", "PPT_00_09",   "
 ######33
 # Write the CSV
 
-write.csv(master.deliver01, here("Vectors/NV","AIM_NV_2020_EC_Predictors.csv"))
+write.csv(master.deliver01, here("CSCI/CSCI_Priority_Predictors_0319_2021.csv"))
 
 ######### To prepare correlation plots
 

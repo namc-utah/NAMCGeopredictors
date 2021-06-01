@@ -30,7 +30,7 @@ ee_Initialize()
 
 # Register the points
 
-master.list<-read.csv(here("Vectors","Sites_For_Delineation_2019F.csv"), na.strings = c("","NA"))
+master.list<-read.csv(here("Vectors/WYOEwatershed","Sites_For_Delineation_2019F.csv"), na.strings = c("","NA"))
 master.list<-subset(master.list, Bug.model =="WY")
 ## Now convert to POINT geometry
 Wy.points<- st_as_sf(master.list, coords = c("Long", "Lat"), 
@@ -38,13 +38,13 @@ Wy.points<- st_as_sf(master.list, coords = c("Long", "Lat"),
 
 ## Read in the points
 
-#Wy.points<-st_read(here("AIM2020/All2020Sheds","All2020Points.shp"))
+Wy.points<-st_read(here("Vectors/WYOEwatershed/WYOEwatershedpoint.shp"))
 #head(Wy.points)
 
 # Read in polygons
 # Register the watersheds that are ready
 
-Wsheds.raw<-st_read(here("/Users/alexhernandez/Desktop/BUG_BLM/AIM2019/Wsheds_Total_before07_Merge.shp"))
+Wsheds.raw<-st_read(here("Vectors/WYOEwatershed/WYOEwatershed.shp"))
 Wsheds.raw<-Wsheds.raw[,c(1,3)]
 ### Divide the Watersheds into Two 2 sets based on OLDUID or Current UID
 
@@ -77,7 +77,7 @@ crs2use<-crs(HUCs)
 
 ## And reproject the points and polygons
 Wy.points.albers<-st_transform(Wy.points, crs2use)
-Wy.polys.albers<-st_transform(Wsheds.att, crs2use)
+Wy.polys.albers<-st_transform(Wsheds.raw, crs2use)
 #Wy.polys.albers<-st_transform(Wy.polys, crs2use)
 
 ## Intersect the points and the bioregions - This will clip the points to the WY bioregions spatial domain
@@ -118,16 +118,16 @@ Wy.polys.albers<-drop_units(Wy.polys.albers) # remove the square area units
 # Extract only the polygons that are Bug Model = Wyoming
 #Wy.polys.albers2<-subset(Wy.polys.albers, Bug_model == "WY")
 # Create a dataframe with all available attributes
-Wy.polys.albers3<-inner_join(st_drop_geometry(Wy.polys.albers), st_drop_geometry(Wy.points.albers3), by="SiteCode")
+Wy.polys.albers3<-inner_join(st_drop_geometry(Wy.polys.albers), st_drop_geometry(Wy.points.albers2), by="id")
 
 ## Get the Log10 of Area
 Wy.polys.albers3$Log10_WatershedArea<-log10(Wy.polys.albers3$WsAreaSqKm)
 
 ### Format the output *.csv
 
-Df2export<-Wy.polys.albers3[,c(4,3,1,5,7,8,6,9:14)]
+Df2export<-Wy.polys.albers3[,c(1:5,9:12,14,17:21)]
 setnames(Df2export, old = c('Lat','Long','LAST_COUNT','Log10_WatershedArea'), new = c('LAT','LONG','BIOREGIONS_2011_modifiedCP','W_LOG'))
 
 ## EXPORT
-write.csv(Df2export,here("AIM2019_WY_Points_WYmodelpredictors.csv"))
+write.csv(Df2export,here("LocoCreek_WYmodelpredictors.csv"))
 
