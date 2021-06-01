@@ -155,6 +155,15 @@ Db3rdbar_WS<-function(polygon2process){
   return(media)
 }
 
+#' Latitude of the point
+#' This function returns the Y coordinate of the point in decimal degrees
+#' The st_coordinates function returns the second column [,2] which is the latitude
+#' @param points2process 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 DD_LAT_Y<-function(points2process){
   validgeometry<-geojson_sf(points2process)
   media<-sf::st_coordinates(validgeometry)[,2]
