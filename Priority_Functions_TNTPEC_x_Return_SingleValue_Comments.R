@@ -307,7 +307,7 @@ ELEV_RANGE<-function(polygon2process){
 #' @examples
 ELEV_SITE<-function(points2process){
   validgeometry<-geojson_sf(points2process)
-  media<-ee_extract(USGS_NED, validgeometry, scale=90)/10 
+  media<-pull(ee_extract(USGS_NED, validgeometry, scale=90)/10) #%>% as_tibble()
   return(media)
 }
 
@@ -621,6 +621,18 @@ New_Long<-function(points2process){
   return(media)
 }
 
+#' NHD Plus slope value taken from the nearest stream segment
+#' st_transform changes the CRS of the point to meters using 5070 Albers Contiguous US, now we have the point in meter (projection)
+#' Using the new object for the point in meters, a well-known text (WKT) string will be created to query the required vector predictor
+#' this WKT can be used as an argument in st_read to query a big vector shapefile or geopackages and just bring into memory the AOI
+#' i.e. like a bounding without overwhelming R
+#' Buffer the point by 200m, interest with NHD streams, extract SLOPE value
+#' @param points2process 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 NHDSLOPE<-function(points2process){
   validgeometry<-geojson_sf(points2process)
   AOItrans<-st_transform(validgeometry, 5070) # must use the same EPSG as in the shapefile
@@ -628,7 +640,7 @@ NHDSLOPE<-function(points2process){
     st_geometry() %>% # convert to sfc
     st_buffer(200) %>% # buffer 200 meters
     st_as_text() # convert to well known text
-  NHDSLOPE.vec<-st_read(here("GIS_Stats01/Metrics/Colorado/Data","NHD_West_str_ord.shp"), wkt_filter = AOItrans_wkt)
+  NHDSLOPE.vec<-st_read(here("Metrics/Colorado/Data","NHD_West_str_ord.shp"), wkt_filter = AOItrans_wkt)
   AOI_Buffer<-st_join(AOItrans, NHDSLOPE.vec, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
   media<-AOI_Buffer$SLOPE
   return(media)
@@ -823,7 +835,7 @@ SQRT_TOPO<-function(points2process){
     st_geometry() %>% # convert to sfc
     st_buffer(150) %>% # buffer 150 meters
     st_as_text() # convert to well known text
-  SQRT_TOPO.vec<-st_read(here("GIS_Stats01/Metrics/Colorado/Data","SQRT_TOPO6703.shp"), wkt_filter = AOItrans_wkt)
+  SQRT_TOPO.vec<-st_read(here("Metrics/Colorado/Data","SQRT_TOPO6703.shp"), wkt_filter = AOItrans_wkt)
   AOI_Buffer<-st_join(AOItrans, SQRT_TOPO.vec, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
   media<-AOI_Buffer$TOPOCV
   return(media)
@@ -855,7 +867,7 @@ SUMMER<-function(points2process){
     st_geometry() %>% # convert to sfc
     st_buffer(150) %>% # buffer 150 meters
     st_as_text() # convert to well known text
-  SUMMER.vec<-st_read(here("GIS_Stats01/Metrics/Colorado/Data","summer_6703.shp"), wkt_filter = AOItrans_wkt)
+  SUMMER.vec<-st_read(here("Metrics/Colorado/Data","summer_6703.shp"), wkt_filter = AOItrans_wkt)
   AOI_Buffer<-st_join(AOItrans, SUMMER.vec, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
   media<-AOI_Buffer$summer
   return(media)
@@ -988,7 +1000,7 @@ WINTER<-function(points2process){
     st_geometry() %>% # convert to sfc
     st_buffer(150) %>% # buffer 150 meters
     st_as_text() # convert to well known text
-  WINTER.vec<-st_read(here("GIS_Stats01/Metrics/Colorado/Data","winter_6703.shp"), wkt_filter = AOItrans_wkt)
+  WINTER.vec<-st_read(here("Metrics/Colorado/Data","winter_6703.shp"), wkt_filter = AOItrans_wkt)
   AOI_Buffer<-st_join(AOItrans, WINTER.vec, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
   media<-AOI_Buffer$winter
   return(media)

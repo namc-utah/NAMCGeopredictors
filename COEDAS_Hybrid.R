@@ -6,7 +6,7 @@ setwd("/Users/alexhernandez/Desktop/BUG_BLM/ZonalTest")
 set_here("/Users/alexhernandez/Desktop/BUG_BLM/ZonalTest/GIS_Stats01")
 library(mapview)
 library(data.table)
-library()
+library(sjmisc)
 
 ### Read in CO features and just keeping identifiers and sample date
 CO.Wats<-st_read(here("CO/COEDAS/MineralCrSheds.shp"))
@@ -23,8 +23,68 @@ CO.Wats.WGS.json.simpkeep<-ms_simplify(CO.Wats.WGS.json,keep_shapes=TRUE) # this
 
 
 #### variables CO model #######
-CO.model<-c("ECO3","ECO4","ELEV_SITE")
+#### variables CO model #######
+Wshed.vars<-c("alru_dom","AREA_SQKM","ELEV_MEAN", "ELEV_MIN","ELEV_RANGE","ELEV_WS",
+              "AWC_soil","BDH_AVE")            
+Point.vars<-c("ECO3","ECO4","ELEV_SITE","AtmCa","AtmMg","AtmNa","NHDSLOPE","Lat_Dec","Lon_Dec",
+              "LOG_XP_PT","SQRT_TOPO","SUMMER","WINTER")
 
+
+
+
+CO.model<-c("ECO3","ECO4","ELEV_SITE","ELEV_WS","Lat_Dec","LOG_XP_PT","Lon_Dec","NHDSLOPE",
+            "SQRT_TOPO","SUMMER","WINTER")
+
+str_contains(Point.vars,CO.model)
+
+for (j in CO.model){
+  print(str)
+  if (str_contains(Point.vars,j)){
+    print("Inside")
+  } else{
+    print("Not contained")
+  }
+}
+######################## Testing with if/else 
+
+Nested.List<-list()
+# Start the clock!
+#ptm <- proc.time()
+for (m in CO.model){
+  if (str_contains(Point.vars,m)){
+    print("Processing a point variable...")
+    Vector2Use<-CO.Points
+  } else{
+    print("Processing a watershed variable...")
+    Vector2Use<-CO.Wats
+  }
+  vari<-paste('item:',m,sep='')
+  print(paste0("Now processing variable:...",vari))
+  tmp<-list()
+  for (i in 1:5){
+    geobjecto<-Vector2Use[i,]
+    geobjecto.WGS<-st_transform(geobjecto, crs = 4326)
+    geobjecto.WGS.json<-geojson_json(geobjecto.WGS)
+    #touse<-ms_simplify(geobjecto.WGS.json,keep_shapes=TRUE)
+    touse<-geobjecto.WGS.json # for points
+    function2use<-eval(parse(text = m))
+    #print(str(function2use))
+    a<-function2use(touse)
+    #a<-pull(a) # Must pull when working with GEE assets
+    #print(a)
+    tmp[[i]]<-a
+  }
+  Nested.List[[m]]<-unlist(tmp)
+  
+}
+
+as.data.frame(do.call(cbind,Nested.List)) ### This one!
+
+
+
+
+############################################################################
+################### Works with only One set at a time#######################
 Nested.List<-list()
 # Start the clock!
 #ptm <- proc.time()
@@ -53,6 +113,42 @@ as.data.frame(do.call(cbind,Nested.List)) ### This one!
 
 
 do.call(rbind,unlist(Nested.List, recursive=FALSE)) ### This one!
+###############################################################
+
+CO.model<-c("ECO3","ECO4","ELEV_SITE")
+
+
+
+
+
+
+Nested.List<-list()
+# Start the clock!
+#ptm <- proc.time()
+for (m in CO.model){
+  vari<-paste('item:',m,sep='')
+  print(paste0("Now processing variable:...",vari))
+  tmp<-list()
+  for (i in 1:5){
+    geobjecto<-CO.Points[i,]
+    geobjecto.WGS<-st_transform(geobjecto, crs = 4326)
+    geobjecto.WGS.json<-geojson_json(geobjecto.WGS)
+    #touse<-ms_simplify(geobjecto.WGS.json,keep_shapes=TRUE)
+    touse<-geobjecto.WGS.json # for points
+    function2use<-eval(parse(text = m))
+    #print(str(function2use))
+    a<-function2use(touse)
+    #a<-pull(a) # Must pull when working with GEE assets
+    #print(a)
+    tmp[[i]]<-a
+  }
+  Nested.List[[m]]<-unlist(tmp)
+  
+}
+
+###############################3
+
+
 
 
 unlist(Nested.List, recursive=TRUE,use.names = TRUE)
