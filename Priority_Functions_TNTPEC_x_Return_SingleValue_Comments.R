@@ -483,6 +483,18 @@ GW_P_Sp_Mx<-function(polygon2process){
   return(media)
 }
 
+HV_UPPERPLATTE<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  validgeometry<-st_transform(validgeometry, 5070)
+  biovar<-"LAST_COUNT"
+  WYBio<-Wy.bioregions2[biovar]
+  tempinter<-st_intersection(validgeometry, WYBio)
+  tempinter$HV_UPPERPLATTE<-0
+  tempinter$HV_UPPERPLATTE[tempinter$LAST_COUNT == "HIGH VALLEYS"]<-1
+  media<-tempinter$HV_UPPERPLATTE
+  return(media)
+}
+
 HYDR_WS<-function(polygon2process){
   validgeometry<-geojson_sf(polygon2process)
   media<-exact_extract(HYDR_WS.ras,validgeometry,'mean')
@@ -600,6 +612,18 @@ MINP_WS<-function(polygon2process){
 MINWD_WS<-function(polygon2process){
   validgeometry<-geojson_sf(polygon2process)
   media<-exact_extract(MINWD_WS.ras,validgeometry,'mean')
+  return(media)
+}
+
+MRE<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  validgeometry<-st_transform(validgeometry, 5070)
+  biovar<-"LAST_COUNT"
+  WYBio<-Wy.bioregions2[biovar]
+  tempinter<-st_intersection(validgeometry, WYBio)
+  tempinter$MRE<-0
+  tempinter$MRE[tempinter$LAST_COUNT == "BLACK HILLS"]<-1
+  media<-tempinter$MRE
   return(media)
 }
 
@@ -797,11 +821,50 @@ S_Mean<-function(polygon2process){
   return(media)
 }
 
+SFRL<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  validgeometry<-st_transform(validgeometry, 5070)
+  biovar<-"LAST_COUNT"
+  WYBio<-Wy.bioregions2[biovar]
+  tempinter<-st_intersection(validgeometry, WYBio)
+  tempinter$SFRL<-0
+  tempinter$SFRL[tempinter$LAST_COUNT == "S WY FH & LARAMIE RANGE"]<-1
+  media<-tempinter$SFRL
+  return(media)
+}
+
 SITE_ELEV<-function(points2process){
   validgeometry<-geojson_sf(points2process)
   media<-ee_extract(USGS_NED, validgeometry, scale=90)/10 
   return(media)
 }
+
+Slope_WS<-function(polygon2process){
+  validgeometry<-geojson_sf(polygon2process)
+  validgeobuf<-st_buffer(st_transform(validgeometry, 5072), 300) # transforming to CRS of NV D8 point Flow Direction
+  write_sf(st_transform(validgeometry, 5072), here("wat.shp"))
+  write_sf(validgeobuf,here("buffer_wat.shp"))
+  inputD8<-here("NVMod/NVFLD8.tif")
+  outputD8<-here("NVMod/NVFLD8_crop3.tif")
+  reproD8<-gdalUtils::gdalwarp(srcfile =outputD8, dstfile = destD8, t_srs = '+proj=aea +lat_0=23 +lon_0=-96 +lat_1=29.5 +lat_2=45.5 +x_0=0 +y_0=0 +datum=NAD83 +units=m +no_defs')
+  outputFL<-here("NVMod/NVFL_crop6.tif")
+  inputwat<-here("wat.shp")
+  inputpoly2crop<-here("buffer_wat.shp")
+  destD8<-here("NVMod/NVFLD8_cropCRS.tif")
+  destD8flow<-here("NVMod/NVFLD8Flow_crop.tif")
+  destD8stream<-here("NVMod/NVFLD8Stream_crop.tif")
+  #whitebox::wbt_clip_raster_to_polygon(input = inputD8, polygons = inputpoly2crop, output = outputD8) # clip the DF8 to the watershed bounds
+  whitebox::wbt_d8_flow_accumulation(outputD8, destD8flow, out_type="cells", pntr = TRUE, esri_pntr = TRUE) #
+  whitebox::wbt_extract_streams(destD8flow, destD8stream, threshold=5000.0)
+  whitebox::wbt_downslope_flowpath_length(d8_pntr = outputD8,output = outputFL, watersheds = inputwat )
+  media<-exact_extract(SOC.ras,validgeometry,'mean')
+  return(media)
+}
+
+mask<-st_read(inputpoly2crop)
+ptm <- proc.time()
+writeRaster(raster::crop(raster::mask(rastrillo, mask),extent(mask)),datatype='INT1U',overwrite=TRUE,filename = here("NVMod/NVFLD8_crop3.tif"))
+proc.time() - ptm
 
 SOC<-function(polygon2process){
   validgeometry<-geojson_sf(polygon2process)
@@ -841,6 +904,20 @@ SQRT_TOPO<-function(points2process){
   return(media)
 }
 #################################################
+SR_BIGHORNS<-function(points2process){
+  validgeometry<-geojson_sf(points2process)
+  validgeometry<-st_transform(validgeometry, 5070)
+  biovar<-"LAST_COUNT"
+  WYBio<-Wy.bioregions2[biovar]
+  tempinter<-st_intersection(validgeometry, WYBio)
+  tempinter$SR_BIGHORNS<-0
+  tempinter$SR_BIGHORNS[tempinter$LAST_COUNT == "SOUTHERN ROCKIES"|
+                        tempinter$LAST_COUNT == "BIGHORN BASIN FOOTHILLS"|
+                        tempinter$LAST_COUNT == "WB - BIGHORN BASIN"]<-1
+  media<-tempinter$SR_BIGHORNS
+  return(media)
+}
+
 SumAve_P<-function(polygon2process){
   validgeometry<-geojson_sf(polygon2process)
   media<-exact_extract(SumAve_P.ras,validgeometry,'mean')

@@ -14,6 +14,7 @@ CO.Points<-st_read(here("CO/COEDAS/MineralCrPts.shp"))
 myvars<-c("sampleid","sampdate")
 CO.Wats<-CO.Wats[myvars]
 CO.Points<-CO.Points[myvars]
+
 ####### To GeoJson
 CO.Wats.WGS<-st_transform(CO.Wats, crs = 4326)
 CO.Wats.WGS.json<-geojson_json(CO.Wats.WGS)
@@ -34,6 +35,8 @@ Point.vars<-c("ECO3","ECO4","ELEV_SITE","AtmCa","AtmMg","AtmNa","NHDSLOPE","Lat_
 
 CO.model<-c("ECO3","ECO4","ELEV_SITE","ELEV_WS","Lat_Dec","LOG_XP_PT","Lon_Dec","NHDSLOPE",
             "SQRT_TOPO","SUMMER","WINTER")
+
+CO.model<-c("ECO3","ECO4","ELEV_SITE","ELEV_WS")
 
 str_contains(Point.vars,CO.model)
 

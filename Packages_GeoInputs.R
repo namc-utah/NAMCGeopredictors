@@ -67,7 +67,7 @@ RH_WS.ras<-raster(here("/Climate/Data/rhmean_usgs","w001001.adf"))# UTDEQ versio
 TMAX_WS.ras<-raster(here("/Climate/Data/tmax_usgs","w001001.adf")) # UTDEQ version is TMAX_AVE
 TMEAN_WS.ras<-raster(here("/Climate/Data/tmean_usgs","w001001.adf"))
 TMEAN_UT_WS.ras<-raster(here("/Climate/Data/tmean_usgsut","w001001.adf"))# UTDEQ version
-XWD_WS.ras<-raster(here("/Climate/Data/xwd_usgs","w001001.adf"))
+XWD_WS.ras<-raster(here("Climate/Data/xwd_usgs/w001001.adf"))
 MEANP_WS.ras<-raster(here("/Climate/Data/meanp_usgs","w001001.adf"))# UTDEQ version
 MAXP_WS.ras<-raster(here("/Climate/Data/pmax_usgs","w001001.adf"))# UTDEQ version
 MAXWD_WS.ras<-raster(here("/Climate/Data/Wdmax_usgs","w001001.adf"))# UTDEQ version
