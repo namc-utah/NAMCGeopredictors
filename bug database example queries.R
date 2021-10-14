@@ -17,8 +17,9 @@ samples = query("samples",projectIds=49)
 samples =query("samples",boxIds=1603)
 sites = query("sites", filter=list( 'DEERDEER-01'))
 sites=query("sites",projectIds=49)
-boxes=query("boxes")
+boxes=query("boxes",boxIds=1603)
 boxInfo=query("boxInfo",boxId=70)
+org=query("organizations",searchTerm="BLM")
 
 #create a project
 projects = query("projects")
@@ -31,10 +32,9 @@ NAMCr::save("addProjectBoxes",projectId=90,boxIds=1)
 
 #model info
 models=query("models")
-modelInfo=query("modelInfo",modelId=1)
-modelThresholds=query("modelThresholds",modelId=3)
+modelInfo=query("modelInfo",modelId=27)
+modelConditions=query("modelConditions",modelId=3)
 predictors = query("predictors")
-modelPredictors=query("modelPredictors",modelId=3)
 modelResults=query("modelResults", sampleIds=150807)
 
 
@@ -49,8 +49,8 @@ setSiteCatchment
 
 
 # general taxonomy info
-taxonomy = query("taxonomy")
-taxonomytree= query("taxonomyTree",taxonomyId=c(3718,53))
+taxonomy = query("taxonomy",searchTerm="coleopt")
+taxonomytree= query("taxonomyTree",taxonomyId=c(121))
 attributes=query("attributes") #how do we edit these? need to add new taxa table
 taxaAttributes=query("taxaAttributes",taxonomyId=69)
 translations=query("translations")
@@ -59,25 +59,42 @@ createTranslation=save("createTranslation", translationName="OTUCODE_test_JC", d
 setTranslationTaxa=save("setTranslationTaxa") # need to see format of translationTaxa first before I can test this
 deleteTranslationTaxa ## need to see format of translationTaxa first before I can test this
 setTaxonomy=save("setTaxonomy")
-
+createTaxonomy
+deleteTaxonomy
 
 #get bug data
-sampleTaxaRaw=query("sampleTaxaRaw",projectIds=49)
-sampleTaxaGeneralized=query("sampleTaxaGeneralized",boxIds=1603)
-sampleTaxaTranslation=query("sampleTaxaTranslation",sampleId=152406,translationId=3)
-sampleTaxaTranslationRarefied=query("sampleTaxaTranslationRarefied",sampleId=152406,translationId=3,fixedCount=300)
+sampleTaxa=query("sampleTaxa",sampleIds=115217)
+sampleTaxaAttributes=query("sampleTaxaAttributes",sampleIds=115217)
+sampleTaxaInfo=query("sampleTaxaInfo")
+sampleTaxaTranslation=query("sampleTaxaTranslation",sampleId=115217,translationId=3)
+sampleTaxaTranslationRarefied=query("sampleTaxaTranslationRarefied",sampleId=115217,translationId=3,fixedCount=300)
 
+#getting a dataset with raw data, OTU rolling, and taxonomy attributes so that we can manually calculate metrics
+library(dplyr)
+raw_bug_data=left_join(sampleTaxa,sampleTaxaTranslation, by='taxonomyId') 
+FFG=subset(sampleTaxaAttributes,attributeName=='FFG')
+raw_bug_data=left_join(raw_bug_data,FFG, by='taxonomyId')
+raw_bug_data=left_join(raw_bug_data,rarefiedOTUTaxa, by='taxonomyId')
+
+# get bug data spatially
 library(sf)
 tusca=st_read("C:/Users/jenni/OneDrive/Documents/tuscaroraFO.shp")
-
+library(geojsonio)
+tusca2<-st_transform(tusca, crs = 4326)
+tusca_json2=geojson_json(tusca2)
 pointTaxaRaw=query("pointTaxaRaw", latitude=41.731951,longitude=-111.748569,distance=2500)
-polygonTaxaRaw=query("polygonTaxaRaw",polygon=tusca$geometry)
+polygonTaxaRaw=query("polygonTaxaRaw",polygon=tusca_json)
+
+# bug metrics
 metrics=query("metrics")
-sampleMetrics=query("sampleMetrics",translationId=3,fixedCount=300,sampleIds=152406)
+sampleMetrics=query("sampleMetrics",translationId=3,fixedCount=300,sampleIds=c(115217))
+rarefiedOTUTaxa=subset(sampleMetrics,metricName=="Rarefied Taxa")
+rarefiedOTUTaxa = NAMCr::json.expand(rarefiedOTUTaxa, "metricValue")
 
 
 # special sample types
-fishGuts=query("fishGuts")
+fishDiet=query("fishDiet")
+fishSamples=query("fishSamples")
 massSamples=query("massSamples")
 driftSamples=query("driftSamples")
 planktonSamples=query("planktonSamples")
