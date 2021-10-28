@@ -17,7 +17,7 @@ samples = query("samples",projectIds=49)
 samples =query("samples",boxIds=1603)
 sites = query("sites", filter=list( 'DEERDEER-01'))
 sites=query("sites",projectIds=49)
-boxes=query("boxes",boxIds=1603)
+boxes=query("boxes",boxIds=2263)
 boxInfo=query("boxInfo",boxId=70)
 org=query("organizations",searchTerm="BLM")
 
@@ -65,16 +65,10 @@ deleteTaxonomy
 #get bug data
 sampleTaxa=query("sampleTaxa",sampleIds=115217)
 sampleTaxaAttributes=query("sampleTaxaAttributes",sampleIds=115217)
-sampleTaxaInfo=query("sampleTaxaInfo")
-sampleTaxaTranslation=query("sampleTaxaTranslation",sampleId=115217,translationId=3)
-sampleTaxaTranslationRarefied=query("sampleTaxaTranslationRarefied",sampleId=115217,translationId=3,fixedCount=300)
+sampleTaxaInfo=query("sampleTaxaInfo",sampleId=115217)
+sampleTaxaTranslation=query("sampleTaxaTranslation",sampleId=115217,translationId=2)
+sampleTaxaTranslationRarefied=query("sampleTaxaTranslationRarefied",sampleId=115217,translationId=2,fixedCount=300)
 
-#getting a dataset with raw data, OTU rolling, and taxonomy attributes so that we can manually calculate metrics
-library(dplyr)
-raw_bug_data=left_join(sampleTaxa,sampleTaxaTranslation, by='taxonomyId') 
-FFG=subset(sampleTaxaAttributes,attributeName=='FFG')
-raw_bug_data=left_join(raw_bug_data,FFG, by='taxonomyId')
-raw_bug_data=left_join(raw_bug_data,rarefiedOTUTaxa, by='taxonomyId')
 
 # get bug data spatially
 library(sf)
@@ -87,10 +81,16 @@ polygonTaxaRaw=query("polygonTaxaRaw",polygon=tusca_json)
 
 # bug metrics
 metrics=query("metrics")
-sampleMetrics=query("sampleMetrics",translationId=3,fixedCount=300,sampleIds=c(115217))
+sampleMetrics=query("sampleMetrics",translationId=2,fixedCount=300,sampleIds=c(115217))
 rarefiedOTUTaxa=subset(sampleMetrics,metricName=="Rarefied Taxa")
 rarefiedOTUTaxa = NAMCr::json.expand(rarefiedOTUTaxa, "metricValue")
 
+#getting a dataset with raw data, OTU rolling, and taxonomy attributes so that we can manually calculate metrics
+library(dplyr)
+raw_bug_data=left_join(sampleTaxa,sampleTaxaTranslation, by='taxonomyId') 
+FFG=subset(sampleTaxaAttributes,attributeName=='FFG')
+raw_bug_data=left_join(raw_bug_data,FFG, by='taxonomyId')
+raw_bug_data=left_join(raw_bug_data,rarefiedOTUTaxa, by='taxonomyId')
 
 # special sample types
 fishDiet=query("fishDiet")
