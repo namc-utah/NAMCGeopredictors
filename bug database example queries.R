@@ -13,12 +13,12 @@ info("samples")# replace "samples" with desired endpoint to get parameters neede
 
 
 # query site and samples by project, site, sample, box, customer, or geographic area
-samples = query("samples",projectIds=49)
+samples = query("samples",projectIds=40)
 samples =query("samples",boxIds=1603)
 sites = query("sites", filter=list( 'DEERDEER-01'))
 sites=query("sites",projectIds=49)
 boxes=query("boxes",boxIds=2263)
-boxInfo=query("boxInfo",boxId=70)
+boxInfo=query("boxInfo",boxId=2263)
 org=query("organizations",searchTerm="BLM")
 
 #create a project
