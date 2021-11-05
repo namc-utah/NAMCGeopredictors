@@ -1,11 +1,11 @@
 source("Config.R")
-
+source('precip.R')
 pred_fns = new.env( parent = emptyenv() )        
 
-pred_fns$extract_wshed_predictor <- function(polygon2process, predictor_name, predictor_raster, formula_type){
+pred_fns$extract_wshed_predictor <- function(polygon2process, predictor_name, predictor_geometry, formula_type){
   sfobject<-geojson_sf(polygon2process)
   validgeometry<-st_make_valid(sfobject)
-  validgeometry[[predictor_name]]<-exact_extract(predictor_raster,validgeometry, formula_type)
+  validgeometry[[predictor_name]]<-exact_extract(predictor_geometry,validgeometry, formula_type)
   media<-as.data.frame(validgeometry[[predictor_name]])
   colnames(media)<-predictor_name
   return(media)
@@ -22,19 +22,30 @@ pred_fns$extract_wshed_predictor <- function(polygon2process, predictor_name, pr
 #' @export
 #'
 #' @examples
-pred_fns$extract_point_predictor <- function(point2process, predictor_name, predictor_raster, ...){
+pred_fns$extract_point_predictor <- function(point2process, predictor_name, predictor_geometry, ...){
   validgeometry<-geojson_sf(point2process)
-  media<-raster::extract(predictor_raster,validgeometry)
+  media<-raster::extract(predictor_geometry,validgeometry)
   return(media)
 }
 
+SFRL<-function(point2process, predictor_name, predictor_geometry, ...){
+  validgeometry<-geojson_sf(points2process)
+  validgeometry<-st_transform(validgeometry, 5070)
+  biovar<-"LAST_COUNT"
+  WYBio<-predictor_geometry[biovar]
+  tempinter<-st_intersection(validgeometry, WYBio)
+  tempinter$predictor_name<-0
+  tempinter$predictor_name[tempinter$LAST_COUNT == "S WY FH & LARAMIE RANGE"]<-1
+  media<-tempinter$predictor_name
+  return(media)
+}
 
 pred_fns$extract_temporal_predictor <- function(polygon2process, predictor_name, predictor_raster, formula_type){
 
 
 }
 
-# 
+
 # BDH_AVE<-function(polygon2process){
 #   validgeometry<-geojsonio::geojson_sf(polygon2process)
 #   media<-exactextractr::exact_extract(BDH_AVE.ras,validgeometry,'mean')

@@ -4,7 +4,7 @@ source("PredictorFunctions.R")
 # ---------------------------------------------------------------
 # Determine sample / site to process
 # ---------------------------------------------------------------
-# 
+# function to run all samples in the database at once. API endpoint still needs developed
 process_predictors = function(){
   def_samples = NAMCr::query(
     api_endpoint = "samples2process",
@@ -15,20 +15,37 @@ process_predictors = function(){
   }
 }
 
+
+# run predictors for a box
+process_box_predictors = function(boxId) {
+  def_boxes = NAMCr::query(
+    api_endpoint = "samples",
+    include = c("sampleId"),
+    boxIds = boxId
+  )
+  
+  for (i in nrow(def_boxes)) {
+    process_sample_predictors(def_boxes[i,])
+  }
+}
+
+
+# run predictors for one sample at a time 
 process_sample_predictors = function(sampleId, config=config){
-  def_samples = NAMCr::query(
+ ### get sample info including data
+   def_samples = NAMCr::query(
     api_endpoint = "samples",
     include = c("sampleId","siteId","sampleDate"),
     sampleIds = sampleId, 
     
   )
-  
+  # getting watershed
   def_sites = NAMCr::query(
     api_endpoint = "siteInfo",
     include = c("siteId","siteName","usState","location","catchment"),
     siteId = def_samples$siteId[1]
   )
-  
+  # getting a list of needed predictors
   def_predictors = NAMCr::query(
     api_endpoint = "samplePredictorValues",
     include = c("predictorId", "status", "abbreviation","calculationScript", "isTemporal"),
@@ -37,7 +54,7 @@ process_sample_predictors = function(sampleId, config=config){
   
   def_predictors = def_predictors[def_predictors$status != "Valid", ]
   
-  
+
   # def_sites_models = NAMCr::query(
   #   api_endpoint = "siteModels",
   #   include = c("siteId", "modelId"),
@@ -103,7 +120,13 @@ process_sample_predictors = function(sampleId, config=config){
   #unique_rasters = unique( def_predictors$raster_name )
   
   for(uPredictor in def_predictors){
-    pred_rasters[[ uPredictor$abbreviation ]] = raster( paste0(config$raster_base_path, config[[def_predictors$abbreviation]]) )
+    if ( !grepl(".shp",config[[def_predictors$abbreviation]])){
+      pred_geometries[[ uPredictor$abbreviation ]] = raster( paste0(config$pred_geometry_base_path, config[[def_predictors$abbreviation]]) )
+    } else {
+      pred_geometries[[ uPredictor$abbreviation ]] = st_read(paste0(config$pred_geometry_base_path, config[[def_predictors$abbreviation]]))
+      pred_geometries[[ uPredictor$abbreviation ]] = st_make_valid( pred_geometries[[ uPredictor$abbreviation ]]) # Fix invalid polygon geometries
+    } 
+    
   }
   
   # ---------------------------------------------------------------
@@ -120,7 +143,7 @@ process_sample_predictors = function(sampleId, config=config){
         polygon2process =  def_sites$catchment[1] ,
         point2process =  def_sites$location[1] ,
         predictor_name = def_predictors$abbreviation[ iPred ],
-        predictor_raster = pred_rasters[[ def_predictors$abbreviation[ iPred ] ]],
+        predictor_geometry = pred_geometries[[ def_predictors$abbreviation[ iPred ] ]],
         formula_type = config$formula_type[[ def_predictors$abbreviation[ iPred ]]]
       )
     )
