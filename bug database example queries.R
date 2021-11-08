@@ -34,7 +34,7 @@ NAMCr::save("addProjectBoxes",projectId=90,boxIds=1)
 models=query("models")
 modelInfo=query("modelInfo",modelId=27)
 modelConditions=query("modelConditions",modelId=3)
-predictors = query("predictors")
+predictors = query("predictors", modelId=3)
 modelResults=query("modelResults", sampleIds=150807)
 
 

@@ -474,7 +474,7 @@ temp<-function(points2process,predictor_geometry, ...){
 }
 
 
-TMAX_PT<-function(points2process,predictor_geometry, ...){
+Tmax_PT<-function(points2process,predictor_geometry, ...){
   validgeometry<-geojson_sf(points2process)
   media<-raster::extract(predictor_geometry,validgeometry)/10
   return(media)
@@ -663,4 +663,25 @@ ptm <- proc.time()
 writeRaster(raster::crop(raster::mask(rastrillo, mask),extent(mask)),datatype='INT1U',overwrite=TRUE,filename = here("NVMod/NVFLD8_crop3.tif"))
 proc.time() - ptm
 
-
+slpavg <- function(polygon2process) {
+  zones.Albers.3 <- zones.Albers.2[, c(1:4)]
+  #Wsheds.att.OLD$PPT_ACCUM<-NA
+  zones.Albers.3$SlopeGEE <- NA
+  
+  for (i in 1:nrow(zones.Albers.3)) {
+    tryCatch({
+      #if an error is found then it is printed, but the loop does not break and continues with the next iteration
+      objecto <- zones.Albers.3[i, ] # Take the first feature
+      slope.water <-
+        ee_extract(slopegee.perc,
+                   objecto,
+                   fun = ee$Reducer$mean(),
+                   scale = 30) %>% as_tibble()
+      print(slope.water)
+      slope.water <- pull(slope.water)
+      zones.Albers.3[[6]][i] <- slope.water
+    }, error = function(e) {
+      cat("ERROR :", conditionMessage(e), "\n")
+    })
+  }
+}
