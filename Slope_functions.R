@@ -16,7 +16,7 @@
 #' @export
 #'
 #' @examples
-NHDSLOPE<-function(points2process){
+pred_fns$NHDSLOPE<-function(points2process){
   validgeometry<-geojson_sf(points2process)
   AOItrans<-st_transform(validgeometry, 5070) # must use the same EPSG as in the shapefile
   AOItrans_wkt <- AOItrans %>% 
@@ -31,7 +31,7 @@ NHDSLOPE<-function(points2process){
 
 
 
-Slope_WS<-function(polygon2process){
+pred_fns$Slope_WS<-function(polygon2process){
   validgeometry<-geojson_sf(polygon2process)
   validgeobuf<-st_buffer(st_transform(validgeometry, 5072), 300) # transforming to CRS of NV D8 point Flow Direction
   write_sf(st_transform(validgeometry, 5072), here("wat.shp"))
@@ -58,7 +58,7 @@ ptm <- proc.time()
 writeRaster(raster::crop(raster::mask(rastrillo, mask),extent(mask)),datatype='INT1U',overwrite=TRUE,filename = here("NVMod/NVFLD8_crop3.tif"))
 proc.time() - ptm
 
-slpavg <- function(polygon2process) {
+pred_fns$slpavg <- function(polygon2process) {
   zones.Albers.3 <- zones.Albers.2[, c(1:4)]
   #Wsheds.att.OLD$PPT_ACCUM<-NA
   zones.Albers.3$SlopeGEE <- NA

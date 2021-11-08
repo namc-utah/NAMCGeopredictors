@@ -16,7 +16,7 @@
 #' @export
 #'
 #' @examples
-alru_dom<-function(polygon2process,predictor_geometry, ...){
+pred_fns$alru_dom<-function(polygon2process,predictor_geometry, ...){
   validgeometry<-geojson_sf(polygon2process)
   validgeometry$AREAHA<-drop_units(st_area(validgeometry)/10000)
   validgeometry$alru_dom_01<-exact_extract(predictor_geometry,validgeometry,'count')
@@ -38,7 +38,7 @@ alru_dom<-function(polygon2process,predictor_geometry, ...){
 #' @export
 #'
 #' @examples
-Evergr_ave<-function(polygon2process,predictor_geometry, ...){
+pred_fns$Evergr_ave<-function(polygon2process,predictor_geometry, ...){
   validgeometry<-geojson_sf(polygon2process)
   validgeometry$AREAHA<-drop_units(st_area(validgeometry)/10000)
   validgeometry$Evergr_ave_01<-exact_extract(predictor_geometry,validgeometry,'sum')

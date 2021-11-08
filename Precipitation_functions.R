@@ -3,13 +3,13 @@
 #   Precipitation   #
 
 ####################
-LOG_PRECIP_SITE<-function(points2process,predictor_geometry, ...){
+pred_fns$LOG_PRECIP_SITE<-function(points2process,predictor_geometry, ...){
   validgeometry<-geojson_sf(points2process)
   media<-log10(raster::extract(predictor_geometry,validgeometry))
   return(media)
 }
 
-PPT_2MoAvg<-function(polygon2process, CurrentYear, JulianDate){
+pred_fns$PPT_2MoAvg<-function(polygon2process, CurrentYear, JulianDate){
   validgeometry<-geojson_sf(polygon2process)
   curYear.2month<-CurrentYear
   # Obtain a GEE image that has the monthly precipitation for those months where sample can occur -- in this case from February to November
@@ -37,7 +37,7 @@ PPT_2MoAvg<-function(polygon2process, CurrentYear, JulianDate){
   return(media)
 }
 
-PPT_ACCUM<-function(points2process, CurrentYear){
+pred_fns$PPT_ACCUM<-function(points2process, CurrentYear){
   validgeometry<-geojson_sf(points2process)
   prevYear1<-CalendarYear-1
   prevYear0<-prevYear1-1
@@ -50,7 +50,7 @@ PPT_ACCUM<-function(points2process, CurrentYear){
 }
 
 
-precip<-function(points2process,predictor_geometry, ...){
+pred_fns$precip<-function(points2process,predictor_geometry, ...){
   validgeometry<-geojson_sf(points2process)
   myvars <- "precip_mm"
   Pred_Input_All_USGS.vec <- predictor_geometry[myvars]

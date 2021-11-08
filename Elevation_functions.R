@@ -16,7 +16,7 @@
 #' @export
 #'
 #' @examples
-ELVmean_WS<-function(polygon2process){
+pred_fns$ELVmean_WS<-function(polygon2process){
   validgeometry<-geojson_sf(polygon2process)
   media<-ee_extract(USGS_NED, validgeometry, fun = ee$Reducer$mean(), scale=90)
   return(media)
@@ -30,7 +30,7 @@ ELVmean_WS<-function(polygon2process){
 #' @export
 #'
 #' @examples
-ELVmean_WS_100<-function(polygon2process){
+pred_fns$ELVmean_WS_100<-function(polygon2process){
   media<-ELVmean_WS(polygon2process)/100
   return(media)
 }
@@ -53,7 +53,7 @@ ELVmax_WS<-function(polygon2process){
 #' @export
 #'
 #' @examples
-ELVmin_WS<-function(polygon2process){
+pred_fns$ELVmin_WS<-function(polygon2process){
   validgeometry<-geojson_sf(polygon2process)
   media<-ee_extract(USGS_NED, validgeometry, fun = ee$Reducer$min(), scale=90)
   return(media)
@@ -73,7 +73,7 @@ ELVmin_WS<-function(polygon2process){
 #' @export
 #'
 #' @examples
-ELEV_RANGE<-function(polygon2process){
+pred_fns$ELEV_RANGE<-function(polygon2process){
   validgeometry<-geojson_sf(polygon2process)
   max<-ee_extract(USGS_NED, validgeometry, fun = ee$Reducer$max(), scale=90)
   min<-ee_extract(USGS_NED, validgeometry, fun = ee$Reducer$min(), scale=90)
@@ -94,7 +94,7 @@ ELEV_RANGE<-function(polygon2process){
 #' @export
 #'
 #' @examples
-ELEV_SITE<-function(points2process){
+pred_fns$ELEV_SITE<-function(points2process){
   validgeometry<-geojson_sf(points2process)
   media<-ee_extract(USGS_NED, validgeometry, scale=90)/10 
   return(media)
@@ -113,7 +113,7 @@ ELEV_SITE<-function(points2process){
 #' @export
 #'
 #' @examples
-ELEV_SITE_SQRT<-function(points2process){
+pred_fns$ELEV_SITE_SQRT<-function(points2process){
   validgeometry<-geojson_sf(points2process)
   elevation<-ee_extract(USGS_NED, validgeometry, scale=90)
   media<-sqrt((elevation/10))
@@ -137,7 +137,7 @@ ELEV_SITE_SQRT<-function(points2process){
 #' @export
 #'
 #' @examples
-ELEV_SITE_CV<-function(points2process){
+pred_fns$ELEV_SITE_CV<-function(points2process){
   validgeometry<-geojson_sf(points2process)
   AOI<-st_buffer(st_transform(validgeometry, 6703),150)
   elev.mean<-ee_extract(USGS_NED, AOI, fun = ee$Reducer$mean(), scale=90)
@@ -153,7 +153,7 @@ ELEV_SITE_CV<-function(points2process){
 ### as opposed to load the entire vectors in memory
 ### Regular version of a function that works with an object loaded to memory
 # Spatial join to get the square root of topo at the point (the line shapefile is already square rooted)
-SQRT_TOPO<-function(points2process,predictor_geometry, ...){
+pred_fns$SQRT_TOPO<-function(points2process,predictor_geometry, ...){
   validgeometry<-geojson_sf(points2process)
   crs2use<-crs(predictor_geometry)
   AOItrans<-st_transform(validgeometry, crs2use)
@@ -163,7 +163,7 @@ SQRT_TOPO<-function(points2process,predictor_geometry, ...){
 }
 
 #### Super fast version - loads into memory ONLY WHAT is strictly necessary
-SQRT_TOPO<-function(points2process,predictor_geometry, ...){
+pred_fns$SQRT_TOPO<-function(points2process,predictor_geometry, ...){
   validgeometry<-geojson_sf(points2process)
   AOItrans<-st_transform(validgeometry, 5070) # must use the same EPSG as in the shapefile
   AOItrans_wkt <- AOItrans %>% 

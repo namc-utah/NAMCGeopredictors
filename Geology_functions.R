@@ -4,7 +4,7 @@
 
 ####################
 
-Pct_Alfi<-function(polygon2process,predictor_geometry, ...){
+pred_fns$Pct_Alfi<-function(polygon2process,predictor_geometry, ...){
   validgeometry<-geojson_sf(polygon2process)
   validgeometry$AREAHA<-drop_units(st_area(validgeometry)/10000)
   validgeometry$Pct_Alfi_01<-exact_extract(predictor_geometry,validgeometry,'sum')
@@ -13,7 +13,7 @@ Pct_Alfi<-function(polygon2process,predictor_geometry, ...){
   return(media)
 }
 
-PCT_SEDIM<-function(polygon2process,predictor_geometry, ...){
+pred_fns$PCT_SEDIM<-function(polygon2process,predictor_geometry, ...){
   validgeometry<-geojson_sf(polygon2process)
   validgeometry<-st_make_valid(validgeometry)
   crs2use<-crs(predictor_geometry)

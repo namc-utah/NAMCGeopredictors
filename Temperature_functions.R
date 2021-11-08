@@ -8,7 +8,7 @@
 ### These are VERY LARGE vector datasets --- I am inclined to query what is needed directly from disk 
 ### as opposed to load the entire vectors in memory
 ### Regular version of a function that works with an object loaded to memory
-SUMMER<-function(points2process,predictor_geometry, ...){
+pred_fns$SUMMER<-function(points2process,predictor_geometry, ...){
   validgeometry<-geojson_sf(points2process)
   crs2use<-crs(predictor_geometry)
   AOItrans<-st_transform(validgeometry, crs2use)
@@ -18,7 +18,7 @@ SUMMER<-function(points2process,predictor_geometry, ...){
 }
 
 #### Super fast version - loads into memory ONLY WHAT is strictly necessary
-SUMMER<-function(points2process,predictor_geometry, ...){
+pred_fns$SUMMER<-function(points2process,predictor_geometry, ...){
   validgeometry<-geojson_sf(points2process)
   AOItrans<-st_transform(validgeometry, 5070) # must use the same EPSG as in the shapefile
   AOItrans_wkt <- AOItrans %>% 
@@ -36,7 +36,7 @@ return(media)
 ### These are VERY LARGE vector datasets --- I am inclined to query what is needed directly from disk 
 ### as opposed to load the entire vectors in memory
 ### Regular version of a function that works with an object loaded to memory
-WINTER<-function(points2process,predictor_geometry, ...){
+pred_fns$WINTER<-function(points2process,predictor_geometry, ...){
   validgeometry<-geojson_sf(points2process)
   crs2use<-crs(predictor_geometry)
   AOItrans<-st_transform(validgeometry, crs2use)
@@ -46,7 +46,7 @@ WINTER<-function(points2process,predictor_geometry, ...){
 }
 
 #### Super fast version - loads into memory ONLY WHAT is strictly necessary
-WINTER<-function(points2process,predictor_geometry, ...){
+pred_fns$WINTER<-function(points2process,predictor_geometry, ...){
   validgeometry<-geojson_sf(points2process)
   AOItrans<-st_transform(validgeometry, 5070) # must use the same EPSG as in the shapefile
   AOItrans_wkt <- AOItrans %>% 
@@ -61,7 +61,7 @@ return(media)
 #################################################
 
 
-temp<-function(points2process,predictor_geometry, ...){
+pred_fns$temp<-function(points2process,predictor_geometry, ...){
   validgeometry<-geojson_sf(points2process)
   myvars <- "temp_Cx10"
   Pred_Input_All_USGS.vec <- predictor_geometry[myvars]
@@ -73,7 +73,7 @@ temp<-function(points2process,predictor_geometry, ...){
 }
 
 
-Tmax_PT<-function(points2process,predictor_geometry, ...){
+pred_fns$Tmax_PT<-function(points2process,predictor_geometry, ...){
   validgeometry<-geojson_sf(points2process)
   media<-raster::extract(predictor_geometry,validgeometry)/10
   return(media)

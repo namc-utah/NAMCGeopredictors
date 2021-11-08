@@ -15,7 +15,7 @@
 #' @export
 #'
 #' @examples
-lat<-function(points2process){
+pred_fns$lat<-function(points2process){
   validgeometry<-geojsonio::geojson_sf(points2process)
   media<-sf::st_coordinates(validgeometry)[,2]
   return(media)
@@ -23,7 +23,7 @@ lat<-function(points2process){
 
 
 #### long ####
-long<-function(points2process){
+pred_fns$long<-function(points2process){
   validgeometry<-geojsonio::geojson_sf(points2process)
   media<-sf::st_coordinates(validgeometry)[,1]
   return(media)
@@ -40,13 +40,13 @@ long<-function(points2process){
 #' @export
 #'
 #' @examples
-WSA_SQKM<-function(polygon2process){
+pred_fns$WSA_SQKM<-function(polygon2process){
   validgeometry<-geojsonio::geojson_sf(polygon2process)
   media<-drop_units(st_area(validgeometry)/1000000)
   return(media)
 }
 
-LOG_WSA_SQKM<-function(polygon2process){
+pred_fns$LOG_WSA_SQKM<-function(polygon2process){
   media<-log10(WSA_SQKM(polygon2process))
   return(media)
 }

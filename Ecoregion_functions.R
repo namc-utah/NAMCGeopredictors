@@ -17,7 +17,7 @@
 #' @export
 #'
 #' @examples
-east<-function(points2process,predictor_geometry, ...){
+pred_fns$east<-function(points2process,predictor_geometry, ...){
   validgeometry<-geojson_sf(points2process)
   EcoregionWGS<-st_transform(predictor_geometry, crs = 4326)# transforming the input vector to the CRS of the geojson points
   temp01<-st_intersection(validgeometry,EcoregionWGS)
@@ -40,7 +40,7 @@ east<-function(points2process,predictor_geometry, ...){
 #' @export
 #'
 #' @examples
-ECO3<-function(points2process,predictor_geometry, ...){
+pred_fns$ECO3<-function(points2process,predictor_geometry, ...){
   validgeometry<-geojson_sf(points2process)
   myvars <- "US_L3CODE"
   Eco3_PT.vec <- Eco3_PT.vec[myvars]
@@ -63,7 +63,7 @@ ECO3<-function(points2process,predictor_geometry, ...){
 #' @export
 #'
 #' @examples
-ECO4<-function(points2process,predictor_geometry, ...){
+pred_fns$ECO4<-function(points2process,predictor_geometry, ...){
   validgeometry<-geojson_sf(points2process)
   myvars <- "US_L4CODE"
   Eco4_PT.vec <- Eco4_PT.vec[myvars]
@@ -88,7 +88,7 @@ ECO4<-function(points2process,predictor_geometry, ...){
 #' @export
 #'
 #' @examples
-ER13<-function(points2process,predictor_geometry, ...){
+pred_fns$ER13<-function(points2process,predictor_geometry, ...){
   validgeometry<-geojson_sf(points2process)
   validgeometry<-st_transform(validgeometry, 5070)
   myvars <- "US_L3CODE"
@@ -103,7 +103,7 @@ ER13<-function(points2process,predictor_geometry, ...){
 }
 
 
-HV_UPPERPLATTE<-function(points2process,predictor_geometry, ...){
+pred_fns$HV_UPPERPLATTE<-function(points2process,predictor_geometry, ...){
   validgeometry<-geojson_sf(points2process)
   validgeometry<-st_transform(validgeometry, 5070)
   biovar<-"LAST_COUNT"
@@ -116,7 +116,7 @@ HV_UPPERPLATTE<-function(points2process,predictor_geometry, ...){
 }
 
 
-MRE<-function(points2process,predictor_geometry, ...){
+pred_fns$MRE<-function(points2process,predictor_geometry, ...){
   validgeometry<-geojson_sf(points2process)
   validgeometry<-st_transform(validgeometry, 5070)
   biovar<-"LAST_COUNT"
@@ -128,7 +128,7 @@ MRE<-function(points2process,predictor_geometry, ...){
   return(media)
 }
 
-SFLR<-function(points2process,predictor_geometry, ...){
+pred_fns$SFLR<-function(points2process,predictor_geometry, ...){
   validgeometry<-geojson_sf(points2process)
   validgeometry<-st_transform(validgeometry, 5070)
   biovar<-"LAST_COUNT"
@@ -140,7 +140,7 @@ SFLR<-function(points2process,predictor_geometry, ...){
   return(media)
 }
 
-SR_BIGHORNS<-function(points2process,predictor_geometry, ...){
+pred_fns$SR_BIGHORNS<-function(points2process,predictor_geometry, ...){
   validgeometry<-geojson_sf(points2process)
   validgeometry<-st_transform(validgeometry, 5070)
   biovar<-"LAST_COUNT"
