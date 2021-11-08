@@ -1,3 +1,10 @@
+####################
+
+#     Geometry     #
+
+####################
+
+
 ##### lat ####
 #' Latitude of the point
 #' This function returns the Y coordinate of the point in decimal degrees

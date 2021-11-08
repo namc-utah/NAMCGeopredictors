@@ -4,6 +4,10 @@ pred_fns = new.env( parent = emptyenv() )
 
 source("")
 
+
+
+
+
 #' simple watershed mean, raster used is specified in the database under the geometry_file_path
 #'
 #' @param point2process 
@@ -41,4 +45,15 @@ pred_fns$extract_point_value <- function(point2process, predictor_name, predicto
   return(media)
 }
 
+
+####################
+
+#       Day        #
+
+####################
+
+DOY <- function(JulianDate) {
+  media = JulianDate
+  return(media)
+}
 
