@@ -2,11 +2,21 @@ source("Config.R")
 
 pred_fns = new.env( parent = emptyenv() )        
 
-source("")
+source("Geometry_functions.R")
+source("Elevation_functions.R")
+source("Ecoregion_functions.R")
+source("Vegetation_functions.R")
+source("Precipitations_functions.R")
+source("Temperature_functions.R")
+source("Hydrology_functions.R")
+source("Slope_functions.R")
 
 
+#####################
 
+# Generic functions #
 
+#####################
 
 #' simple watershed mean, raster used is specified in the database under the geometry_file_path
 #'
@@ -28,6 +38,8 @@ pred_fns$extract_watershed_mean <- function(polygon2process, predictor_name, pre
   return(media)
 }
 
+
+
 #' simple point value extraction, raster used is specified in the database under the geometry_file_path
 #'
 #' @param point2process 
@@ -46,14 +58,10 @@ pred_fns$extract_point_value <- function(point2process, predictor_name, predicto
 }
 
 
-####################
 
-#       Day        #
 
-####################
-
+###### Day  ######   
 DOY <- function(JulianDate) {
   media = JulianDate
   return(media)
 }
-
