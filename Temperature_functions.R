@@ -9,9 +9,8 @@
 ### as opposed to load the entire vectors in memory
 ### Regular version of a function that works with an object loaded to memory
 pred_fns$SUMMER<-function(points2process,predictor_geometry, ...){
-  validgeometry<-geojson_sf(points2process)
   crs2use<-crs(predictor_geometry)
-  AOItrans<-st_transform(validgeometry, crs2use)
+  AOItrans<-st_transform(points2process, crs2use)
   AOI_Buffer<-st_join(AOItrans, predictor_geometry, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
   media<-AOI_Buffer$summer
   return(media)
@@ -19,8 +18,7 @@ pred_fns$SUMMER<-function(points2process,predictor_geometry, ...){
 
 #### Super fast version - loads into memory ONLY WHAT is strictly necessary
 pred_fns$SUMMER<-function(points2process,predictor_geometry, ...){
-  validgeometry<-geojson_sf(points2process)
-  AOItrans<-st_transform(validgeometry, 5070) # must use the same EPSG as in the shapefile
+   AOItrans<-st_transform(points2process, 5070) # must use the same EPSG as in the shapefile
   AOItrans_wkt <- AOItrans %>% 
     st_geometry() %>% # convert to sfc
     st_buffer(150) %>% # buffer 150 meters
@@ -37,9 +35,8 @@ return(media)
 ### as opposed to load the entire vectors in memory
 ### Regular version of a function that works with an object loaded to memory
 pred_fns$WINTER<-function(points2process,predictor_geometry, ...){
-  validgeometry<-geojson_sf(points2process)
-  crs2use<-crs(predictor_geometry)
-  AOItrans<-st_transform(validgeometry, crs2use)
+   crs2use<-crs(predictor_geometry)
+  AOItrans<-st_transform(points2process, crs2use)
   AOI_Buffer<-st_join(AOItrans, predictor_geometry, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
   media<-AOI_Buffer$summer
   return(media)
@@ -47,8 +44,7 @@ pred_fns$WINTER<-function(points2process,predictor_geometry, ...){
 
 #### Super fast version - loads into memory ONLY WHAT is strictly necessary
 pred_fns$WINTER<-function(points2process,predictor_geometry, ...){
-  validgeometry<-geojson_sf(points2process)
-  AOItrans<-st_transform(validgeometry, 5070) # must use the same EPSG as in the shapefile
+   AOItrans<-st_transform(points2process, 5070) # must use the same EPSG as in the shapefile
   AOItrans_wkt <- AOItrans %>% 
     st_geometry() %>% # convert to sfc
     st_buffer(150) %>% # buffer 150 meters
@@ -62,20 +58,18 @@ return(media)
 
 
 pred_fns$temp<-function(points2process,predictor_geometry, ...){
-  validgeometry<-geojson_sf(points2process)
-  myvars <- "temp_Cx10"
+   myvars <- "temp_Cx10"
   Pred_Input_All_USGS.vec <- predictor_geometry[myvars]
   crs2use<-crs(Pred_Input_All_USGS.vec)
-  validgeometry<-st_transform(validgeometry, crs = crs2use)
+  points2process<-st_transform(points2process, crs = crs2use)
   #Pred_Input_All_USGS.vec.WGS<-st_transform(Pred_Input_All_USGS.vec, crs = 4326)
-  media<-st_intersection(validgeometry, Pred_Input_All_USGS.vec)%>%pull(temp_Cx10)
+  media<-st_intersection(points2process, Pred_Input_All_USGS.vec)%>%pull(temp_Cx10)
   return(media)
 }
 
 
 pred_fns$Tmax_PT<-function(points2process,predictor_geometry, ...){
-  validgeometry<-geojson_sf(points2process)
-  media<-raster::extract(predictor_geometry,validgeometry)/10
+   media<-raster::extract(predictor_geometry,points2process)/10
   return(media)
 }
 

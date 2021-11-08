@@ -16,9 +16,8 @@
 #' @export
 #'
 #' @examples
-pred_fns$NHDSLOPE<-function(points2process){
-  validgeometry<-geojson_sf(points2process)
-  AOItrans<-st_transform(validgeometry, 5070) # must use the same EPSG as in the shapefile
+pred_fns$NHDSLOPE<-function(points2process,...){
+    AOItrans<-st_transform(points2process, 5070) # must use the same EPSG as in the shapefile
   AOItrans_wkt <- AOItrans %>% 
     st_geometry() %>% # convert to sfc
     st_buffer(200) %>% # buffer 200 meters
@@ -31,10 +30,9 @@ pred_fns$NHDSLOPE<-function(points2process){
 
 
 
-pred_fns$Slope_WS<-function(polygon2process){
-  validgeometry<-geojson_sf(polygon2process)
-  validgeobuf<-st_buffer(st_transform(validgeometry, 5072), 300) # transforming to CRS of NV D8 point Flow Direction
-  write_sf(st_transform(validgeometry, 5072), here("wat.shp"))
+pred_fns$Slope_WS<-function(polygon2process,...){
+    validgeobuf<-st_buffer(st_transform(polygon2process, 5072), 300) # transforming to CRS of NV D8 point Flow Direction
+  write_sf(st_transform(polygon2process, 5072), here("wat.shp"))
   write_sf(validgeobuf,here("buffer_wat.shp"))
   inputD8<-here("NVMod/NVFLD8.tif")
   outputD8<-here("NVMod/NVFLD8_crop3.tif")
@@ -49,7 +47,7 @@ pred_fns$Slope_WS<-function(polygon2process){
   whitebox::wbt_d8_flow_accumulation(outputD8, destD8flow, out_type="cells", pntr = TRUE, esri_pntr = TRUE) #
   whitebox::wbt_extract_streams(destD8flow, destD8stream, threshold=5000.0)
   whitebox::wbt_downslope_flowpath_length(d8_pntr = outputD8,output = outputFL, watersheds = inputwat )
-  media<-exact_extract(SOC.ras,validgeometry,'mean')
+  media<-exact_extract(SOC.ras,polygon2process,'mean')
   return(media)
 }
 
@@ -58,7 +56,7 @@ ptm <- proc.time()
 writeRaster(raster::crop(raster::mask(rastrillo, mask),extent(mask)),datatype='INT1U',overwrite=TRUE,filename = here("NVMod/NVFLD8_crop3.tif"))
 proc.time() - ptm
 
-pred_fns$slpavg <- function(polygon2process) {
+pred_fns$slpavg <- function(polygon2process,...) {
   zones.Albers.3 <- zones.Albers.2[, c(1:4)]
   #Wsheds.att.OLD$PPT_ACCUM<-NA
   zones.Albers.3$SlopeGEE <- NA

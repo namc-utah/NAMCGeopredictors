@@ -4,13 +4,11 @@
 
 ####################
 pred_fns$LOG_PRECIP_SITE<-function(points2process,predictor_geometry, ...){
-  validgeometry<-geojson_sf(points2process)
-  media<-log10(raster::extract(predictor_geometry,validgeometry))
+   media<-log10(raster::extract(predictor_geometry,points2process))
   return(media)
 }
 
-pred_fns$PPT_2MoAvg<-function(polygon2process, CurrentYear, JulianDate){
-  validgeometry<-geojson_sf(polygon2process)
+pred_fns$PPT_2MoAvg<-function(polygon2process, CurrentYear, JulianDate,...){
   curYear.2month<-CurrentYear
   # Obtain a GEE image that has the monthly precipitation for those months where sample can occur -- in this case from February to November
   prism.1<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(paste0(curYear.2month,"-01-01"), paste0(curYear.2month,"-01-31")))$select('ppt')
@@ -30,32 +28,30 @@ pred_fns$PPT_2MoAvg<-function(polygon2process, CurrentYear, JulianDate){
   monthy.pre<-monthy.cur-1 # Estimate the PREVIOUS month number based on the YYYY-MM-DD format
   xx<-eval(parse(text = paste0("prism.",monthy.cur))) # Evaluations that are required so that a variable is recognized as such
   xxx<-eval(parse(text = paste0("prism.",monthy.pre)))# Evaluations that are required so that a variable is recognized as such
-  pcp.extraction.cur<-ee_extract(xx, validgeometry, fun = ee$Reducer$mean(), scale=50)%>% as_tibble() # Compute pcp for CURRENT month
-  pcp.extraction.pre<-ee_extract(xxx, validgeometry, fun = ee$Reducer$mean(), scale=50)%>% as_tibble()# Compute pcp for PREVIOUS month
-  validgeometry$PPT_2MoAvg<-unlist((pcp.extraction.pre+pcp.extraction.cur)/2)*100 # Obtain average and multiply by 100 so it is similar to Olson
-  media<-validgeometry$PPT_2MoAvg
+  pcp.extraction.cur<-ee_extract(xx, polygon2process, fun = ee$Reducer$mean(), scale=50)%>% as_tibble() # Compute pcp for CURRENT month
+  pcp.extraction.pre<-ee_extract(xxx, polygon2process, fun = ee$Reducer$mean(), scale=50)%>% as_tibble()# Compute pcp for PREVIOUS month
+  polygon2process$PPT_2MoAvg<-unlist((pcp.extraction.pre+pcp.extraction.cur)/2)*100 # Obtain average and multiply by 100 so it is similar to Olson
+  media<-polygon2process$PPT_2MoAvg
   return(media)
 }
 
-pred_fns$PPT_ACCUM<-function(points2process, CurrentYear){
-  validgeometry<-geojson_sf(points2process)
-  prevYear1<-CalendarYear-1
+pred_fns$PPT_ACCUM<-function(points2process, CurrentYear,...){
+   prevYear1<-CalendarYear-1
   prevYear0<-prevYear1-1
   WaterYearStart<-paste0(prevYear0,"-05-01")
   WaterYearEnd<-paste0(prevYear1,"-04-30")
   prism.accum0<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(WaterYearStart, WaterYearEnd))$select('ppt')
   prism.accum.precip<-prism.accum0$sum()
-  media<-ee_extract(prism.accum.precip, validgeometry, fun = ee$Reducer$mean(), scale=50)
+  media<-ee_extract(prism.accum.precip, points2process, fun = ee$Reducer$mean(), scale=50)
   return(media)
 }
 
 
 pred_fns$precip<-function(points2process,predictor_geometry, ...){
-  validgeometry<-geojson_sf(points2process)
-  myvars <- "precip_mm"
+   myvars <- "precip_mm"
   Pred_Input_All_USGS.vec <- predictor_geometry[myvars]
   Pred_Input_All_USGS.vec.WGS<-st_transform(Pred_Input_All_USGS.vec, crs = 4326)
-  media<-st_intersection(validgeometry, Pred_Input_All_USGS.vec.WGS)%>%pull(precip_mm)
+  media<-st_intersection(points2process, Pred_Input_All_USGS.vec.WGS)%>%pull(precip_mm)
   return(media)
 }
 

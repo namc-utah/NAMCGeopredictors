@@ -30,10 +30,8 @@ source("Slope_functions.R")
 #'
 #' @examples
 pred_fns$extract_watershed_mean <- function(polygon2process, predictor_name, predictor_geometry, ...){
-  sfobject<-geojsonio::geojson_sf(polygon2process)
-  validgeometry<-sf::st_make_valid(sfobject)
-  validgeometry[[predictor_name]]<-exactextractr:exact_extract(predictor_geometry,validgeometry,'mean')
-  media<-as.data.frame(validgeometry[[predictor_name]])
+  polygon2process[[predictor_name]]<-exactextractr:exact_extract(predictor_geometry,polygon2process,'mean')
+  media<-as.data.frame(polygon2process[[predictor_name]])
   colnames(media)<-predictor_name
   return(media)
 }
@@ -52,8 +50,7 @@ pred_fns$extract_watershed_mean <- function(polygon2process, predictor_name, pre
 #'
 #' @examples
 pred_fns$extract_point_value <- function(point2process, predictor_name, predictor_geometry, ...){
-  validgeometry<-geojsonio::geojson_sf(point2process)
-  media<-raster::extract(predictor_geometry,validgeometry)
+    media<-raster::extract(predictor_geometry,point2process)
   return(media)
 }
 
@@ -61,7 +58,7 @@ pred_fns$extract_point_value <- function(point2process, predictor_name, predicto
 
 
 ###### Day  ######   
-DOY <- function(JulianDate) {
+pred_fns$DOY <- function(JulianDate,...) {
   media = JulianDate
   return(media)
 }

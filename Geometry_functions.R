@@ -16,16 +16,14 @@
 #'
 #' @examples
 pred_fns$lat<-function(points2process){
-  validgeometry<-geojsonio::geojson_sf(points2process)
-  media<-sf::st_coordinates(validgeometry)[,2]
+   media<-sf::st_coordinates(points2process)[,2]
   return(media)
 }
 
 
 #### long ####
 pred_fns$long<-function(points2process){
-  validgeometry<-geojsonio::geojson_sf(points2process)
-  media<-sf::st_coordinates(validgeometry)[,1]
+   media<-sf::st_coordinates(points2process)[,1]
   return(media)
 }
 
@@ -41,8 +39,7 @@ pred_fns$long<-function(points2process){
 #'
 #' @examples
 pred_fns$WSA_SQKM<-function(polygon2process){
-  validgeometry<-geojsonio::geojson_sf(polygon2process)
-  media<-drop_units(st_area(validgeometry)/1000000)
+   media<-drop_units(st_area(polygon2process)/1000000)
   return(media)
 }
 
