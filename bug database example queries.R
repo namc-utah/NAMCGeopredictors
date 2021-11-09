@@ -9,14 +9,17 @@ query("auth")
 #call package and all possible API's
 library("NAMCr")
 NAMCr::cli()
-info("samples")# replace "samples" with desired endpoint to get parameters needed for any endpoint
+info("setSiteCatchment")# replace "samples" with desired endpoint to get parameters needed for any endpoint
 
 
 # query site and samples by project, site, sample, box, customer, or geographic area
 samples = query("samples",projectIds=40)
-samples =query("samples",sampleIds=115217)
+samples =query("samples",sampleIds=176660)
+samples= query("samples",boxIds=2150)
 sites = query("sites", filter=list( 'DEERDEER-01'))
+sites=query("sites",siteIds=28257)
 sites=query("sites",projectIds=49)
+sites=query("sites",boxIds=2150)
 boxes=query("boxes",boxIds=2263)
 boxInfo=query("boxInfo",boxId=2263)
 org=query("organizations",searchTerm="BLM")
@@ -34,20 +37,36 @@ NAMCr::save("addProjectBoxes",projectId=90,boxIds=1)
 models=query("models")
 modelInfo=query("modelInfo",modelId=27)
 modelConditions=query("modelConditions",modelId=3)
-predictors = query("predictors", modelId=3)
+predictors = query("predictors",modelId=3,expand_metadata = FALSE)
 modelResults=query("modelResults", sampleIds=150807)
 
 
 #predictor geoprocessing
 siteInfo=query("siteInfo",siteId=100)
 sampleInfo=query("sampleInfo",sampleId=152406)
-sitePredictorValues = query("sitePredictorValues",siteId=1) # no data for siteId1 need a list of ids in database
-samplePredictorValues=query("samplePredictorValues") #need list of samples in database with values
+sitePredictorValues = query("sitePredictorValues",siteId=23032) # no data for siteId1 need a list of ids in database
+samplePredictorValues=query("samplePredictorValues",sampleId=155612) #need list of samples in database with values
 setSitePredictorValue
 setSamplePredictorValue
-setSiteCatchment
 
+# add a catchment
+library(sf)
+library(dplyr)
+library(geojsonio)
+library(rmapshaper)
+library(jsonlite)
+AIM2020<-st_read("Z:/GIS/GIS_Stats/MasterSheds/AIM2020Sheds/All2020Sheds.shp")# line @ NAMC server
+AIM2020$siteName=AIM2020$SiteCode
+AIM2020=AIM2020[1,c("geometry","siteName")]
+AIM2020=left_join(AIM2020,samples, by='siteName')
+AIM2020=AIM2020[,c("geometry",'siteId')]
+AIM2020.WGS<-st_transform(AIM2020, crs = 4326)
+#AIM2020.WGS.json2<-toJSON(AIM2020$featurecolection[[2]]$feature,auto_unbox=TRUE)
+AIM2020.WGS.json<-geojson_json(AIM2020.WGS)
+AIM2020.WGS.json.simp<-rmapshaper::ms_simplify(AIM2020.WGS.json,keep_shapes=TRUE)
+setSiteCatchment=query("setSiteCatchment",siteId=19705,catchment=AIM2020.WGS.json2)
 
+plot(AIM2020.WGS)
 # general taxonomy info
 taxonomy = query("taxonomy",searchTerm="coleopt")
 taxonomytree= query("taxonomyTree",taxonomyId=c(121))

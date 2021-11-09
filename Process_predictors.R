@@ -24,9 +24,14 @@ process_box_predictors = function(boxId) {
     boxIds = boxId
   )
   
-  for (i in nrow(def_boxes)) {
-    process_sample_predictors(def_boxes[i,])
-  }
+  # for (i in seq_len(nrow(def_boxes))) {
+  #   process_sample_predictors(def_boxes$sampleId[i])
+  # }
+  
+  by(def_boxes, seqlen( nrow( def_boxes ) ), function( sample ) {
+    process_sample_predictors( sample$sampleId )
+  })
+  
 }
 
 
@@ -52,7 +57,7 @@ process_sample_predictors = function(sampleId, config=config){
   # getting a list of needed predictors
   def_predictors = NAMCr::query(
     api_endpoint = "samplePredictorValues",
-    include = c("predictorId", "status", "abbreviation","calculationScript", "isTemporal"),
+    include = c("predictorId", "status", "abbreviation","calculationScript", "isTemporal","geometry_file_path"),
     sampleId = def_samples$sampleId[1]
   )
   
@@ -63,59 +68,65 @@ process_sample_predictors = function(sampleId, config=config){
 # Store predictor geometries in a list variable to enable referencing by name
 # ---------------------------------------------------------------
 
-  pred_rasters = list()
-  for(uPredictor in def_predictors){
-    if ( !grepl(".shp",config[[def_predictors$abbreviation]])){
-      pred_geometries[[ uPredictor$abbreviation ]] = raster(paste0(config$pred_geometry_base_path, config[[def_predictors$abbreviation]]))
+  pred_geometries = list()
+  
+  by(def_predictors, seqlen(nrow(def_predictors)), function(predictor) {
+    
+    
+    if (!grepl(".shp", config[[predictor$abbreviation]])) {
+      pred_geometries[[predictor$abbreviation]] = raster(paste0(
+        config$pred_geometry_base_path,
+        def_predictors$geometry_file_path
+      ))
     } else {
-      pred_geometries[[ uPredictor$abbreviation ]] = st_read(paste0(config$pred_geometry_base_path, config[[def_predictors$abbreviation]]))
-      pred_geometries[[ uPredictor$abbreviation ]] = st_make_valid( pred_geometries[[ uPredictor$abbreviation ]]) # Fix invalid polygon geometries
-    } 
+      pred_geometries[[predictor$abbreviation]] = st_read(paste0(
+        config$pred_geometry_base_path,
+        def_predictors$geometry_file_path
+      ))
+      pred_geometries[[predictor$abbreviation]] = st_make_valid(pred_geometries[[predictor$abbreviation]]) # Fix invalid polygon geometries
+    }
     
-  }
-  
-# ---------------------------------------------------------------
-# Loop through predictors
-# ---------------------------------------------------------------
-#
-# uses environment[[ function_name ]]() syntax to call each predictor function
-# Data needs to be in json format
-  
-  for(iPred in seq_len( nrow(def_predictors) )){
     
-    predictor_value = jsonlite::toJSON(
-      pred_fns[[ def_predictors$calculationScript[iPred] ]](
-        polygon2process =  def_sites$catchment[1] ,
-        point2process =  def_sites$location[1] ,
-        predictor_name = def_predictors$abbreviation[ iPred ],
-        predictor_geometry = pred_geometries[[ def_predictors$abbreviation[ iPred ] ]],
-        CurrentYear = lubridate::year(def_sites$sampleDate),
-        JulianDate = lubridate::yday(def_sites$sampleDate)
-             )
+    # ---------------------------------------------------------------
+    # Loop through predictors
+    # ---------------------------------------------------------------
+    #
+    # uses environment[[ function_name ]]() syntax to call each predictor function
+    # Data needs to be in json format
+    
+    
+    predictor_value = pred_fns[[predictor$calculationScript]](
+      polygon2process =  st_make_valid(geojsonsf:geojson_sf(def_sites$catchment[1])) ,
+      point2process =  geojsonsf:geojson_sf(def_sites$location[1]) ,
+      predictor_name = predictor$abbreviation,
+      predictor_geometry = pred_geometries[[predictor$abbreviation]],
+      CurrentYear = lubridate::year(def_samples$sampleDate[1]),
+      JulianDate = lubridate::yday(def_samples$sampleDate[1])
     )
-
-# ---------------------------------------------------------------
-# Save predictors
-# ---------------------------------------------------------------
-    if(def_predictors$isTemporal[iPred]){
+    
+    
+    # ---------------------------------------------------------------
+    # Save predictors
+    # ---------------------------------------------------------------
+    if (predictor$isTemporal) {
       NAMCr::save(
         api_endpoint = "newSamplePredictorValue",
         sampleId = def_samples$sampleId[1],
-        predictorId = def_predictors$predictorId,
+        predictorId = predictor$predictorId,
         value = predictor_value
       )
-    }else{
+    } else{
       NAMCr::save(
         api_endpoint = "newSitePredictorValue",
         siteId = def_samples$siteId[1],
-        predictorId = def_predictors$predictorId,
+        predictorId = predictor$predictorId,
         value = predictor_value
       )
     }
-  }
+    
+  })
 }
-
-
+  
 # -----------------------------------------------------------------------
 # -----------------------------------------------------------------------
 # Alternative ways of getting a list of predictors needed for each sample
