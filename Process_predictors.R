@@ -1,6 +1,6 @@
 requireNamespace("NAMCr")
 source("Config.R")
-source("PredictorFunctions_JC.R")
+source("Predictor_functions.R")
 
 
 
