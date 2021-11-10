@@ -35,7 +35,7 @@ pred_fns$ELVmean_WS_100<-function(polygon2process,...){
 }
 
 
-ELVmax_WS<-function(polygon2process,...){
+pred_fns$ELVmax_WS<-function(polygon2process,...){
    media<-ee_extract(USGS_NED, polygon2process, fun = ee$Reducer$max(), scale=90)
   return(media[1,1])
 }
