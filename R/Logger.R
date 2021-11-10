@@ -1,3 +1,9 @@
+#' @title BaseClass_R6
+#' @description R6 class for handling NAMC oAuth2
+#' @return a `BaseClass_R6` class (R6 class)
+#' @examples
+#'
+#'
 BaseClass_R6 = R6Class(
   "BaseClass_R6",
 
@@ -48,9 +54,12 @@ BaseClass_R6 = R6Class(
 
 
 
-
-
-
+#' @title Logger
+#' @description R6 class for handling NAMC oAuth2
+#' @return a `Logger` class (R6 class)
+#' @examples
+#'
+#'
 Logger = R6Class(
   "Logger",
   inherit = BaseClass_R6,

@@ -2,11 +2,18 @@
 % Please edit documentation in R/Logger.R
 \name{Logger}
 \alias{Logger}
-\title{}
+\title{Logger}
+\value{
+a \code{Logger} class (R6 class)
+}
 \description{
+R6 class for handling NAMC oAuth2
+}
+\examples{
 
 
-
+----------------------------------------------------------------
+---------------------------------------------------------------
 }
 \section{Super class}{
 \code{\link[NAMCGeopredictors:BaseClass_R6]{NAMCGeopredictors::BaseClass_R6}} -> \code{Logger}
