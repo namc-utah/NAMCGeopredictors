@@ -100,7 +100,7 @@ process_sample_predictors = function(sampleId, config=config){
       point2process =  geojsonsf:geojson_sf(def_sites$location[1]) ,
       predictor_name = predictor$abbreviation,
       predictor_geometry = pred_geometries[[predictor$abbreviation]],
-      geometry_input_path<-paste0(config$pred_geometry_base_path,predictor$geometry_file_path),
+      geometry_input_path<-paste0(pred_geometry_base_path,predictor$geometry_file_path),
       CurrentYear = lubridate::year(def_samples$sampleDate[1]),
       JulianDate = lubridate::yday(def_samples$sampleDate[1])
     )
