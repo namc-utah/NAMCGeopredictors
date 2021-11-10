@@ -10,6 +10,7 @@
 #' this WKT can be used as an argument in st_read to query a big vector shapefile or geopackages and just bring into memory the AOI
 #' i.e. like a bounding without overwhelming R
 #' Buffer the point by 200m, interest with NHD streams, extract SLOPE value
+#' Jennifer's notes- maxdist=500 meters needs reexamined. The original python code used 200 meters. really we should be using COMID and joining to that!!
 #' @param points2process 
 #'
 #' @return
@@ -25,7 +26,7 @@ pred_fns$NHDSLOPE<-function(points2process,geometry_input_path,...){
   NHDSLOPE.vec<-sf::st_read(geometry_input_path, wkt_filter = AOItrans_wkt)
   AOI_Buffer<-sf::st_join(AOItrans, NHDSLOPE.vec, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
   media<-AOI_Buffer$SLOPE
-  return(media)
+  return(media[1,1])
 }
 
 

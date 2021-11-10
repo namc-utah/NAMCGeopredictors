@@ -55,3 +55,11 @@ pred_fns$precip<-function(points2process,predictor_geometry, ...){
   return(media[1,1])
 }
 
+PRCPSHORTWS<-function(points2process, CurrentYear){
+  WaterYearStart<-paste0(CurrentYear,"-01-01")
+  WaterYearEnd<-paste0(CurrentYear,"-12-31")
+  prism.accum0<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(WaterYearStart, WaterYearEnd))$select('ppt')
+  prism.accum.precip<-prism.accum0$sum()
+  media<-ee_extract(prism.accum.precip, points2process, fun = ee$Reducer$mean(), scale=4000)
+  return(media[1,1])
+}
