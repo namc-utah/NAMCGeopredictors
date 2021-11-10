@@ -11,10 +11,13 @@
 #' Then in intersects the point with the ecoregions layer and creates a column named "east"
 #' this new column is filled with 0's. The functions then assesses if the points have the
 #' attribute "East" in the "EastWest" column. If they do, then assigns a value of 1, else 0
+#'
 #' @param points2process 
+#' @param predictor_geometry 
+#' @param ... 
 #'
 #' @return a single value 1 or 0 - 1 if the point is the eastern Oregon ecoregion, else 0
-#' @export
+#' 
 #'
 #' @examples
 pred_fns$east<-function(points2process,predictor_geometry, ...){
@@ -33,10 +36,13 @@ pred_fns$east<-function(points2process,predictor_geometry, ...){
 #' Then it transforms the Eco_Level_III_US.shp so that it shares the same CRS with the points
 #' it then intersects the point with the Eco_Level_III_US.shp layer and just pulls the value for the 
 #' "US_L3CODE" attribute
+#'
 #' @param points2process 
+#' @param predictor_geometry 
+#' @param ... 
 #'
 #' @return a single value: the ecoregion level 3 for the point
-#' @export
+#' 
 #'
 #' @examples
 pred_fns$ECO3<-function(points2process,predictor_geometry, ...){
@@ -58,7 +64,7 @@ pred_fns$ECO3<-function(points2process,predictor_geometry, ...){
 #' @param points2process 
 #'
 #' @return a single value: the ecoregion level 4 value for the point
-#' @export
+#' 
 #'
 #' @examples
 pred_fns$ECO4<-function(points2process,predictor_geometry, ...){
@@ -82,7 +88,7 @@ pred_fns$ECO4<-function(points2process,predictor_geometry, ...){
 #' @param points2process 
 #'
 #' @return a single value "Y" if the ecoregion of the point is 23, "N" otherwise
-#' @export
+#' 
 #'
 #' @examples
 pred_fns$ER13<-function(points2process,predictor_geometry, ...){

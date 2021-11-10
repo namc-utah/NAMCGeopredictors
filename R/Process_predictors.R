@@ -1,0 +1,225 @@
+requireNamespace("NAMCr")
+source("Config.R")
+source("Predictor_functions.R")
+
+
+
+###### function to run all samples in the database at once. API endpoint still needs developed
+#' run all predictors for all samples at once
+#'
+#' @return
+#' @export
+#'
+#' @examples
+process_predictors = function(){
+  def_samples = NAMCr::query(
+    api_endpoint = "samples2process",
+    include = c("sampleId")
+  )
+  for(sample in def_samples){
+    process_sample_predictors(sample$sampleId)
+  }
+}
+
+
+####### run predictors for a box
+#' predictors for each box
+#'
+#' @param boxId 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+process_box_predictors = function(boxId) {
+ 
+    def_boxes = NAMCr::query(
+      api_endpoint = "samples",
+      include = c("sampleId"),
+      boxIds = boxId
+    )
+    
+    # for (i in seq_len(nrow(def_boxes))) {
+    #   process_sample_predictors(def_boxes$sampleId[i])
+    # }
+    
+    by(def_boxes, seqlen(nrow(def_boxes)), function(sample) {
+      process_sample_predictors(sample$sampleId)
+    })
+  }
+
+
+####### run predictors for one sample at a time 
+#' Process sample predictor
+#' @description 
+#' @details saving each predictor for each sample one at a time in the database
+#'
+#' @param sampleId 
+#' @param config 
+#'
+#' @return none
+#' @export
+#'
+#' @examples
+process_sample_predictors = function(sampleId, config = config) {
+  tryCatch({
+    # ---------------------------------------------------------------
+    # get needed inputs from the database
+    # ---------------------------------------------------------------
+    # getting sample info including date
+    def_samples = NAMCr::query(
+      api_endpoint = "samples",
+      include = c("sampleId", "siteId", "sampleDate"),
+      sampleIds = sampleId,
+      
+    )
+    # getting watershed
+    def_sites = NAMCr::query(
+      api_endpoint = "siteInfo",
+      include = c("siteId", "siteName", "usState", "location", "catchment"),
+      siteId = def_samples$siteId[1]
+    )
+    # getting a list of needed predictors
+    def_predictors = NAMCr::query(
+      api_endpoint = "samplePredictorValues",
+      include = c(
+        "predictorId",
+        "status",
+        "abbreviation",
+        "calculationScript",
+        "isTemporal",
+        "geometry_file_path"
+      ),
+      sampleId = def_samples$sampleId[1]
+    )
+    
+    def_predictors = def_predictors[def_predictors$status != "Valid",]
+    
+    
+    # ---------------------------------------------------------------
+    # Store predictor geometries in a list variable to enable referencing by name
+    # ---------------------------------------------------------------
+    
+    pred_geometries = list()
+    
+    by(def_predictors, seqlen(nrow(def_predictors)), function(predictor) {
+      tryCatch({
+        if (!grepl(".shp", predictor$geometry_file_path)) {
+          pred_geometries[[predictor$abbreviation]] = raster::raster(paste0(
+            config$pred_geometry_base_path,
+            predictor$geometry_file_path
+          ))
+        } else if (is.na(predictor$geometry_file_path)) {
+          pred_geometries[[predictor$abbreviation]] = NA
+        }
+        else {
+          pred_geometries[[predictor$abbreviation]] = sf::st_read(paste0(
+            config$pred_geometry_base_path,
+            predictor$geometry_file_path
+          ))
+          pred_geometries[[predictor$abbreviation]] = sf::st_make_valid(pred_geometries[[predictor$abbreviation]]) # Fix invalid polygon geometries
+        }
+        
+      # ---------------------------------------------------------------
+      # Loop through predictors
+      # ---------------------------------------------------------------
+      #
+      # uses environment[[ function_name ]]() syntax to call each predictor function
+      # Data needs to be in json format
+        polygon2process =  ifelse(
+          is.na(def_sites$catchment[1])==FALSE,
+          sf::st_make_valid(geojsonsf:geojson_sf(def_sites$catchment[1])),
+          NA) 
+    
+      predictor_value = pred_fns[[predictor$calculationScript]](
+        polygon2process = polygon2process ,
+        point2process =  geojsonsf:geojson_sf(def_sites$location[1]) ,
+        predictor_name = predictor$abbreviation,
+        predictor_geometry = pred_geometries[[predictor$abbreviation]],
+        geometry_input_path <-
+          paste0(pred_geometry_base_path, predictor$geometry_file_path),
+        CurrentYear = lubridate::year(def_samples$sampleDate[1]),
+        JulianDate = lubridate::yday(def_samples$sampleDate[1])
+      )
+      
+      
+      # ---------------------------------------------------------------
+      # Save predictors
+      # ---------------------------------------------------------------
+      if (predictor$isTemporal) {
+        NAMCr::save(
+          api_endpoint = "newSamplePredictorValue",
+          sampleId = def_samples$sampleId[1],
+          predictorId = predictor$predictorId,
+          value = predictor_value
+        )
+      } else{
+        NAMCr::save(
+          api_endpoint = "newSitePredictorValue",
+          siteId = def_samples$siteId[1],
+          predictorId = predictor$predictorId,
+          value = predictor_value
+        )
+      }
+      }, error=function(e){
+        cat(paste0("\n\tPREDICTOR ERROR: ",predictor$abbreviation,"\n"))
+        str(e,indent.str = "   "); cat("\n")
+      })
+    })
+  }, error = function(e) {
+    cat(paste0("\n\tSAMPLE ERROR: ",sampleId,"\n"))
+    str(e,indent.str = "   "); cat("\n")
+  })
+}
+  
+  
+# -----------------------------------------------------------------------
+# -----------------------------------------------------------------------
+# Alternative ways of getting a list of predictors needed for each sample
+
+# def_sites_models = NAMCr::query(
+#   api_endpoint = "siteModels",
+#   include = c("siteId", "modelId"),
+#   siteId = def_samples$siteId
+# )
+# 
+# # ---------------------------------------------------------------
+# # Query for the model / predictor definitions
+# # ---------------------------------------------------------------
+# #
+# def_models = NAMCr::query(
+#   api_endpoint = "models",
+#   include = c("modelId","abbreviation",""),
+#   
+# )
+# 
+# def_models = def_models[ def_models$modelId %in% unique(def_sites_models$modelId), ]
+# #**** Need missing API endpoint to join models to predictors
+# # def_models_predictors = NAMCr::query(...)
+# 
+# #modify "predictors" endpoint to accept multiple model Ids
+# def_predictors = NAMCr::query(
+#   api_endpoint = "predictors",
+#   include = c("predictorId","abbreviation","calculationScript"),
+#   modelId = unique( def_models_predictors$modelId )
+# )
+# 
+# 
+# 
+# # ---------------------------------------------------------------
+# # Query for previously calculated predictor values
+# # ---------------------------------------------------------------
+# #
+# # If state is dirty allow the script to recalculate site predictors
+# if( def_samples$predictorState[1] != "dirty" ) {
+#   def_sitePredictorValues = NAMCr::query(
+#     api_endpoint = "sitePredictorValues",
+#     include = c("predictorId"),
+#     siteId = def_samples$siteId
+#   )
+#   # Removed already calculated predictors from list to process
+#   def_predictors = def_predictors %>% 
+#     filter( !(predictorId %in% def_sitePredictorValues$predictorId) )
+# }
+
+
