@@ -3,5 +3,4 @@
 .git/
 .Rproj.user/
 ~/.secrets/R/NAMCr/.httr-oauth
-NAMCGeopa.Rproj
-final geospatial scripts.Rproj
+.Rproj
