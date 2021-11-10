@@ -1,3 +1,5 @@
+pred_fns=ifelse(exists("pred_fns"),pred_fns, list())
+
 ####################
 
 #   Temperature     #
@@ -5,7 +7,7 @@
 ####################
 
 #################################################
-### These are VERY LARGE vector datasets --- I am inclined to query what is needed directly from disk 
+### These are VERY LARGE vector datasets --- I am inclined to query what is needed directly from disk
 ### as opposed to load the entire vectors in memory
 ### Regular version of a function that works with an object loaded to memory
 # pred_fns$SUMMER<-function(points2process,predictor_geometry, ...){
@@ -19,7 +21,7 @@
 #### Super fast version - loads into memory ONLY WHAT is strictly necessary
 pred_fns$SUMMER<-function(points2process,predictor_geometry,geometry_input_path, ...){
    AOItrans<- sf::st_transform(points2process, 5070) # must use the same EPSG as in the shapefile
-  AOItrans_wkt <- AOItrans %>% 
+  AOItrans_wkt <- AOItrans %>%
     sf::st_geometry() %>% # convert to sfc
     sf::st_buffer(150) %>% # buffer 150 meters
     sf::st_as_text() # convert to well known text
@@ -31,7 +33,7 @@ return(media[1,1])
 #################################################
 
 #################################################
-### These are VERY LARGE vector datasets --- I am inclined to query what is needed directly from disk 
+### These are VERY LARGE vector datasets --- I am inclined to query what is needed directly from disk
 ### as opposed to load the entire vectors in memory
 ### Regular version of a function that works with an object loaded to memory
 # pred_fns$WINTER<-function(points2process,predictor_geometry, ...){
@@ -45,7 +47,7 @@ return(media[1,1])
 #### Super fast version - loads into memory ONLY WHAT is strictly necessary
 pred_fns$WINTER<-function(points2process,predictor_geometry, geometry_input_path,...){
    AOItrans<-sf::st_transform(points2process, 5070) # must use the same EPSG as in the shapefile
-  AOItrans_wkt <- AOItrans %>% 
+  AOItrans_wkt <- AOItrans %>%
     sf::st_geometry() %>% # convert to sfc
     sf::st_buffer(150) %>% # buffer 150 meters
     sf::st_as_text() # convert to well known text

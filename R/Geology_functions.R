@@ -1,10 +1,11 @@
+pred_fns=ifelse(exists("pred_fns"),pred_fns, list())
 ###################
 
 #   Geology       #
 
 ####################
 
-pred_fns$Pct_Alfi<-function(polygon2process,predictor_geometry, ...){
+Pct_Alfi<-function(polygon2process,predictor_geometry, ...){
   polygon2process$AREAHA<-units::drop_units(st_area(polygon2process)/10000)
   polygon2process$Pct_Alfi_01<-exactextractr::exact_extract(predictor_geometry,polygon2process,'sum')
   polygon2process$Pct_Alfi<-(polygon2process$Pct_Alfi_01*25/polygon2process$AREAHA)*100
@@ -12,7 +13,7 @@ pred_fns$Pct_Alfi<-function(polygon2process,predictor_geometry, ...){
   return(media[1,1])
 }
 
-pred_fns$PCT_SEDIM<-function(polygon2process,predictor_geometry, ...){
+PCT_SEDIM<-function(polygon2process,predictor_geometry, ...){
     crs2use<-crs(predictor_geometry) # raster or sf
     polygon2process<-sf::st_transform(polygon2process,crs=crs2use)
   PCT_SEDIM.vec<-sf::st_make_valid(predictor_geometry)

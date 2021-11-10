@@ -1,16 +1,4 @@
-source("Config.R")
-
-pred_fns = new.env( parent = emptyenv() )        
-
-source("Geometry_functions.R")
-source("Elevation_functions.R")
-source("Ecoregion_functions.R")
-source("Vegetation_functions.R")
-source("Precipitation_functions.R")
-source("Temperature_functions.R")
-source("Hydrology_functions.R")
-source("Slope_functions.R")
-
+pred_fns=ifelse(exists("pred_fns"),pred_fns, list())
 
 #####################
 
@@ -20,10 +8,10 @@ source("Slope_functions.R")
 
 #' simple watershed mean, raster used is specified in the database under the geometry_file_path
 #'
-#' @param point2process 
-#' @param predictor_name 
+#' @param point2process
+#' @param predictor_name
 #' @param predictor_geometry
-#' @param ... 
+#' @param ...
 #'
 #' @return
 #' @export
@@ -40,10 +28,10 @@ pred_fns$extract_watershed_mean <- function(polygon2process, predictor_name, pre
 
 #' simple point value extraction, raster used is specified in the database under the geometry_file_path
 #'
-#' @param point2process 
-#' @param predictor_name 
+#' @param point2process
+#' @param predictor_name
 #' @param predictor_geometry
-#' @param ... 
+#' @param ...
 #'
 #' @return
 #' @export
@@ -57,7 +45,7 @@ pred_fns$extract_point_value <- function(point2process, predictor_geometry, ...)
 
 
 
-###### Day  ######   
+###### Day  ######
 pred_fns$DOY <- function(JulianDate,...) {
   media = JulianDate
   return(media[1,1])

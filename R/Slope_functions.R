@@ -1,3 +1,5 @@
+pred_fns=ifelse(exists("pred_fns"),pred_fns, list())
+
 ####################
 
 #   Slope          #
@@ -11,7 +13,7 @@
 #' i.e. like a bounding without overwhelming R
 #' Buffer the point by 200m, interest with NHD streams, extract SLOPE value
 #' Jennifer's notes- maxdist=500 meters needs reexamined. The original python code used 200 meters. really we should be using COMID and joining to that!!
-#' @param points2process 
+#' @param points2process
 #'
 #' @return
 #' @export
@@ -19,7 +21,7 @@
 #' @examples
 pred_fns$NHDSLOPE<-function(points2process,geometry_input_path,...){
     AOItrans<-sf::st_transform(points2process, 5070) # must use the same EPSG as in the shapefile
-  AOItrans_wkt <- AOItrans %>% 
+  AOItrans_wkt <- AOItrans %>%
     sf::st_geometry() %>% # convert to sfc
     sf::st_buffer(200) %>% # buffer 200 meters
     sf::st_as_text() # convert to well known text
@@ -53,19 +55,19 @@ pred_fns$NHDSLOPE<-function(points2process,geometry_input_path,...){
 #   media<-exact_extract(SOC.ras,polygon2process,'mean')
 #   return(media)
 # }
-# 
+#
 # mask<-st_read(inputpoly2crop)
 # ptm <- proc.time()
 # writeRaster(raster::crop(raster::mask(rastrillo, mask),extent(mask)),datatype='INT1U',overwrite=TRUE,filename = here("NVMod/NVFLD8_crop3.tif"))
 # proc.time() - ptm
-# 
+#
 # pred_fns$slpavg <- function(polygon2process,USGS_NED,...) {
 # slopegee<-ee$Terrain$slope(USGS_NED) # slope
 # slopegee.perc<- slopegee$divide(180)$multiply(3.14159)$tan()$multiply(1)$rename("percent")#Slope percent
 #   zones.Albers.3 <- zones.Albers.2[, c(1:4)]
 #   #Wsheds.att.OLD$PPT_ACCUM<-NA
 #   zones.Albers.3$SlopeGEE <- NA
-#   
+#
 #   for (i in 1:nrow(zones.Albers.3)) {
 #     tryCatch({
 #       #if an error is found then it is printed, but the loop does not break and continues with the next iteration

@@ -1,8 +1,3 @@
-requireNamespace("NAMCr")
-source("Config.R")
-source("Predictor_functions.R")
-
-
 
 ###### function to run all samples in the database at once. API endpoint still needs developed
 #' run all predictors for all samples at once
@@ -25,37 +20,37 @@ process_predictors = function(){
 ####### run predictors for a box
 #' predictors for each box
 #'
-#' @param boxId 
+#' @param boxId
 #'
 #' @return
 #' @export
 #'
 #' @examples
 process_box_predictors = function(boxId) {
- 
+
     def_boxes = NAMCr::query(
       api_endpoint = "samples",
       include = c("sampleId"),
       boxIds = boxId
     )
-    
+
     # for (i in seq_len(nrow(def_boxes))) {
     #   process_sample_predictors(def_boxes$sampleId[i])
     # }
-    
+
     by(def_boxes, seqlen(nrow(def_boxes)), function(sample) {
       process_sample_predictors(sample$sampleId)
     })
   }
 
 
-####### run predictors for one sample at a time 
+####### run predictors for one sample at a time
 #' Process sample predictor
-#' @description 
+#' @description
 #' @details saving each predictor for each sample one at a time in the database
 #'
-#' @param sampleId 
-#' @param config 
+#' @param sampleId
+#' @param config
 #'
 #' @return none
 #' @export
@@ -71,7 +66,7 @@ process_sample_predictors = function(sampleId, config = config) {
       api_endpoint = "samples",
       include = c("sampleId", "siteId", "sampleDate"),
       sampleIds = sampleId,
-      
+
     )
     # getting watershed
     def_sites = NAMCr::query(
@@ -92,16 +87,20 @@ process_sample_predictors = function(sampleId, config = config) {
       ),
       sampleId = def_samples$sampleId[1]
     )
-    
+
     def_predictors = def_predictors[def_predictors$status != "Valid",]
-    
-    
+
+
     # ---------------------------------------------------------------
     # Store predictor geometries in a list variable to enable referencing by name
     # ---------------------------------------------------------------
-    
+    USGS_NED =  ifelse(
+      any(def_predictors$is.rgee),
+      ee$Image("USGS/NED")$select("elevation"),
+      NA)
+
     pred_geometries = list()
-    
+
     by(def_predictors, seqlen(nrow(def_predictors)), function(predictor) {
       tryCatch({
         if (!grepl(".shp", predictor$geometry_file_path)) {
@@ -119,7 +118,7 @@ process_sample_predictors = function(sampleId, config = config) {
           ))
           pred_geometries[[predictor$abbreviation]] = sf::st_make_valid(pred_geometries[[predictor$abbreviation]]) # Fix invalid polygon geometries
         }
-        
+
       # ---------------------------------------------------------------
       # Loop through predictors
       # ---------------------------------------------------------------
@@ -129,8 +128,8 @@ process_sample_predictors = function(sampleId, config = config) {
         polygon2process =  ifelse(
           is.na(def_sites$catchment[1])==FALSE,
           sf::st_make_valid(geojsonsf:geojson_sf(def_sites$catchment[1])),
-          NA) 
-    
+          NA)
+
       predictor_value = pred_fns[[predictor$calculationScript]](
         polygon2process = polygon2process ,
         point2process =  geojsonsf:geojson_sf(def_sites$location[1]) ,
@@ -139,10 +138,11 @@ process_sample_predictors = function(sampleId, config = config) {
         geometry_input_path <-
           paste0(pred_geometry_base_path, predictor$geometry_file_path),
         CurrentYear = lubridate::year(def_samples$sampleDate[1]),
-        JulianDate = lubridate::yday(def_samples$sampleDate[1])
-      )
-      
-      
+        JulianDate = lubridate::yday(def_samples$sampleDate[1]),
+        USGS_NED=USGS_NED
+        )
+
+
       # ---------------------------------------------------------------
       # Save predictors
       # ---------------------------------------------------------------
@@ -171,8 +171,8 @@ process_sample_predictors = function(sampleId, config = config) {
     str(e,indent.str = "   "); cat("\n")
   })
 }
-  
-  
+
+
 # -----------------------------------------------------------------------
 # -----------------------------------------------------------------------
 # Alternative ways of getting a list of predictors needed for each sample
@@ -182,7 +182,7 @@ process_sample_predictors = function(sampleId, config = config) {
 #   include = c("siteId", "modelId"),
 #   siteId = def_samples$siteId
 # )
-# 
+#
 # # ---------------------------------------------------------------
 # # Query for the model / predictor definitions
 # # ---------------------------------------------------------------
@@ -190,22 +190,22 @@ process_sample_predictors = function(sampleId, config = config) {
 # def_models = NAMCr::query(
 #   api_endpoint = "models",
 #   include = c("modelId","abbreviation",""),
-#   
+#
 # )
-# 
+#
 # def_models = def_models[ def_models$modelId %in% unique(def_sites_models$modelId), ]
 # #**** Need missing API endpoint to join models to predictors
 # # def_models_predictors = NAMCr::query(...)
-# 
+#
 # #modify "predictors" endpoint to accept multiple model Ids
 # def_predictors = NAMCr::query(
 #   api_endpoint = "predictors",
 #   include = c("predictorId","abbreviation","calculationScript"),
 #   modelId = unique( def_models_predictors$modelId )
 # )
-# 
-# 
-# 
+#
+#
+#
 # # ---------------------------------------------------------------
 # # Query for previously calculated predictor values
 # # ---------------------------------------------------------------
@@ -218,7 +218,7 @@ process_sample_predictors = function(sampleId, config = config) {
 #     siteId = def_samples$siteId
 #   )
 #   # Removed already calculated predictors from list to process
-#   def_predictors = def_predictors %>% 
+#   def_predictors = def_predictors %>%
 #     filter( !(predictorId %in% def_sitePredictorValues$predictorId) )
 # }
 

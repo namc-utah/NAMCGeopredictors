@@ -1,3 +1,5 @@
+pred_fns=ifelse(exists("pred_fns"),pred_fns, list())
+
 ####################
 
 #   Ecoregion      #
@@ -12,15 +14,15 @@
 #' this new column is filled with 0's. The functions then assesses if the points have the
 #' attribute "East" in the "EastWest" column. If they do, then assigns a value of 1, else 0
 #'
-#' @param points2process 
-#' @param predictor_geometry 
-#' @param ... 
+#' @param points2process
+#' @param predictor_geometry
+#' @param ...
 #'
 #' @return a single value 1 or 0 - 1 if the point is the eastern Oregon ecoregion, else 0
-#' 
+#'
 #'
 #' @examples
-pred_fns$east<-function(points2process,predictor_geometry, ...){
+east<-function(points2process,predictor_geometry, ...){
    EcoregionWGS<-sf::st_transform(predictor_geometry, crs = 4326)# transforming the input vector to the CRS of the geojson points
   temp01<-sf::st_intersection(points2process,EcoregionWGS)
   temp01$east<-0
@@ -34,18 +36,18 @@ pred_fns$east<-function(points2process,predictor_geometry, ...){
 #' The functions first makes sure that only one column "US_L3CODE" is present in the attribute table
 #' by creating a subset myvars <- "US_L3CODE" / Eco3_PT.vec <- Eco3_PT.vec[myvars]
 #' Then it transforms the Eco_Level_III_US.shp so that it shares the same CRS with the points
-#' it then intersects the point with the Eco_Level_III_US.shp layer and just pulls the value for the 
+#' it then intersects the point with the Eco_Level_III_US.shp layer and just pulls the value for the
 #' "US_L3CODE" attribute
 #'
-#' @param points2process 
-#' @param predictor_geometry 
-#' @param ... 
+#' @param points2process
+#' @param predictor_geometry
+#' @param ...
 #'
 #' @return a single value: the ecoregion level 3 for the point
-#' 
+#'
 #'
 #' @examples
-pred_fns$ECO3<-function(points2process,predictor_geometry, ...){
+ECO3<-function(points2process,predictor_geometry, ...){
    myvars <- "US_L3CODE"
   Eco3_PT.vec <- Eco3_PT.vec[myvars]
   Eco3_PT.vec.WGS<-sf::st_transform(predictor_geometry, crs = 4326)
@@ -59,15 +61,15 @@ pred_fns$ECO3<-function(points2process,predictor_geometry, ...){
 #' The functions first makes sure that only one column "US_L4CODE" is present in the attribute table
 #' by creating a subset myvars <- "US_L4CODE" / Eco4_PT.vec[myvars]
 #' Then it transforms the us_eco_l4_no_st.shp so that it shares the same CRS with the points
-#' it then intersects the point with the Eco_Level_III_US.shp layer and just pulls the value for the 
+#' it then intersects the point with the Eco_Level_III_US.shp layer and just pulls the value for the
 #' "US_L4CODE" attribute
-#' @param points2process 
+#' @param points2process
 #'
 #' @return a single value: the ecoregion level 4 value for the point
-#' 
+#'
 #'
 #' @examples
-pred_fns$ECO4<-function(points2process,predictor_geometry, ...){
+ECO4<-function(points2process,predictor_geometry, ...){
    myvars <- "US_L4CODE"
   Eco4_PT.vec <- Eco4_PT.vec[myvars]
   Eco4_PT.vec.WGS<-sf::st_transform(predictor_geometry, crs = 4326)
@@ -81,17 +83,17 @@ pred_fns$ECO4<-function(points2process,predictor_geometry, ...){
 #' The point is first transformed to a CRS in meters
 #' The functions then makes sure that only one column "US_L3CODE" is present in the attribute table
 #' by creating a subset myvars <- "US_L3CODE" / Eco3_PT.vec[myvars]
-#' 
-#' Then it intersects the point with the Eco_Level_III_US.shp layer and just pulls the value for the 
-#' "US_L3CODE" attribute. A new column "ER13" is created whereby if the intersected value is 23 then it 
+#'
+#' Then it intersects the point with the Eco_Level_III_US.shp layer and just pulls the value for the
+#' "US_L3CODE" attribute. A new column "ER13" is created whereby if the intersected value is 23 then it
 #' will be populated with "Y", else it will be populated with "N"
-#' @param points2process 
+#' @param points2process
 #'
 #' @return a single value "Y" if the ecoregion of the point is 23, "N" otherwise
-#' 
+#'
 #'
 #' @examples
-pred_fns$ER13<-function(points2process,predictor_geometry, ...){
+ER13<-function(points2process,predictor_geometry, ...){
    points2process<-st_transform(points2process, 5070)
   myvars <- "US_L3CODE"
   Eco3_PT.vec <- predictor_geometry[myvars]
@@ -105,7 +107,7 @@ pred_fns$ER13<-function(points2process,predictor_geometry, ...){
 }
 
 
-pred_fns$HV_UPPERPLATTE<-function(points2process,predictor_geometry, ...){
+HV_UPPERPLATTE<-function(points2process,predictor_geometry, ...){
    points2process<-sf::st_transform(points2process, 5070)
   biovar<-"LAST_COUNT"
   WYBio<-predictor_geometry[biovar]
@@ -117,7 +119,7 @@ pred_fns$HV_UPPERPLATTE<-function(points2process,predictor_geometry, ...){
 }
 
 
-pred_fns$MRE<-function(points2process,predictor_geometry, ...){
+MRE<-function(points2process,predictor_geometry, ...){
    points2process<-sf::st_transform(points2process, 5070)
   biovar<-"LAST_COUNT"
   WYBio<-predictor_geometry[biovar]
@@ -128,7 +130,7 @@ pred_fns$MRE<-function(points2process,predictor_geometry, ...){
   return(media[1,1])
 }
 
-pred_fns$SFLR<-function(points2process,predictor_geometry, ...){
+SFLR<-function(points2process,predictor_geometry, ...){
    points2process<-sf::st_transform(points2process, 5070)
   biovar<-"LAST_COUNT"
   WYBio<-predictor_geometry[biovar]
@@ -139,7 +141,7 @@ pred_fns$SFLR<-function(points2process,predictor_geometry, ...){
   return(media[1,1])
 }
 
-pred_fns$SR_BIGHORNS<-function(points2process,predictor_geometry, ...){
+SR_BIGHORNS<-function(points2process,predictor_geometry, ...){
     points2process<-sf::st_transform(points2process, 5070)
   biovar<-"LAST_COUNT"
   WYBio<-predictor_geometry[biovar]
