@@ -1,26 +1,21 @@
 
+pred_geometry_base_path="Z://GIS/GIS_Stats"
 ## Load required packages
-## Load useful packages
 library(sf)
 library(raster)
-library(data.table)
-wd="Z://GIS/GIS_Stats"
-library(ggpubr)
-library(mapview)
-library(prism)
 library(exactextractr)
-library(mapedit)
 library(reticulate)
 library(rgee)
-library(tidyverse)
-library(survival)
 library(dplyr)
-library(nhdplusTools)
 library(lubridate)
 library(units)
 library(geojsonsf)
-library(rmapshaper)
-library(whitebox)
+## Load useful packages
+#
+#library(rmapshaper)
+#library(whitebox)
+
+
 # ee_install_upgrade()
 # ee_Initialize()
 # # if error run
@@ -45,6 +40,4 @@ library(whitebox)
 
 # ###### Define predictors GEE
 # USGS_NED<-ee$Image("USGS/NED")$select("elevation") # elevation
-# slopegee<-ee$Terrain$slope(USGS_NED) # slope
-# slopegee.perc<- slopegee$divide(180)$multiply(3.14159)$tan()$multiply(1)$rename("percent")#Slope percent
 

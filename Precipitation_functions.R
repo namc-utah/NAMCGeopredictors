@@ -28,8 +28,8 @@ pred_fns$PPT_2MoAvg<-function(polygon2process, CurrentYear, JulianDate,...){
   monthy.pre<-monthy.cur-1 # Estimate the PREVIOUS month number based on the YYYY-MM-DD format
   xx<-eval(parse(text = paste0("prism.",monthy.cur))) # Evaluations that are required so that a variable is recognized as such
   xxx<-eval(parse(text = paste0("prism.",monthy.pre)))# Evaluations that are required so that a variable is recognized as such
-  pcp.extraction.cur<-ee_extract(xx, polygon2process, fun = ee$Reducer$mean(), scale=50)%>% as_tibble() # Compute pcp for CURRENT month
-  pcp.extraction.pre<-ee_extract(xxx, polygon2process, fun = ee$Reducer$mean(), scale=50)%>% as_tibble()# Compute pcp for PREVIOUS month
+  pcp.extraction.cur<-rgee::ee_extract(xx, polygon2process, fun = ee$Reducer$mean(), scale=50)%>% as_tibble() # Compute pcp for CURRENT month
+  pcp.extraction.pre<-rgee::ee_extract(xxx, polygon2process, fun = ee$Reducer$mean(), scale=50)%>% as_tibble()# Compute pcp for PREVIOUS month
   polygon2process$PPT_2MoAvg<-unlist((pcp.extraction.pre+pcp.extraction.cur)/2)*100 # Obtain average and multiply by 100 so it is similar to Olson
   media<-polygon2process$PPT_2MoAvg
   return(media[1,1])
@@ -42,7 +42,7 @@ pred_fns$PPT_ACCUM<-function(points2process, CurrentYear,...){
   WaterYearEnd<-paste0(prevYear1,"-04-30")
   prism.accum0<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(WaterYearStart, WaterYearEnd))$select('ppt')
   prism.accum.precip<-prism.accum0$sum()
-  media<-ee_extract(prism.accum.precip, points2process, fun = ee$Reducer$mean(), scale=50)
+  media<-rgee::ee_extract(prism.accum.precip, points2process, fun = ee$Reducer$mean(), scale=50)
   return(media[1,1])
 }
 
@@ -50,8 +50,8 @@ pred_fns$PPT_ACCUM<-function(points2process, CurrentYear,...){
 pred_fns$precip<-function(points2process,predictor_geometry, ...){
    myvars <- "precip_mm"
   Pred_Input_All_USGS.vec <- predictor_geometry[myvars]
-  Pred_Input_All_USGS.vec.WGS<-st_transform(Pred_Input_All_USGS.vec, crs = 4326)
-  media<-st_intersection(points2process, Pred_Input_All_USGS.vec.WGS)%>%pull(precip_mm)
+  Pred_Input_All_USGS.vec.WGS<-sf::st_transform(Pred_Input_All_USGS.vec, crs = 4326)
+  media<-sf::st_intersection(points2process, Pred_Input_All_USGS.vec.WGS) %>% dplyr::pull(precip_mm)
   return(media[1,1])
 }
 

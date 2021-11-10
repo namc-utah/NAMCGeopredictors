@@ -74,16 +74,16 @@ process_sample_predictors = function(sampleId, config=config){
     
     
     if (!grepl(".shp", config[[predictor$abbreviation]])) {
-      pred_geometries[[predictor$abbreviation]] = raster(paste0(
+      pred_geometries[[predictor$abbreviation]] = raster::raster(paste0(
         config$pred_geometry_base_path,
         predictor$geometry_file_path
       ))
     } else {
-      pred_geometries[[predictor$abbreviation]] = st_read(paste0(
+      pred_geometries[[predictor$abbreviation]] = sf::st_read(paste0(
         config$pred_geometry_base_path,
         predictor$geometry_file_path
       ))
-      pred_geometries[[predictor$abbreviation]] = st_make_valid(pred_geometries[[predictor$abbreviation]]) # Fix invalid polygon geometries
+      pred_geometries[[predictor$abbreviation]] = sf::st_make_valid(pred_geometries[[predictor$abbreviation]]) # Fix invalid polygon geometries
     }
     
     
@@ -96,7 +96,7 @@ process_sample_predictors = function(sampleId, config=config){
     
     
     predictor_value = pred_fns[[predictor$calculationScript]](
-      polygon2process =  st_make_valid(geojsonsf:geojson_sf(def_sites$catchment[1])) ,
+      polygon2process =  sf::st_make_valid(geojsonsf:geojson_sf(def_sites$catchment[1])) ,
       point2process =  geojsonsf:geojson_sf(def_sites$location[1]) ,
       predictor_name = predictor$abbreviation,
       predictor_geometry = pred_geometries[[predictor$abbreviation]],

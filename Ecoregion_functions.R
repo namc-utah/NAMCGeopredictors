@@ -18,8 +18,8 @@
 #'
 #' @examples
 pred_fns$east<-function(points2process,predictor_geometry, ...){
-   EcoregionWGS<-st_transform(predictor_geometry, crs = 4326)# transforming the input vector to the CRS of the geojson points
-  temp01<-st_intersection(points2process,EcoregionWGS)
+   EcoregionWGS<-sf::st_transform(predictor_geometry, crs = 4326)# transforming the input vector to the CRS of the geojson points
+  temp01<-sf::st_intersection(points2process,EcoregionWGS)
   temp01$east<-0
   temp01$east[temp01$EastWest=="East"]<-1
   media<-temp01$east
@@ -42,8 +42,8 @@ pred_fns$east<-function(points2process,predictor_geometry, ...){
 pred_fns$ECO3<-function(points2process,predictor_geometry, ...){
    myvars <- "US_L3CODE"
   Eco3_PT.vec <- Eco3_PT.vec[myvars]
-  Eco3_PT.vec.WGS<-st_transform(predictor_geometry, crs = 4326)
-  media<-st_intersection(points2process, Eco3_PT.vec.WGS)%>%pull(US_L3CODE)
+  Eco3_PT.vec.WGS<-sf::st_transform(predictor_geometry, crs = 4326)
+  media<-sf::st_intersection(points2process, Eco3_PT.vec.WGS)%>% dplyr::pull(US_L3CODE)
   return(media[1,1])
 }
 
@@ -64,8 +64,8 @@ pred_fns$ECO3<-function(points2process,predictor_geometry, ...){
 pred_fns$ECO4<-function(points2process,predictor_geometry, ...){
    myvars <- "US_L4CODE"
   Eco4_PT.vec <- Eco4_PT.vec[myvars]
-  Eco4_PT.vec.WGS<-st_transform(predictor_geometry, crs = 4326)
-  media<-st_intersection(points2process, Eco4_PT.vec.WGS)%>%pull(US_L4CODE)
+  Eco4_PT.vec.WGS<-sf::st_transform(predictor_geometry, crs = 4326)
+  media<-sf::st_intersection(points2process, Eco4_PT.vec.WGS)%>% dplyr::pull(US_L4CODE)
   return(media[1,1])
 }
 
@@ -89,21 +89,21 @@ pred_fns$ER13<-function(points2process,predictor_geometry, ...){
    points2process<-st_transform(points2process, 5070)
   myvars <- "US_L3CODE"
   Eco3_PT.vec <- predictor_geometry[myvars]
-  points2process$Eco3_PT01<-st_intersection(points2process, Eco3_PT.vec)%>%pull(US_L3CODE)
+  points2process$Eco3_PT01<-sf::st_intersection(points2process, Eco3_PT.vec)%>% dplyr::pull(US_L3CODE)
   points2process$ER13<- points2process %>%
-    mutate(ER13 = case_when(
+    dplyr::mutate(ER13 = case_when(
       Eco3_PT01 == 23 ~ "Y",
-      Eco3_PT01 != 23 ~ "N"))%>%pull(ER13)
+      Eco3_PT01 != 23 ~ "N"))%>% dplyr::pull(ER13)
   media<-points2process$ER13
   return(media[1,1])
 }
 
 
 pred_fns$HV_UPPERPLATTE<-function(points2process,predictor_geometry, ...){
-   points2process<-st_transform(points2process, 5070)
+   points2process<-sf::st_transform(points2process, 5070)
   biovar<-"LAST_COUNT"
   WYBio<-predictor_geometry[biovar]
-  tempinter<-st_intersection(points2process, WYBio)
+  tempinter<-sf::st_intersection(points2process, WYBio)
   tempinter$HV_UPPERPLATTE<-0
   tempinter$HV_UPPERPLATTE[tempinter$LAST_COUNT == "HIGH VALLEYS"]<-1
   media<-tempinter$HV_UPPERPLATTE
@@ -112,10 +112,10 @@ pred_fns$HV_UPPERPLATTE<-function(points2process,predictor_geometry, ...){
 
 
 pred_fns$MRE<-function(points2process,predictor_geometry, ...){
-   points2process<-st_transform(points2process, 5070)
+   points2process<-sf::st_transform(points2process, 5070)
   biovar<-"LAST_COUNT"
   WYBio<-predictor_geometry[biovar]
-  tempinter<-st_intersection(points2process, WYBio)
+  tempinter<-sf::st_intersection(points2process, WYBio)
   tempinter$MRE<-0
   tempinter$MRE[tempinter$LAST_COUNT == "BLACK HILLS"]<-1
   media<-tempinter$MRE
@@ -123,10 +123,10 @@ pred_fns$MRE<-function(points2process,predictor_geometry, ...){
 }
 
 pred_fns$SFLR<-function(points2process,predictor_geometry, ...){
-   points2process<-st_transform(points2process, 5070)
+   points2process<-sf::st_transform(points2process, 5070)
   biovar<-"LAST_COUNT"
   WYBio<-predictor_geometry[biovar]
-  tempinter<-st_intersection(points2process, WYBio)
+  tempinter<-sf::st_intersection(points2process, WYBio)
   tempinter$SFLR<-0
   tempinter$SFLR[tempinter$LAST_COUNT == "S WY FH & LARAMIE RANGE"]<-1
   media<-tempinter$SFLR
@@ -134,10 +134,10 @@ pred_fns$SFLR<-function(points2process,predictor_geometry, ...){
 }
 
 pred_fns$SR_BIGHORNS<-function(points2process,predictor_geometry, ...){
-    points2process<-st_transform(points2process, 5070)
+    points2process<-sf::st_transform(points2process, 5070)
   biovar<-"LAST_COUNT"
   WYBio<-predictor_geometry[biovar]
-  tempinter<-st_intersection(points2process, WYBio)
+  tempinter<-sf::st_intersection(points2process, WYBio)
   tempinter$SR_BIGHORNS<-0
   tempinter$SR_BIGHORNS[tempinter$LAST_COUNT == "SOUTHERN ROCKIES"|
                           tempinter$LAST_COUNT == "BIGHORN BASIN FOOTHILLS"|

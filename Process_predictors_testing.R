@@ -45,7 +45,7 @@ process_sample_predictors = function(sampleId, config=config){
    def_samples = NAMCr::query(
     api_endpoint = "samples",
     include = c("sampleId","siteId","sampleDate"),
-    sampleIds = sampleId, 
+    sampleIds = 157575, 
     
   )
   # getting watershed
@@ -62,7 +62,7 @@ process_sample_predictors = function(sampleId, config=config){
   )
   
   def_predictors = def_predictors[def_predictors$status != "Valid", ]
-  
+
 }
 # ---------------------------------------------------------------
 # Store predictor geometries in a list variable to enable referencing by name

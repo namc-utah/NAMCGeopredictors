@@ -39,7 +39,7 @@ pred_fns$long<-function(points2process){
 #'
 #' @examples
 pred_fns$WSA_SQKM<-function(polygon2process){
-   media<-drop_units(st_area(polygon2process)/1000000)
+   media<-units::drop_units(sf::st_area(polygon2process)/1000000)
   return(media[1,1])
 }
 

@@ -17,13 +17,13 @@
 #'
 #' @examples
 pred_fns$NHDSLOPE<-function(points2process,geometry_input_path,...){
-    AOItrans<-st_transform(points2process, 5070) # must use the same EPSG as in the shapefile
+    AOItrans<-sf::st_transform(points2process, 5070) # must use the same EPSG as in the shapefile
   AOItrans_wkt <- AOItrans %>% 
-    st_geometry() %>% # convert to sfc
-    st_buffer(200) %>% # buffer 200 meters
-    st_as_text() # convert to well known text
-  NHDSLOPE.vec<-st_read(geometry_input_path, wkt_filter = AOItrans_wkt)
-  AOI_Buffer<-st_join(AOItrans, NHDSLOPE.vec, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
+    sf::st_geometry() %>% # convert to sfc
+    sf::st_buffer(200) %>% # buffer 200 meters
+    sf::st_as_text() # convert to well known text
+  NHDSLOPE.vec<-sf::st_read(geometry_input_path, wkt_filter = AOItrans_wkt)
+  AOI_Buffer<-sf::st_join(AOItrans, NHDSLOPE.vec, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
   media<-AOI_Buffer$SLOPE
   return(media)
 }
@@ -58,7 +58,9 @@ pred_fns$NHDSLOPE<-function(points2process,geometry_input_path,...){
 # writeRaster(raster::crop(raster::mask(rastrillo, mask),extent(mask)),datatype='INT1U',overwrite=TRUE,filename = here("NVMod/NVFLD8_crop3.tif"))
 # proc.time() - ptm
 # 
-# pred_fns$slpavg <- function(polygon2process,...) {
+# pred_fns$slpavg <- function(polygon2process,USGS_NED,...) {
+# slopegee<-ee$Terrain$slope(USGS_NED) # slope
+# slopegee.perc<- slopegee$divide(180)$multiply(3.14159)$tan()$multiply(1)$rename("percent")#Slope percent
 #   zones.Albers.3 <- zones.Albers.2[, c(1:4)]
 #   #Wsheds.att.OLD$PPT_ACCUM<-NA
 #   zones.Albers.3$SlopeGEE <- NA
