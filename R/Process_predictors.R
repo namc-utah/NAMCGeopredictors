@@ -6,14 +6,23 @@
 #' @export
 #'
 #' @examples
-process_predictors = function(){
-  def_samples = NAMCr::query(
-    api_endpoint = "samples2process",
-    include = c("sampleId")
+process_predictors = function() {
+  logger = Logger$new(
+    logPath = "/",
+    fileName = "",
+    enabled = TRUE,
+    consoleOutput = TRUE,
+    appendDate = TRUE
   )
-  for(sample in def_samples){
+  logger$startLog()
+
+
+  def_samples = NAMCr::query(api_endpoint = "samples2process",
+                             include = c("sampleId"))
+  for (sample in def_samples) {
     process_sample_predictors(sample$sampleId)
   }
+  logger$stopLog()
 }
 
 
@@ -33,25 +42,25 @@ process_box_predictors = function(boxId) {
     enabled = TRUE,
     consoleOutput = TRUE,
     appendDate = TRUE
-    )
+  )
   logger$startLog()
 
-    def_boxes = NAMCr::query(
-      api_endpoint = "samples",
-      include = c("sampleId"),
-      boxIds = boxId
-    )
+  def_boxes = NAMCr::query(
+    api_endpoint = "samples",
+    include = c("sampleId"),
+    boxIds = boxId
+  )
 
-    # for (i in seq_len(nrow(def_boxes))) {
-    #   process_sample_predictors(def_boxes$sampleId[i])
-    # }
+  # for (i in seq_len(nrow(def_boxes))) {
+  #   process_sample_predictors(def_boxes$sampleId[i])
+  # }
 
-    by(def_boxes, seqlen(nrow(def_boxes)), function(sample) {
-      process_sample_predictors(sample$sampleId)
-    })
+  by(def_boxes, seqlen(nrow(def_boxes)), function(sample) {
+    process_sample_predictors(sample$sampleId)
+  })
 
-    logger$stopLog()
-    }
+  logger$stopLog()
+}
 
 
 ####### run predictors for one sample at a time
