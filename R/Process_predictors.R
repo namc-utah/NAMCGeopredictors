@@ -8,7 +8,7 @@
 #' @examples
 process_predictors = function() {
   logger = Logger$new(
-    logPath = "/",
+    logPath = "./",
     fileName = "",
     enabled = TRUE,
     consoleOutput = TRUE,
