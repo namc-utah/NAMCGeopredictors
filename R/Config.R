@@ -10,6 +10,8 @@ library(dplyr)
 library(lubridate)
 library(units)
 library(geojsonsf)
+library(tictoc)
+library(R6)
 ## Load useful packages
 #
 #library(rmapshaper)
@@ -34,7 +36,7 @@ library(geojsonsf)
 # numpy:          C:/Users/jenni/AppData/Local/r-miniconda/envs/rgee/Lib/site-packages/numpy
 # numpy_version:  1.20.3
 # ee:             C:\Users\jenni\AppData\Local\R-MINI~1\envs\rgee\lib\site-packages\ee\__init__.p
-# 
+#
 # NOTE: Python version was forced by RETICULATE_PYTHON
 
 

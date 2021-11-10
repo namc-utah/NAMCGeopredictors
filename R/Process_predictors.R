@@ -27,6 +27,14 @@ process_predictors = function(){
 #'
 #' @examples
 process_box_predictors = function(boxId) {
+  logger = Logger$new(
+    logPath = "/",
+    fileName = "",
+    enabled = TRUE,
+    consoleOutput = TRUE,
+    appendDate = TRUE
+    )
+  logger$startLog()
 
     def_boxes = NAMCr::query(
       api_endpoint = "samples",
@@ -41,7 +49,9 @@ process_box_predictors = function(boxId) {
     by(def_boxes, seqlen(nrow(def_boxes)), function(sample) {
       process_sample_predictors(sample$sampleId)
     })
-  }
+
+    logger$stopLog()
+    }
 
 
 ####### run predictors for one sample at a time
