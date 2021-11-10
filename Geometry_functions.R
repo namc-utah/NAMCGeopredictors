@@ -17,14 +17,14 @@
 #' @examples
 pred_fns$lat<-function(points2process){
    media<-sf::st_coordinates(points2process)[,2]
-  return(media)
+  return(media[1,1])
 }
 
 
 #### long ####
 pred_fns$long<-function(points2process){
    media<-sf::st_coordinates(points2process)[,1]
-  return(media)
+  return(media[1,1])
 }
 
 
@@ -40,11 +40,11 @@ pred_fns$long<-function(points2process){
 #' @examples
 pred_fns$WSA_SQKM<-function(polygon2process){
    media<-drop_units(st_area(polygon2process)/1000000)
-  return(media)
+  return(media[1,1])
 }
 
 pred_fns$LOG_WSA_SQKM<-function(polygon2process){
   media<-log10(WSA_SQKM(polygon2process))
-  return(media)
+  return(media[1,1])
 }
 

@@ -18,7 +18,7 @@
 #' @examples
 pred_fns$ELVmean_WS<-function(polygon2process,...){
   media<-ee_extract(USGS_NED, polygon2process, fun = ee$Reducer$mean(), scale=90)
-  return(media)
+  return(media[1,1])
 }
 
 #' Watershed mean elevation divided by 100
@@ -31,13 +31,13 @@ pred_fns$ELVmean_WS<-function(polygon2process,...){
 #' @examples
 pred_fns$ELVmean_WS_100<-function(polygon2process,...){
   media<-ELVmean_WS(polygon2process)/100
-  return(media)
+  return(media[1,1])
 }
 
 
 ELVmax_WS<-function(polygon2process,...){
    media<-ee_extract(USGS_NED, polygon2process, fun = ee$Reducer$max(), scale=90)
-  return(media)
+  return(media[1,1])
 }
 
 #' Average of min elevation in the watershed
@@ -53,7 +53,7 @@ ELVmax_WS<-function(polygon2process,...){
 #' @examples
 pred_fns$ELVmin_WS<-function(polygon2process,...){
    media<-ee_extract(USGS_NED, polygon2process, fun = ee$Reducer$min(), scale=90)
-  return(media)
+  return(media[1,1])
 }
 
 
@@ -74,7 +74,7 @@ pred_fns$ELEV_RANGE<-function(polygon2process,...){
    max<-ee_extract(USGS_NED, polygon2process, fun = ee$Reducer$max(), scale=90)
   min<-ee_extract(USGS_NED, polygon2process, fun = ee$Reducer$min(), scale=90)
   media<-max-min
-  return(media)
+  return(media[1,1])
 }
 
 #' Elevation of the point
@@ -92,7 +92,7 @@ pred_fns$ELEV_RANGE<-function(polygon2process,...){
 #' @examples
 pred_fns$ELEV_SITE<-function(points2process,...){
   media<-ee_extract(USGS_NED, points2process, scale=90)/10 
-  return(media)
+  return(media[1,1])
 }
 
 #' Square root of elevation at the point
@@ -111,7 +111,7 @@ pred_fns$ELEV_SITE<-function(points2process,...){
 pred_fns$ELEV_SITE_SQRT<-function(points2process,...){
    elevation<-ee_extract(USGS_NED, points2process, scale=90)
   media<-sqrt((elevation/10))
-  return(media)
+  return(media[1,1])
 }
 
 
@@ -136,7 +136,7 @@ pred_fns$ELEV_SITE_CV<-function(points2process,...){
   elev.mean<-ee_extract(USGS_NED, AOI, fun = ee$Reducer$mean(), scale=90)
   elev.stdev<-ee_extract(USGS_NED, AOI, fun = ee$Reducer$stdDev(), scale=90)
   media<-elev.stdev/elev.mean
-  return(media)
+  return(media[1,1])
 }
 
 
@@ -146,25 +146,25 @@ pred_fns$ELEV_SITE_CV<-function(points2process,...){
 ### as opposed to load the entire vectors in memory
 ### Regular version of a function that works with an object loaded to memory
 # Spatial join to get the square root of topo at the point (the line shapefile is already square rooted)
-pred_fns$SQRT_TOPO<-function(points2process,predictor_geometry, ...){
-  crs2use<-crs(predictor_geometry)
-  AOItrans<-st_transform(points2process, crs2use)
-  AOI_Buffer<-st_join(AOItrans, predictor_geometry, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
-  media<-AOI_Buffer$TOPOCV
-  return(media)
-}
+# pred_fns$SQRT_TOPO<-function(points2process,predictor_geometry, ...){
+#   crs2use<-crs(predictor_geometry)
+#   AOItrans<-st_transform(points2process, crs2use)
+#   AOI_Buffer<-st_join(AOItrans, predictor_geometry, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
+#   media<-AOI_Buffer$TOPOCV
+#   return(media)
+# }
 
 #### Super fast version - loads into memory ONLY WHAT is strictly necessary
-pred_fns$SQRT_TOPO<-function(points2process,predictor_geometry, ...){
+pred_fns$SQRT_TOPO<-function(points2process,predictor_geometry,geometry_input_path, ...){
   AOItrans<-st_transform(points2process, 5070) # must use the same EPSG as in the shapefile
   AOItrans_wkt <- AOItrans %>% 
     st_geometry() %>% # convert to sfc
     st_buffer(150) %>% # buffer 150 meters
     st_as_text() # convert to well known text
-  SQRT_TOPO.vec<-st_read(), wkt_filter = AOItrans_wkt)
+  SQRT_TOPO.vec<-st_read(geometry_input_path, wkt_filter = AOItrans_wkt)
 AOI_Buffer<-st_join(AOItrans, SQRT_TOPO.vec, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
 media<-AOI_Buffer$TOPOCV
-return(media)
+return(media[1,1])
 }
 #################################################
 

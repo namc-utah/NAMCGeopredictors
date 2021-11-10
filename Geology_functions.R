@@ -9,7 +9,7 @@ pred_fns$Pct_Alfi<-function(polygon2process,predictor_geometry, ...){
   polygon2process$Pct_Alfi_01<-exact_extract(predictor_geometry,polygon2process,'sum')
   polygon2process$Pct_Alfi<-(polygon2process$Pct_Alfi_01*25/polygon2process$AREAHA)*100
   media<-polygon2process$Pct_Alfi
-  return(media)
+  return(media[1,1])
 }
 
 pred_fns$PCT_SEDIM<-function(polygon2process,predictor_geometry, ...){
@@ -24,5 +24,5 @@ pred_fns$PCT_SEDIM<-function(polygon2process,predictor_geometry, ...){
   geo03<-geo03%>%
     filter(GEOLOGY=='Sedimentary')
   media<-sum(geo03$PORC)
-  return(media)
+  return(media[1,1])
 }

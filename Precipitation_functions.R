@@ -5,7 +5,7 @@
 ####################
 pred_fns$LOG_PRECIP_SITE<-function(points2process,predictor_geometry, ...){
    media<-log10(raster::extract(predictor_geometry,points2process))
-  return(media)
+  return(media[1,1])
 }
 
 pred_fns$PPT_2MoAvg<-function(polygon2process, CurrentYear, JulianDate,...){
@@ -32,7 +32,7 @@ pred_fns$PPT_2MoAvg<-function(polygon2process, CurrentYear, JulianDate,...){
   pcp.extraction.pre<-ee_extract(xxx, polygon2process, fun = ee$Reducer$mean(), scale=50)%>% as_tibble()# Compute pcp for PREVIOUS month
   polygon2process$PPT_2MoAvg<-unlist((pcp.extraction.pre+pcp.extraction.cur)/2)*100 # Obtain average and multiply by 100 so it is similar to Olson
   media<-polygon2process$PPT_2MoAvg
-  return(media)
+  return(media[1,1])
 }
 
 pred_fns$PPT_ACCUM<-function(points2process, CurrentYear,...){
@@ -43,7 +43,7 @@ pred_fns$PPT_ACCUM<-function(points2process, CurrentYear,...){
   prism.accum0<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(WaterYearStart, WaterYearEnd))$select('ppt')
   prism.accum.precip<-prism.accum0$sum()
   media<-ee_extract(prism.accum.precip, points2process, fun = ee$Reducer$mean(), scale=50)
-  return(media)
+  return(media[1,1])
 }
 
 
@@ -52,6 +52,6 @@ pred_fns$precip<-function(points2process,predictor_geometry, ...){
   Pred_Input_All_USGS.vec <- predictor_geometry[myvars]
   Pred_Input_All_USGS.vec.WGS<-st_transform(Pred_Input_All_USGS.vec, crs = 4326)
   media<-st_intersection(points2process, Pred_Input_All_USGS.vec.WGS)%>%pull(precip_mm)
-  return(media)
+  return(media[1,1])
 }
 

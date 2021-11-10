@@ -23,7 +23,7 @@ pred_fns$east<-function(points2process,predictor_geometry, ...){
   temp01$east<-0
   temp01$east[temp01$EastWest=="East"]<-1
   media<-temp01$east
-  return(media)
+  return(media[1,1])
 }
 
 #' Eco Region level 3 (number) of the point
@@ -44,7 +44,7 @@ pred_fns$ECO3<-function(points2process,predictor_geometry, ...){
   Eco3_PT.vec <- Eco3_PT.vec[myvars]
   Eco3_PT.vec.WGS<-st_transform(predictor_geometry, crs = 4326)
   media<-st_intersection(points2process, Eco3_PT.vec.WGS)%>%pull(US_L3CODE)
-  return(media)
+  return(media[1,1])
 }
 
 
@@ -66,7 +66,7 @@ pred_fns$ECO4<-function(points2process,predictor_geometry, ...){
   Eco4_PT.vec <- Eco4_PT.vec[myvars]
   Eco4_PT.vec.WGS<-st_transform(predictor_geometry, crs = 4326)
   media<-st_intersection(points2process, Eco4_PT.vec.WGS)%>%pull(US_L4CODE)
-  return(media)
+  return(media[1,1])
 }
 
 
@@ -95,7 +95,7 @@ pred_fns$ER13<-function(points2process,predictor_geometry, ...){
       Eco3_PT01 == 23 ~ "Y",
       Eco3_PT01 != 23 ~ "N"))%>%pull(ER13)
   media<-points2process$ER13
-  return(media)
+  return(media[1,1])
 }
 
 
@@ -107,7 +107,7 @@ pred_fns$HV_UPPERPLATTE<-function(points2process,predictor_geometry, ...){
   tempinter$HV_UPPERPLATTE<-0
   tempinter$HV_UPPERPLATTE[tempinter$LAST_COUNT == "HIGH VALLEYS"]<-1
   media<-tempinter$HV_UPPERPLATTE
-  return(media)
+  return(media[1,1])
 }
 
 
@@ -119,7 +119,7 @@ pred_fns$MRE<-function(points2process,predictor_geometry, ...){
   tempinter$MRE<-0
   tempinter$MRE[tempinter$LAST_COUNT == "BLACK HILLS"]<-1
   media<-tempinter$MRE
-  return(media)
+  return(media[1,1])
 }
 
 pred_fns$SFLR<-function(points2process,predictor_geometry, ...){
@@ -130,7 +130,7 @@ pred_fns$SFLR<-function(points2process,predictor_geometry, ...){
   tempinter$SFLR<-0
   tempinter$SFLR[tempinter$LAST_COUNT == "S WY FH & LARAMIE RANGE"]<-1
   media<-tempinter$SFLR
-  return(media)
+  return(media[1,1])
 }
 
 pred_fns$SR_BIGHORNS<-function(points2process,predictor_geometry, ...){
@@ -143,5 +143,5 @@ pred_fns$SR_BIGHORNS<-function(points2process,predictor_geometry, ...){
                           tempinter$LAST_COUNT == "BIGHORN BASIN FOOTHILLS"|
                           tempinter$LAST_COUNT == "WB - BIGHORN BASIN"]<-1
   media<-tempinter$SR_BIGHORNS
-  return(media)
+  return(media[1,1])
 }

@@ -76,12 +76,12 @@ process_sample_predictors = function(sampleId, config=config){
     if (!grepl(".shp", config[[predictor$abbreviation]])) {
       pred_geometries[[predictor$abbreviation]] = raster(paste0(
         config$pred_geometry_base_path,
-        def_predictors$geometry_file_path
+        predictor$geometry_file_path
       ))
     } else {
       pred_geometries[[predictor$abbreviation]] = st_read(paste0(
         config$pred_geometry_base_path,
-        def_predictors$geometry_file_path
+        predictor$geometry_file_path
       ))
       pred_geometries[[predictor$abbreviation]] = st_make_valid(pred_geometries[[predictor$abbreviation]]) # Fix invalid polygon geometries
     }
