@@ -11,7 +11,7 @@ library(geojsonsf)
 
 ### list of watersheds
 
-AIMCatch<-read.csv("/Users/alexhernandez/Desktop/GitHubs/NAMCGeopa/2020_AIM_sites_with_catchments.csv",header = TRUE)
+AIMCatch<-read.csv("C:/Users/jenni/OneDrive - USU/Desktop/final geospatial scripts/data/2020_AIM_sites_with_catchments.csv",header = TRUE)
 AIMCatch<-as.data.frame(AIMCatch[,1])
 
 # Loop over all samples that you want to process
@@ -19,8 +19,8 @@ nrow(AIMCatch)
 
 for (sample in 1:50){
   identifier<-AIMCatch[sample,1]
-  sampleInfo<-NAMCr::query('sampleInfo', sampleId = identifier)
-  sample_date<-sampleInfo[['sampleDate']]
+  sampleInfo<-NAMCr::query('samples', sampleIds = identifier)
+  sample_date<-samples[['sampleDate']]
   predictors <- NAMCr::query('samplePredictorValues', sampleId=identifier)
   print(predictors)
 }
