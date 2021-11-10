@@ -9,7 +9,7 @@ query("auth")
 #call package and all possible API's
 library("NAMCr")
 NAMCr::cli()
-info("setSiteCatchment")# replace "samples" with desired endpoint to get parameters needed for any endpoint
+info("samplePredictorValues")# replace "samples" with desired endpoint to get parameters needed for any endpoint
 
 
 # query site and samples by project, site, sample, box, customer, or geographic area
@@ -103,6 +103,7 @@ metrics=query("metrics")
 sampleMetrics=query("sampleMetrics",translationId=2,fixedCount=300,sampleIds=c(115217))
 rarefiedOTUTaxa=subset(sampleMetrics,metricName=="Rarefied Taxa")
 rarefiedOTUTaxa = NAMCr::json.expand(rarefiedOTUTaxa, "metricValue")
+
 
 #getting a dataset with raw data, OTU rolling, and taxonomy attributes so that we can manually calculate metrics
 library(dplyr)
