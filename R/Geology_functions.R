@@ -5,6 +5,16 @@ pred_fns=ifelse(exists("pred_fns"),pred_fns, list())
 
 ####################
 
+#' Percent alfi soils in the watershed
+#'
+#' @param polygon2process
+#' @param predictor_geometry
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 Pct_Alfi<-function(polygon2process,predictor_geometry, ...){
   polygon2process$AREAHA<-units::drop_units(st_area(polygon2process)/10000)
   polygon2process$Pct_Alfi_01<-exactextractr::exact_extract(predictor_geometry,polygon2process,'sum')
@@ -13,6 +23,16 @@ Pct_Alfi<-function(polygon2process,predictor_geometry, ...){
   return(media[1,1])
 }
 
+#' Percentage of watershed that is Sedimentary geology type (geology type number 5)
+#'
+#' @param polygon2process
+#' @param predictor_geometry
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 PCT_SEDIM<-function(polygon2process,predictor_geometry, ...){
     crs2use<-crs(predictor_geometry) # raster or sf
     polygon2process<-sf::st_transform(polygon2process,crs=crs2use)

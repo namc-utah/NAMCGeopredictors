@@ -19,6 +19,17 @@ pred_fns=ifelse(exists("pred_fns"),pred_fns, list())
 # }
 
 #### Super fast version - loads into memory ONLY WHAT is strictly necessary
+#' Summer stream temp at the point (CO MMI specific)
+#'
+#' @param points2process
+#' @param predictor_geometry
+#' @param geometry_input_path
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 pred_fns$SUMMER<-function(points2process,predictor_geometry,geometry_input_path, ...){
    AOItrans<- sf::st_transform(points2process, 5070) # must use the same EPSG as in the shapefile
   AOItrans_wkt <- AOItrans %>%
@@ -45,6 +56,17 @@ return(media[1,1])
 # }
 
 #### Super fast version - loads into memory ONLY WHAT is strictly necessary
+#' Winter stream temp at the point (CO MMI specific but only needed for old model/ OE)
+#'
+#' @param points2process
+#' @param predictor_geometry
+#' @param geometry_input_path
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 pred_fns$WINTER<-function(points2process,predictor_geometry, geometry_input_path,...){
    AOItrans<-sf::st_transform(points2process, 5070) # must use the same EPSG as in the shapefile
   AOItrans_wkt <- AOItrans %>%
@@ -59,6 +81,16 @@ return(media[1,1])
 #################################################
 
 
+#' Temperature at the point (Oregon specific vector layer)
+#'
+#' @param points2process
+#' @param predictor_geometry
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 pred_fns$temp<-function(points2process,predictor_geometry, ...){
    myvars <- "temp_Cx10"
   Pred_Input_All_USGS.vec <- predictor_geometry[myvars]
@@ -70,6 +102,16 @@ pred_fns$temp<-function(points2process,predictor_geometry, ...){
 }
 
 
+#' Temperature max at the point (AND divide by 10)
+#'
+#' @param points2process
+#' @param predictor_geometry
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 pred_fns$Tmax_PT<-function(points2process,predictor_geometry, ...){
    media<-raster::extract(predictor_geometry,points2process)/10
   return(media[1,1])

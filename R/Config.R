@@ -1,5 +1,16 @@
 
 pred_geometry_base_path="Z://GIS/GIS_Stats"
+SQLite_file_path="C:/NAMC_S3/StreamCat/StreamCat.sqlite"
+# #alkalinity
+# predictor_name=paste0("CompStrgthWs,ElevWs,PctConif2006Ws,PctShrb2011Ws,PctSilicicWs,PermWs,Pestic97Ws,Precip08Ws,SandWs,Tmax8110Ws,Tmean08Ws")
+# #westwide
+# predictor_name=paste0("CaOWs,LAT,LONG,
+#                   MAST_2008,MAST_2009,MAST_2013,MAST_2014,MSST_2008,MSST_2009,MSST_2013,MSST_2014,MWST_2008,MWST_2009,MWST_2013,MWST_2014,
+#                   NCat,PctSalLakeWs,Precip8110Ws,RunoffWs,SWs,WsAreaSqKm")
+
+
+COMIDs=c(101,10944)
+
 ## Load required packages
 library(sf)
 library(raster)

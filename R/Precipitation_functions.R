@@ -4,11 +4,32 @@ pred_fns=ifelse(exists("pred_fns"),pred_fns, list())
 #   Precipitation   #
 
 ####################
+#' Log 10 precipitation at the point
+#'
+#' @param points2process
+#' @param predictor_geometry
+#' @description  can be mean log precipitation at the point too if input raster is a mean
+#'
+#' @return
+#' @export
+#'
+#' @examples
 pred_fns$LOG_PRECIP_SITE<-function(points2process,predictor_geometry, ...){
    media<-log10(raster::extract(predictor_geometry,points2process))
   return(media[1,1])
 }
 
+#' PRISM 2 month prior moving average precipitation for the watershed
+#'
+#' @param polygon2process
+#' @param CurrentYear
+#' @param JulianDate
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 pred_fns$PPT_2MoAvg<-function(polygon2process, CurrentYear, JulianDate,...){
   curYear.2month<-CurrentYear
   # Obtain a GEE image that has the monthly precipitation for those months where sample can occur -- in this case from February to November
@@ -36,6 +57,16 @@ pred_fns$PPT_2MoAvg<-function(polygon2process, CurrentYear, JulianDate,...){
   return(media[1,1])
 }
 
+#' PRISM prior year (May-April) cumulative precipitation at the point
+#'
+#' @param points2process
+#' @param CurrentYear
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 pred_fns$PPT_ACCUM<-function(points2process, CurrentYear,...){
    prevYear1<-CalendarYear-1
   prevYear0<-prevYear1-1
@@ -48,6 +79,16 @@ pred_fns$PPT_ACCUM<-function(points2process, CurrentYear,...){
 }
 
 
+#' Precipitation from vector layer (OR- WCCP model)
+#'
+#' @param points2process
+#' @param predictor_geometry
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 pred_fns$precip<-function(points2process,predictor_geometry, ...){
    myvars <- "precip_mm"
   Pred_Input_All_USGS.vec <- predictor_geometry[myvars]
@@ -56,6 +97,15 @@ pred_fns$precip<-function(points2process,predictor_geometry, ...){
   return(media[1,1])
 }
 
+#' PRISM calendar year average precipitation at the watershed (CO OE/ old MMI)
+#'
+#' @param points2process
+#' @param CurrentYear
+#'
+#' @return
+#' @export
+#'
+#' @examples
 pred_fns$PRCPSHORTWS<-function(points2process, CurrentYear){
   WaterYearStart<-paste0(CurrentYear,"-01-01")
   WaterYearEnd<-paste0(CurrentYear,"-12-31")

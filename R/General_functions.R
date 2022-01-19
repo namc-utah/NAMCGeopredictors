@@ -46,6 +46,15 @@ pred_fns$extract_point_value <- function(point2process, predictor_geometry, ...)
 
 
 ###### Day  ######
+#' get Julian day and change column name to DOY
+#'
+#' @param JulianDate
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 pred_fns$DOY <- function(JulianDate,...) {
   media = JulianDate
   return(media[1,1])

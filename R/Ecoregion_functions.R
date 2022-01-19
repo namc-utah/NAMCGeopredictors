@@ -78,7 +78,7 @@ ECO4<-function(points2process,predictor_geometry, ...){
 }
 
 
-#' Is the level 3 ecoregion number 23?  (Y or N)
+#' The level 3 ecoregion number 23
 #' databased used GIS_Stats/Ecoregion/Data/Eco_Level_III_US.shp
 #' The point is first transformed to a CRS in meters
 #' The functions then makes sure that only one column "US_L3CODE" is present in the attribute table
@@ -107,6 +107,16 @@ ER13<-function(points2process,predictor_geometry, ...){
 }
 
 
+#' Is the point within the High Valleys and Upper North Platte ecoregion, WY
+#'
+#' @param points2process
+#' @param predictor_geometry
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 HV_UPPERPLATTE<-function(points2process,predictor_geometry, ...){
    points2process<-sf::st_transform(points2process, 5070)
   biovar<-"LAST_COUNT"
@@ -119,6 +129,16 @@ HV_UPPERPLATTE<-function(points2process,predictor_geometry, ...){
 }
 
 
+#'Is the point within the Black hills ecoregion, WY
+#'
+#' @param points2process
+#' @param predictor_geometry
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 MRE<-function(points2process,predictor_geometry, ...){
    points2process<-sf::st_transform(points2process, 5070)
   biovar<-"LAST_COUNT"
@@ -130,6 +150,16 @@ MRE<-function(points2process,predictor_geometry, ...){
   return(media[1,1])
 }
 
+#' Is the point within the Southern Foothills and Laramie Range ecoregion, WY
+#'
+#' @param points2process
+#' @param predictor_geometry
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 SFLR<-function(points2process,predictor_geometry, ...){
    points2process<-sf::st_transform(points2process, 5070)
   biovar<-"LAST_COUNT"
@@ -141,6 +171,16 @@ SFLR<-function(points2process,predictor_geometry, ...){
   return(media[1,1])
 }
 
+#' Is the point within the Southern Rockies and Bighorn Mountains ecoregion, WY
+#'
+#' @param points2process
+#' @param predictor_geometry
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 SR_BIGHORNS<-function(points2process,predictor_geometry, ...){
     points2process<-sf::st_transform(points2process, 5070)
   biovar<-"LAST_COUNT"

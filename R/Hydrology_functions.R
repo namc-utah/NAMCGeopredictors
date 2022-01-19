@@ -5,6 +5,16 @@ pred_fns=ifelse(exists("pred_fns"),pred_fns, list())
 
 ####################
 
+#' Area of the largest waterbody in the watershed
+#'
+#' @param polygon2process
+#' @param predictor_geometry
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 pred_fns$Wb_mx_area<-function(polygon2process,predictor_geometry, ...){
   polygon2process<-sf::st_transform(polygon2process, 5070)
     bodies<-sf::st_intersection(predictor_geometry, validgeometry2)
@@ -14,6 +24,16 @@ pred_fns$Wb_mx_area<-function(polygon2process,predictor_geometry, ...){
 }
 
 
+#' Ground Water Index across the watershed
+#'
+#' @param polygon2process
+#' @param predictor_geometry
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 pred_fns$GW_P_Sp_Mx<-function(polygon2process,predictor_geometry, ...){
    media<-exactextractr::exact_extract(predictor_geometry,polygon2process,'max')
   return(media[1,1])

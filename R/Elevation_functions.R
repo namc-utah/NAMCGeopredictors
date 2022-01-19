@@ -156,6 +156,17 @@ ELEV_SITE_CV<-function(points2process,USGS_NED,...){
 # }
 
 #### Super fast version - loads into memory ONLY WHAT is strictly necessary
+#' Square root of topo from the line shapefile (OLD CO OE or MMI)
+#'
+#' @param points2process
+#' @param predictor_geometry
+#' @param geometry_input_path
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 SQRT_TOPO<-function(points2process,predictor_geometry,geometry_input_path, ...){
   AOItrans<-sf::st_transform(points2process, 5070) # must use the same EPSG as in the shapefile
   AOItrans_wkt <- AOItrans %>%
