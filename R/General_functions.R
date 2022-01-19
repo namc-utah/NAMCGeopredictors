@@ -8,9 +8,9 @@ pred_fns=ifelse(exists("pred_fns"),pred_fns, list())
 
 #' simple watershed mean, raster used is specified in the database under the geometry_file_path
 #'
-#' @param point2process
 #' @param predictor_name
 #' @param predictor_geometry
+#' @param polygon2process
 #' @param ...
 #'
 #' @return
@@ -29,7 +29,6 @@ pred_fns$extract_watershed_mean <- function(polygon2process, predictor_name, pre
 #' simple point value extraction, raster used is specified in the database under the geometry_file_path
 #'
 #' @param point2process
-#' @param predictor_name
 #' @param predictor_geometry
 #' @param ...
 #'

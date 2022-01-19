@@ -63,7 +63,10 @@ ECO3<-function(points2process,predictor_geometry, ...){
 #' Then it transforms the us_eco_l4_no_st.shp so that it shares the same CRS with the points
 #' it then intersects the point with the Eco_Level_III_US.shp layer and just pulls the value for the
 #' "US_L4CODE" attribute
+#'
 #' @param points2process
+#' @param predictor_geometry
+#' @param ...
 #'
 #' @return a single value: the ecoregion level 4 value for the point
 #'
@@ -87,7 +90,10 @@ ECO4<-function(points2process,predictor_geometry, ...){
 #' Then it intersects the point with the Eco_Level_III_US.shp layer and just pulls the value for the
 #' "US_L3CODE" attribute. A new column "ER13" is created whereby if the intersected value is 23 then it
 #' will be populated with "Y", else it will be populated with "N"
+#'
 #' @param points2process
+#' @param predictor_geometry
+#' @param ...
 #'
 #' @return a single value "Y" if the ecoregion of the point is 23, "N" otherwise
 #'

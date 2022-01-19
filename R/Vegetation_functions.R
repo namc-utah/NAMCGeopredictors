@@ -12,7 +12,10 @@ pred_fns=ifelse(exists("pred_fns"),pred_fns, list())
 #' Then it obtains zonal statistics - the number of pixels of alru_dom -->exact_extract(alru_dom.ras,polygon2process,'count') <--
 #' Because each pixel is 30m it calculates the area of alru_dom by multiplying the count * 0.09 and then divides by the area to
 #' obtain percentage
+#'
 #' @param polygon2process this is a geojson string for the watershed
+#' @param predictor_geometry
+#' @param ...
 #' The geojson is converted to an object of type sf -->polygon2process<-geojson_sf(polygon2process)<--
 #' @return this functions returns one value which is the percentage of alru_dom
 #' @export
@@ -33,7 +36,10 @@ pred_fns$alru_dom<-function(polygon2process,predictor_geometry, ...){
 #' The sum is obtained because all the pixels have a value of 1. Then in converts the sum of pixels to area
 #' by multiplying 0.09 (30 x 30 m pixels equal 900 m2 equal 0.09 hectares). This value is then divided by the
 #' area of the watershed and the percent (in decimal units is extracted)
+#'
 #' @param polygon2process
+#' @param predictor_geometry
+#' @param ...
 #'
 #' @return a single value of percent of evergreen landcover in the watershed in decimal values
 #' @export

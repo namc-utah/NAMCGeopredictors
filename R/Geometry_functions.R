@@ -23,6 +23,14 @@ lat<-function(points2process){
 
 
 #### long ####
+#' Longitude of the point
+#'
+#' @param points2process
+#'
+#' @return
+#' @export
+#'
+#' @examples
 long<-function(points2process){
    media<-sf::st_coordinates(points2process)[,1]
   return(media[1,1])
@@ -44,6 +52,14 @@ WSA_SQKM<-function(polygon2process){
   return(media[1,1])
 }
 
+#' Log watershed area in sq km
+#'
+#' @param polygon2process
+#'
+#' @return
+#' @export
+#'
+#' @examples
 pred_fns$LOG_WSA_SQKM<-function(polygon2process){
   media<-log10(WSA_SQKM(polygon2process))
   return(media[1,1])

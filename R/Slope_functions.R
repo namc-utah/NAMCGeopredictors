@@ -13,7 +13,10 @@ pred_fns=ifelse(exists("pred_fns"),pred_fns, list())
 #' i.e. like a bounding without overwhelming R
 #' Buffer the point by 200m, interest with NHD streams, extract SLOPE value
 #' Jennifer's notes- maxdist=500 meters needs reexamined. The original python code used 200 meters. really we should be using COMID and joining to that!!
+#'
 #' @param points2process
+#' @param geometry_input_path
+#' @param ...
 #'
 #' @return
 #' @export

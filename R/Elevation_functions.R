@@ -11,7 +11,10 @@ pred_fns=ifelse(exists("pred_fns"),pred_fns, list())
 #' USGS_NED National Elevation Dataset. It uses rgee rgee::ee_extract function to conduct
 #' zonal statistics. The resolution (pixel size to use) can be changed if desired by
 #' modifying scale=. Now it is using a 90x90 m pixel size
+#'
 #' @param polygon2process
+#' @param USGS_NED
+#' @param ...
 #'
 #' @return a single value the mean elevation value for the watershed
 #' @export
@@ -25,6 +28,8 @@ ELVmean_WS<-function(polygon2process,USGS_NED,...){
 #' Watershed mean elevation divided by 100
 #'
 #' @param polygon2process
+#' @param USGS_NED
+#' @param ...
 #'
 #' @return
 #' @export
@@ -36,6 +41,16 @@ ELVmean_WS_100<-function(polygon2process,USGS_NED,...){
 }
 
 
+#' Watershed max elevation
+#'
+#' @param polygon2process
+#' @param USGS_NED
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
 ELVmax_WS<-function(polygon2process,USGS_NED,...){
    media<-rgee::ee_extract(USGS_NED, polygon2process, fun = ee$Reducer$max(), scale=90)
   return(media[1,1])
@@ -46,7 +61,10 @@ ELVmax_WS<-function(polygon2process,USGS_NED,...){
 #' USGS_NED National Elevation Dataset. It uses rgee rgee::ee_extract function to conduct
 #' zonal statistics. The resolution (pixel size to use) can be changed if desired by
 #' modifying scale=. Now it is using a 90x90 m pixel size
+#'
 #' @param polygon2process
+#' @param USGS_NED
+#' @param ...
 #'
 #' @return a single value the minimum elevation value for the watershed
 #' @export
@@ -65,7 +83,10 @@ ELVmin_WS<-function(polygon2process,USGS_NED,...){
 #' modifying scale=. Now it is using a 90x90 m pixel size.
 #' The function first obtains the max elevation in the watershed, and then the minimum and finally
 #' it obtains the difference between the two values
+#'
 #' @param polygon2process
+#' @param USGS_NED
+#' @param ...
 #'
 #' @return a single value, the elevation range in the watershed
 #' @export
@@ -85,7 +106,10 @@ ELEV_RANGE<-function(polygon2process,USGS_NED,...){
 #' modifying scale=. Now it is using a 90x90 m pixel size.
 #' The rgee function rgee::ee_extract is used here without fun = ee$Reducer$min,mean,max()
 #' argument since it only needs the information at the point
+#'
 #' @param points2process
+#' @param USGS_NED
+#' @param ...
 #'
 #' @return a single value which is the elevation at the point
 #' @export
@@ -103,7 +127,10 @@ ELEV_SITE<-function(points2process,USGS_NED,...){
 #' modifying scale=. Now it is using a 90x90 m pixel size.
 #' the function first extracts the elevation at the point. This elevation is then divided by
 #' 10 and then the square root is extracted
+#'
 #' @param points2process
+#' @param USGS_NED
+#' @param ...
 #'
 #' @return a single value which is the square root of the elevation at the point
 #' @export
@@ -126,7 +153,10 @@ ELEV_SITE_SQRT<-function(points2process,USGS_NED,...){
 #' it then creates a area of influence AOI around the point of 150 meters (buffer).
 #' Extracts the mean and the standard deviation of the elevation within this AOI, and then
 #' it calculates the coefficient of variation
+#'
 #' @param points2process
+#' @param USGS_NED
+#' @param ...
 #'
 #' @return a single value, the coefficient of variation of elevation in an 150 m buffer around the point
 #' @export

@@ -7,7 +7,9 @@ pred_fns=ifelse(exists("pred_fns"),pred_fns, list())
 #' Log 10 precipitation at the point
 #'
 #' @param points2process
+#' @param ...
 #' @param predictor_geometry
+#'
 #' @description  can be mean log precipitation at the point too if input raster is a mean
 #'
 #' @return
@@ -101,12 +103,13 @@ pred_fns$precip<-function(points2process,predictor_geometry, ...){
 #'
 #' @param points2process
 #' @param CurrentYear
+#' @param ...
 #'
 #' @return
 #' @export
 #'
 #' @examples
-pred_fns$PRCPSHORTWS<-function(points2process, CurrentYear){
+pred_fns$PRCPSHORTWS<-function(points2process, CurrentYear,...){
   WaterYearStart<-paste0(CurrentYear,"-01-01")
   WaterYearEnd<-paste0(CurrentYear,"-12-31")
   prism.accum0<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(WaterYearStart, WaterYearEnd))$select('ppt')

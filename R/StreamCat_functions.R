@@ -3,6 +3,7 @@ pred_fns=ifelse(exists("pred_fns"),pred_fns, list())
 #' concatenate list objects into an "IN" string for insertion into SQLite queries (needed for StreamCat)
 #'
 #' @param inSTR
+#' @param ...
 #'
 #' @return
 #' @export
@@ -30,7 +31,7 @@ pred_fns$inLOOP<- function(inSTR,...) {
 #' @export
 #'
 #' @examples
-pred_fns$StreamCat_single_pred <-function(SQLite_file_path, predictor_name, COMIDs) {
+pred_fns$StreamCat_single_pred <-function(SQLite_file_path, predictor_name, COMIDs,...) {
   conn <- DBI::dbConnect(RSQLite::SQLite(), SQLite_file_path)
   if (predictor_name == "Precip8110") {
     media = DBI::dbGetQuery(conn,sprintf("SELECT Precip8110Ws as Precip8110 FROM StreamCat_2016 WHERE COMID in (%s)",paste0(predictor_name),inLOOP(substr(COMIDs, 1, 10))))
@@ -50,7 +51,7 @@ pred_fns$StreamCat_single_pred <-function(SQLite_file_path, predictor_name, COMI
 #' @export
 #'
 #' @examples
-pred_fns$MAST_mean08091314=function(SQLite_file_path, COMIDs) {
+pred_fns$MAST_mean08091314=function(SQLite_file_path, COMIDs,...) {
   rawtemps = DBI::dbGetQuery(conn,sprintf("SELECT MAST_2008,MAST_2009,MAST_2013,MAST_2014 FROM StreamCat_2016 WHERE COMID in (%s)",inLOOP(substr(COMIDs, 1, 10))))
   MAST_mean08091314=rowMeans(rawtemps,na.rm=FALSE)
   return(MAST_mean08091314)
@@ -65,7 +66,7 @@ pred_fns$MAST_mean08091314=function(SQLite_file_path, COMIDs) {
 #' @export
 #'
 #' @examples
-pred_fns$MSST_mean08091314=function(SQLite_file_path, COMIDs) {
+pred_fns$MSST_mean08091314=function(SQLite_file_path, COMIDs,...) {
   rawtemps = DBI::dbGetQuery(conn,sprintf("SELECT MSST_2008,MSST_2009,MSST_2013,MSST_2014 FROM StreamCat_2016 WHERE COMID in (%s)",inLOOP(substr(COMIDs, 1, 10))))
   MSST_mean08091314=rowMeans(rawtemps,na.rm=FALSE)
   return(MSST_mean08091314)
@@ -80,7 +81,7 @@ pred_fns$MSST_mean08091314=function(SQLite_file_path, COMIDs) {
 #' @export
 #'
 #' @examples
-pred_fns$MWST_mean08091314=function(SQLite_file_path, COMIDs) {
+pred_fns$MWST_mean08091314=function(SQLite_file_path, COMIDs,...) {
   rawtemps = DBI::dbGetQuery(conn,sprintf("SELECT MWST_2008,MWST_2009,MWST_2013,MWST_2014 FROM StreamCat_2016 WHERE COMID in (%s)",inLOOP(substr(COMIDs, 1, 10))))
   MWST_mean08091314=rowMeans(rawtemps,na.rm=FALSE)
   return(MWST_mean08091314)
@@ -95,7 +96,7 @@ pred_fns$MWST_mean08091314=function(SQLite_file_path, COMIDs) {
 #' @export
 #'
 #' @examples
-pred_fns$StreamCat_all<- function(SQLite_file_path,COMIDs){
+pred_fns$StreamCat_all<- function(SQLite_file_path,COMIDs,...){
   conn<-DBI::dbConnect(RSQLite::SQLite(),SQLite_file_path)
   media=DBI::dbGetQuery(conn,sprintf("SELECT * FROM StreamCat_2016 WHERE COMID in (%s)",inLOOP(substr(COMIDs,1,10))))
   MAST_mean08091314=MAST_mean08091314(SQLite_file_path, COMIDs)
