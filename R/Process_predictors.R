@@ -91,7 +91,7 @@ process_sample_predictors = function(sampleId, config = config) {
     def_sites = NAMCr::query(
       api_endpoint = "siteInfo",
       include = c("siteId", "siteName", "usState", "location", "catchment"),
-      siteIds = def_samples$siteId
+      siteId = def_samples$siteId
     )
     #getting a list of needed predictors
     def_predictors = NAMCr::query(
@@ -106,8 +106,8 @@ process_sample_predictors = function(sampleId, config = config) {
         "abbreviation",
         "predictorValue",
         "calculationScript",
-        "isTemporal",
-        #"geometry_file_path",
+        "isTemporal"
+        #,"geometry_file_path",
         #"is.rgee"
 
       ),
