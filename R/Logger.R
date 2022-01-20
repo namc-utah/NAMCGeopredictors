@@ -4,7 +4,7 @@
 #' @examples
 #'
 #'
-BaseClass_R6 = R6Class(
+BaseClass_R6 =R6::R6Class(
   "BaseClass_R6",
 
   public = list(
@@ -60,7 +60,7 @@ BaseClass_R6 = R6Class(
 #' @examples
 #'
 #'
-Logger = R6Class(
+Logger = R6::R6Class(
   "Logger",
   inherit = BaseClass_R6,
 

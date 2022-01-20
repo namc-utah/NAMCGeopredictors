@@ -1,4 +1,3 @@
-pred_fns=ifelse(exists("pred_fns"),pred_fns, list())
 ###################
 
 #   Geology       #

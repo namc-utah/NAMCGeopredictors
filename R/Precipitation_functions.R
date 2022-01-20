@@ -1,4 +1,3 @@
-pred_fns=ifelse(exists("pred_fns"),pred_fns, list())
 ####################
 
 #   Precipitation   #
@@ -16,7 +15,7 @@ pred_fns=ifelse(exists("pred_fns"),pred_fns, list())
 #' @export
 #'
 #' @examples
-pred_fns$LOG_PRECIP_SITE<-function(points2process,predictor_geometry, ...){
+LOG_PRECIP_SITE<-function(points2process,predictor_geometry, ...){
    media<-log10(raster::extract(predictor_geometry,points2process))
   return(media[1,1])
 }
@@ -32,7 +31,7 @@ pred_fns$LOG_PRECIP_SITE<-function(points2process,predictor_geometry, ...){
 #' @export
 #'
 #' @examples
-pred_fns$PPT_2MoAvg<-function(polygon2process, CurrentYear, JulianDate,...){
+PPT_2MoAvg<-function(polygon2process, CurrentYear, JulianDate,...){
   curYear.2month<-CurrentYear
   # Obtain a GEE image that has the monthly precipitation for those months where sample can occur -- in this case from February to November
   prism.1<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(paste0(curYear.2month,"-01-01"), paste0(curYear.2month,"-01-31")))$select('ppt')
@@ -69,7 +68,7 @@ pred_fns$PPT_2MoAvg<-function(polygon2process, CurrentYear, JulianDate,...){
 #' @export
 #'
 #' @examples
-pred_fns$PPT_ACCUM<-function(points2process, CurrentYear,...){
+PPT_ACCUM<-function(points2process, CurrentYear,...){
    prevYear1<-CalendarYear-1
   prevYear0<-prevYear1-1
   WaterYearStart<-paste0(prevYear0,"-05-01")
@@ -91,7 +90,7 @@ pred_fns$PPT_ACCUM<-function(points2process, CurrentYear,...){
 #' @export
 #'
 #' @examples
-pred_fns$precip<-function(points2process,predictor_geometry, ...){
+precip<-function(points2process,predictor_geometry, ...){
    myvars <- "precip_mm"
   Pred_Input_All_USGS.vec <- predictor_geometry[myvars]
   Pred_Input_All_USGS.vec.WGS<-sf::st_transform(Pred_Input_All_USGS.vec, crs = 4326)
@@ -109,7 +108,7 @@ pred_fns$precip<-function(points2process,predictor_geometry, ...){
 #' @export
 #'
 #' @examples
-pred_fns$PRCPSHORTWS<-function(points2process, CurrentYear,...){
+PRCPSHORTWS<-function(points2process, CurrentYear,...){
   WaterYearStart<-paste0(CurrentYear,"-01-01")
   WaterYearEnd<-paste0(CurrentYear,"-12-31")
   prism.accum0<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(WaterYearStart, WaterYearEnd))$select('ppt')

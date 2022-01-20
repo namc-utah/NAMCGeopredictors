@@ -1,7 +1,5 @@
-
-pred_geometry_base_path="Z://GIS/GIS_Stats"
+pred_geometry_base_path="Z://GIS/GIS_Stats/"
 SQLite_file_path="C:/NAMC_S3/StreamCat/StreamCat.sqlite"
-python_path="C:/Users/jenni/AppData/Local/ESRI/conda/envs/arcgispro-py3-clone-1/python.exe"
 
 ## Load required packages
 library(sf)
@@ -15,15 +13,24 @@ library(units)
 library(geojsonsf)
 library(tictoc)
 library(R6)
+
 ## Load useful packages
-#
 #library(rmapshaper)
 #library(whitebox)
 
-
+#jennifer needs to run this line but mac users likely dont need this. dont run unless ee_initallize() doesnt work
 #Sys.setenv(RETICULATE_PYTHON = "C:/Users/jenni/AppData/Local/ESRI/conda/envs/arcgispro-py3-clone-1/python.exe")
 
-
-
-
-
+# Load all functions, comment out because the package should automatically do this
+# source("R/Ecoregion_functions.R")
+# source("R/Elevation_functions.R")
+# source("R/General_functions.R")
+# source("R/Geology_functions.R")
+# source("R/Geometry_functions.R")
+# source("R/Hydrology_functions.R")
+# source("R/Logger.R")
+# source("R/Precipitation_functions.R")
+# source("R/Slope_functions.R")
+# source("R/StreamCat_functions.R")
+# source("R/Temperature_functions.R")
+# source("R/Vegetation_functions.R")

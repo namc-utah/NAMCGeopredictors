@@ -55,7 +55,7 @@ process_box_predictors = function(boxId) {
   #   process_sample_predictors(def_boxes$sampleId[i])
   # }
 
-  by(def_boxes, seqlen(nrow(def_boxes)), function(sample) {
+  by(def_boxes, seq_len(nrow(def_boxes)), function(sample) {
     process_sample_predictors(sample$sampleId)
   })
 
@@ -130,19 +130,18 @@ process_box_predictors = function(boxId, config = config) {
 
     pred_geometries = list()
 
-    by(def_predictors, seqlen(nrow(def_predictors)), function(predictor) {
+    by(def_predictors, seq_len(nrow(def_predictors)), function(predictor) {
       tryCatch({
-        if (!grepl(".shp", predictor$geometry_file_path)) {
+        if (is.na(predictor$geometry_file_path)) {
+          pred_geometries[[predictor$abbreviation]] = NA
+        } else if (!grepl(".shp", predictor$geometry_file_path)) {
           pred_geometries[[predictor$abbreviation]] = raster::raster(paste0(
-            config$pred_geometry_base_path,
+            pred_geometry_base_path,
             predictor$geometry_file_path
           ))
-        } else if (is.na(predictor$geometry_file_path)) {
-          pred_geometries[[predictor$abbreviation]] = NA
-        }
-        else {
+        } else {
           pred_geometries[[predictor$abbreviation]] = sf::st_read(paste0(
-            config$pred_geometry_base_path,
+            pred_geometry_base_path,
             predictor$geometry_file_path
           ))
           pred_geometries[[predictor$abbreviation]] = sf::st_make_valid(pred_geometries[[predictor$abbreviation]]) # Fix invalid polygon geometries
@@ -167,16 +166,17 @@ process_box_predictors = function(boxId, config = config) {
       #
       # uses environment[[ function_name ]]() syntax to call each predictor function
       # Data needs to be in json format
-        polygon2process =  ifelse(
-          is.na(def_sites$catchment[1])==FALSE,
-          sf::st_make_valid(geojsonsf:geojson_sf(def_sites$catchment[1])),
-          NA)
+        if( is.na(def_sites$catchment[1])==FALSE) {
+        polygon2process = sf::st_make_valid(geojsonsf::geojson_sf(def_sites$catchment[1]))
+        } else {polygon2process = NA
+        }
 
-      predictor_value = pred_fns[[predictor$calculationScript]](
+
+      predictor_value = eval(parse(text=paste0(predictor$calculationScript)))(
         polygon2process = polygon2process ,
-        point2process =  geojsonsf:geojson_sf(def_sites$location[1]) ,
+        point2process =  geojsonsf::geojson_sf(def_sites$location[1]) ,
         predictor_name = predictor$abbreviation,
-        predictor_geometry = pred_geometries[[predictor$abbreviation]],
+        predictor_geometry = pred_geometries[[paste0(predictor$abbreviation)]],
         geometry_input_path <-
           paste0(pred_geometry_base_path, predictor$geometry_file_path),
         CurrentYear = lubridate::year(def_samples$sampleDate[1]),
@@ -190,14 +190,14 @@ process_box_predictors = function(boxId, config = config) {
       # ---------------------------------------------------------------
       if (predictor$isTemporal) {
         NAMCr::save(
-          api_endpoint = "newSamplePredictorValue",
+          api_endpoint = "setSamplePredictorValue",
           sampleId = def_samples$sampleId[1],
           predictorId = predictor$predictorId,
           value = predictor_value
         )
       } else{
         NAMCr::save(
-          api_endpoint = "newSitePredictorValue",
+          api_endpoint = "setSitePredictorValue",
           siteId = def_samples$siteId[1],
           predictorId = predictor$predictorId,
           value = predictor_value

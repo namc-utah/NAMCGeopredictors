@@ -1,4 +1,3 @@
-pred_fns=ifelse(exists("pred_fns"),pred_fns, list())
 ####################
 
 #   Hydrology      #
@@ -15,7 +14,7 @@ pred_fns=ifelse(exists("pred_fns"),pred_fns, list())
 #' @export
 #'
 #' @examples
-pred_fns$Wb_mx_area<-function(polygon2process,predictor_geometry, ...){
+Wb_mx_area<-function(polygon2process,predictor_geometry, ...){
   polygon2process<-sf::st_transform(polygon2process, 5070)
     bodies<-sf::st_intersection(predictor_geometry, validgeometry2)
   bodies$AreaSqKm<-units::drop_units(sf::st_area(bodies)/1000000)
@@ -34,7 +33,7 @@ pred_fns$Wb_mx_area<-function(polygon2process,predictor_geometry, ...){
 #' @export
 #'
 #' @examples
-pred_fns$GW_P_Sp_Mx<-function(polygon2process,predictor_geometry, ...){
+GW_P_Sp_Mx<-function(polygon2process,predictor_geometry, ...){
    media<-exactextractr::exact_extract(predictor_geometry,polygon2process,'max')
   return(media[1,1])
 }

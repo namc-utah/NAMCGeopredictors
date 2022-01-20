@@ -1,5 +1,3 @@
-pred_fns=ifelse(exists("pred_fns"),pred_fns, list())
-
 ####################
 
 #   Temperature     #
@@ -10,7 +8,7 @@ pred_fns=ifelse(exists("pred_fns"),pred_fns, list())
 ### These are VERY LARGE vector datasets --- I am inclined to query what is needed directly from disk
 ### as opposed to load the entire vectors in memory
 ### Regular version of a function that works with an object loaded to memory
-# pred_fns$SUMMER<-function(points2process,predictor_geometry, ...){
+# SUMMER<-function(points2process,predictor_geometry, ...){
 #   crs2use<-crs(predictor_geometry)
 #   AOItrans<-sf::st_transform(points2process, crs2use)
 #   AOI_Buffer<-sf::st_join(AOItrans, predictor_geometry, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
@@ -30,7 +28,7 @@ pred_fns=ifelse(exists("pred_fns"),pred_fns, list())
 #' @export
 #'
 #' @examples
-pred_fns$SUMMER<-function(points2process,predictor_geometry,geometry_input_path, ...){
+SUMMER<-function(points2process,predictor_geometry,geometry_input_path, ...){
    AOItrans<- sf::st_transform(points2process, 5070) # must use the same EPSG as in the shapefile
   AOItrans_wkt <- AOItrans %>%
     sf::st_geometry() %>% # convert to sfc
@@ -47,7 +45,7 @@ return(media[1,1])
 ### These are VERY LARGE vector datasets --- I am inclined to query what is needed directly from disk
 ### as opposed to load the entire vectors in memory
 ### Regular version of a function that works with an object loaded to memory
-# pred_fns$WINTER<-function(points2process,predictor_geometry, ...){
+# WINTER<-function(points2process,predictor_geometry, ...){
 #    crs2use<-crs(predictor_geometry)
 #   AOItrans<-st_transform(points2process, crs2use)
 #   AOI_Buffer<-st_join(AOItrans, predictor_geometry, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
@@ -67,7 +65,7 @@ return(media[1,1])
 #' @export
 #'
 #' @examples
-pred_fns$WINTER<-function(points2process,predictor_geometry, geometry_input_path,...){
+WINTER<-function(points2process,predictor_geometry, geometry_input_path,...){
    AOItrans<-sf::st_transform(points2process, 5070) # must use the same EPSG as in the shapefile
   AOItrans_wkt <- AOItrans %>%
     sf::st_geometry() %>% # convert to sfc
@@ -91,7 +89,7 @@ return(media[1,1])
 #' @export
 #'
 #' @examples
-pred_fns$temp<-function(points2process,predictor_geometry, ...){
+temp<-function(points2process,predictor_geometry, ...){
    myvars <- "temp_Cx10"
   Pred_Input_All_USGS.vec <- predictor_geometry[myvars]
   crs2use<-crs(Pred_Input_All_USGS.vec) # is this the raster or sf function.... it is a vector
@@ -112,7 +110,7 @@ pred_fns$temp<-function(points2process,predictor_geometry, ...){
 #' @export
 #'
 #' @examples
-pred_fns$Tmax_PT<-function(points2process,predictor_geometry, ...){
+Tmax_PT<-function(points2process,predictor_geometry, ...){
    media<-raster::extract(predictor_geometry,points2process)/10
   return(media[1,1])
 }
