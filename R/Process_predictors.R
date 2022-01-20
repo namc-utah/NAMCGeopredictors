@@ -84,14 +84,14 @@ process_sample_predictors = function(sampleId, config = config) {
     def_samples = NAMCr::query(
       api_endpoint = "samples",
       include = c("sampleId", "siteId", "sampleDate"),
-      sampleId = sampleId,
+      sampleIds = sampleId,
 
     )
     # getting watershed
     def_sites = NAMCr::query(
       api_endpoint = "siteInfo",
       include = c("siteId", "siteName", "usState", "location", "catchment"),
-      siteId = def_samples$siteId
+      siteIds = def_samples$siteId
     )
     #getting a list of needed predictors
     def_predictors = NAMCr::query(
