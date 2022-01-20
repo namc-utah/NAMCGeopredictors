@@ -64,59 +64,69 @@ process_box_predictors = function(boxId) {
 
 
 ####### run predictors for one sample at a time
-#' Process sample predictor
+#' Process box predictor
 #' @description
 #' @details saving each predictor for each sample one at a time in the database
 #'
-#' @param sampleId
+#' @param boxId
 #' @param config
 #'
 #' @return none
 #' @export
 #'
 #' @examples
-process_sample_predictors = function(sampleId, config = config) {
+process_box_predictors = function(boxId, config = config) {
   tryCatch({
     # ---------------------------------------------------------------
     # get needed inputs from the database
     # ---------------------------------------------------------------
     # getting sample info including date
-    def_samples = NAMCr::query(
-      api_endpoint = "samples",
-      include = c("sampleId", "siteId", "sampleDate"),
-      sampleIds = sampleId,
-
-    )
-    # getting watershed
-    def_sites = NAMCr::query(
-      api_endpoint = "siteInfo",
-      include = c("siteId", "siteName", "usState", "location", "catchment"),
-      siteId = def_samples$siteId[1]
-    )
+    # def_samples = NAMCr::query(
+    #   api_endpoint = "samples",
+    #   include = c("sampleId", "siteId", "sampleDate", "boxId"),
+    #   boxId = boxId,
+    #
+    # )
+    # # getting watershed
+    # def_sites = NAMCr::query(
+    #   api_endpoint = "siteInfo",
+    #   include = c("siteId", "siteName", "usState", "location", "catchment","boxId"),
+    #   boxId = boxId
+    # )
     # getting a list of needed predictors
     def_predictors = NAMCr::query(
       api_endpoint = "samplePredictorValues",
       include = c(
+        "boxid",
+        "sampleId",
+        "sampleDate",
+        "siteId",
         "predictorId",
         "status",
         "abbreviation",
+        "predictorValue",
         "calculationScript",
         "isTemporal",
-        "geometry_file_path"
+        "geometry_file_path",
+        "is.rgee"
+
       ),
-      sampleId = def_samples$sampleId[1]
+      boxId = boxId
     )
 
-    def_predictors = def_predictors[def_predictors$status != "Valid",]
+    def_predictors = def_predictors[def_predictors$status != "current",]
 
 
     # ---------------------------------------------------------------
-    # Store predictor geometries in a list variable to enable referencing by name
+    # Store predictor geometries (raster, vector, or google earth engine) in a list variable to enable referencing by name
     # ---------------------------------------------------------------
-    USGS_NED =  ifelse(
-      any(def_predictors$is.rgee),
-      ee$Image("USGS/NED")$select("elevation"),
-      NA)
+    if (any(def_predictors$is.gee)) {
+      ee_Initialize()
+      USGS_NED = ee$Image("USGS/NED")$select("elevation")
+    } else {
+      USGS_NED = NA
+      }
+
 
     pred_geometries = list()
 
@@ -137,9 +147,22 @@ process_sample_predictors = function(sampleId, config = config) {
           ))
           pred_geometries[[predictor$abbreviation]] = sf::st_make_valid(pred_geometries[[predictor$abbreviation]]) # Fix invalid polygon geometries
         }
+#
+#         # ---------------------------------------------------------------
+#         # Loop through samples
+#         # ---------------------------------------------------------------
+#         by(def_predictors, seqlen(nrow(def_predictors)), function(sample) {
+#
+#         def_sites = NAMCr::query(
+#             api_endpoint = "siteInfo",
+#             include = c("siteId", "siteName", "usState", "location", "catchment","waterbodyCode","sampleId"),
+#             sampleId =
+#           )
+#
+#
 
       # ---------------------------------------------------------------
-      # Loop through predictors
+      # Calculate predictors
       # ---------------------------------------------------------------
       #
       # uses environment[[ function_name ]]() syntax to call each predictor function
