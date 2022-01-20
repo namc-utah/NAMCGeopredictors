@@ -1,5 +1,6 @@
 pred_geometry_base_path="Z://GIS/GIS_Stats/"
 SQLite_file_path="C:/NAMC_S3/StreamCat/StreamCat.sqlite"
+temp_predictor_metadata="C:/Users/jenni/Box/NAMC (Trip Armstrong)/OE_Modeling/Geospatial predictors/predictor_table_for_database.csv"
 
 ## Load required packages
 library(sf)

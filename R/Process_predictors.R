@@ -51,9 +51,9 @@ process_box_predictors = function(boxId) {
     boxIds = boxId
   )
 
-  # for (i in seq_len(nrow(def_boxes))) {
-  #   process_sample_predictors(def_boxes$sampleId[i])
-  # }
+  for (i in seq_len(nrow(def_boxes))) {
+    process_sample_predictors(def_boxes$sampleId[i])
+  }
 
   by(def_boxes, seq_len(nrow(def_boxes)), function(sample) {
     process_sample_predictors(sample$sampleId)
@@ -68,54 +68,57 @@ process_box_predictors = function(boxId) {
 #' @description
 #' @details saving each predictor for each sample one at a time in the database
 #'
-#' @param boxId
+#' @param sampleId
 #' @param config
 #'
 #' @return none
 #' @export
 #'
 #' @examples
-process_box_predictors = function(boxId, config = config) {
+process_sample_predictors = function(sampleId, config = config) {
   tryCatch({
     # ---------------------------------------------------------------
     # get needed inputs from the database
     # ---------------------------------------------------------------
     # getting sample info including date
-    # def_samples = NAMCr::query(
-    #   api_endpoint = "samples",
-    #   include = c("sampleId", "siteId", "sampleDate", "boxId"),
-    #   boxId = boxId,
-    #
-    # )
-    # # getting watershed
-    # def_sites = NAMCr::query(
-    #   api_endpoint = "siteInfo",
-    #   include = c("siteId", "siteName", "usState", "location", "catchment","boxId"),
-    #   boxId = boxId
-    # )
-    # getting a list of needed predictors
+    def_samples = NAMCr::query(
+      api_endpoint = "samples",
+      include = c("sampleId", "siteId", "sampleDate"),
+      sampleId = sampleId,
+
+    )
+    # getting watershed
+    def_sites = NAMCr::query(
+      api_endpoint = "siteInfo",
+      include = c("siteId", "siteName", "usState", "location", "catchment"),
+      siteId = def_samples$siteId
+    )
+    #getting a list of needed predictors
     def_predictors = NAMCr::query(
       api_endpoint = "samplePredictorValues",
       include = c(
-        "boxid",
-        "sampleId",
-        "sampleDate",
-        "siteId",
+        #"boxid",
+        #"sampleId",
+        #"sampleDate",
+        #"siteId",
         "predictorId",
         "status",
         "abbreviation",
         "predictorValue",
         "calculationScript",
         "isTemporal",
-        "geometry_file_path",
-        "is.rgee"
+        #"geometry_file_path",
+        #"is.rgee"
 
       ),
-      boxId = boxId
+      sampleId = sampleId
     )
 
     def_predictors = def_predictors[def_predictors$status != "current",]
 
+    preddb=read.csv(temp_predictor_metadata)
+    preddb=preddb[,c("abbreviation","geometry_file_path","is_gee")]
+    def_predictors=dplyr::left_join(def_predictors,preddb,by="abbreviation")
 
     # ---------------------------------------------------------------
     # Store predictor geometries (raster, vector, or google earth engine) in a list variable to enable referencing by name
@@ -132,7 +135,8 @@ process_box_predictors = function(boxId, config = config) {
 
     by(def_predictors, seq_len(nrow(def_predictors)), function(predictor) {
       tryCatch({
-        if (is.na(predictor$geometry_file_path)) {
+        # change "" to is.na once end points are fixed to have this included
+        if (predictor$geometry_file_path=="") {
           pred_geometries[[predictor$abbreviation]] = NA
         } else if (!grepl(".shp", predictor$geometry_file_path)) {
           pred_geometries[[predictor$abbreviation]] = raster::raster(paste0(
