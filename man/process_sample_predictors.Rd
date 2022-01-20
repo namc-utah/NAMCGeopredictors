@@ -2,7 +2,7 @@
 % Please edit documentation in R/Process_predictors.R
 \name{process_sample_predictors}
 \alias{process_sample_predictors}
-\title{Process box predictor}
+\title{Process sample predictors}
 \usage{
 process_sample_predictors(sampleId, config = config)
 }
@@ -13,7 +13,7 @@ process_sample_predictors(sampleId, config = config)
 none
 }
 \description{
-Process box predictor
+Process sample predictors
 }
 \details{
 saving each predictor for each sample one at a time in the database

@@ -64,7 +64,7 @@ process_box_predictors = function(boxId) {
 
 
 ####### run predictors for one sample at a time
-#' Process box predictor
+#' Process sample predictors
 #' @description
 #' @details saving each predictor for each sample one at a time in the database
 #'
