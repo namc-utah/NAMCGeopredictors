@@ -4,25 +4,14 @@
 \alias{process_box_predictors}
 \title{predictors for each box}
 \usage{
-process_box_predictors(boxId, config = config)
-
-process_box_predictors(boxId, config = config)
+process_box_predictors(boxId)
 }
 \arguments{
 \item{boxId}{}
-
-\item{config}{}
 }
 \value{
 
-
-none
 }
 \description{
 predictors for each box
-
-Process box predictor
-}
-\details{
-saving each predictor for each sample one at a time in the database
 }
