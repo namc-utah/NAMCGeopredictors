@@ -13,7 +13,7 @@ it then intersects the point with the Eco_Level_III_US.shp layer and just pulls 
 ECO4(points2process, predictor_geometry, ...)
 }
 \arguments{
-\item{points2process}{}
+\item{...}{}
 }
 \value{
 a single value: the ecoregion level 4 value for the point

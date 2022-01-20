@@ -6,10 +6,10 @@
 This function returns the Y coordinate of the point in decimal degrees
 The st_coordinates function returns the second column \link{,2} which is the latitude}
 \usage{
-lat(points2process)
+lat(points2process, ...)
 }
 \arguments{
-\item{points2process}{}
+\item{...}{}
 }
 \value{
 this functions returns one value which is the latitude of the point

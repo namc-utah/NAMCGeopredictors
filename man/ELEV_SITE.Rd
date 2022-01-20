@@ -13,7 +13,7 @@ argument since it only needs the information at the point}
 ELEV_SITE(points2process, USGS_NED, ...)
 }
 \arguments{
-\item{points2process}{}
+\item{...}{}
 }
 \value{
 a single value which is the elevation at the point

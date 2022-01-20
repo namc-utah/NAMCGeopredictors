@@ -13,7 +13,7 @@ the function first extracts the elevation at the point. This elevation is then d
 ELEV_SITE_SQRT(points2process, USGS_NED, ...)
 }
 \arguments{
-\item{points2process}{}
+\item{...}{}
 }
 \value{
 a single value which is the square root of the elevation at the point

@@ -2,7 +2,7 @@
 % Please edit documentation in R/Ecoregion_functions.R
 \name{ER13}
 \alias{ER13}
-\title{Is the level 3 ecoregion number 23?  (Y or N)
+\title{The level 3 ecoregion number 23
 databased used GIS_Stats/Ecoregion/Data/Eco_Level_III_US.shp
 The point is first transformed to a CRS in meters
 The functions then makes sure that only one column "US_L3CODE" is present in the attribute table
@@ -11,7 +11,7 @@ by creating a subset myvars <- "US_L3CODE" / Eco3_PT.vec\link{myvars}}
 ER13(points2process, predictor_geometry, ...)
 }
 \arguments{
-\item{points2process}{}
+\item{...}{}
 }
 \value{
 a single value "Y" if the ecoregion of the point is 23, "N" otherwise

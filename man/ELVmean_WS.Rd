@@ -11,7 +11,7 @@ modifying scale=. Now it is using a 90x90 m pixel size}
 ELVmean_WS(polygon2process, USGS_NED, ...)
 }
 \arguments{
-\item{polygon2process}{}
+\item{...}{}
 }
 \value{
 a single value the mean elevation value for the watershed

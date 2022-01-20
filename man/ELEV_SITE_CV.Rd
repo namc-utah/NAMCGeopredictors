@@ -16,7 +16,7 @@ it calculates the coefficient of variation}
 ELEV_SITE_CV(points2process, USGS_NED, ...)
 }
 \arguments{
-\item{points2process}{}
+\item{...}{}
 }
 \value{
 a single value, the coefficient of variation of elevation in an 150 m buffer around the point

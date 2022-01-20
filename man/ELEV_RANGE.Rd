@@ -13,7 +13,7 @@ it obtains the difference between the two values}
 ELEV_RANGE(polygon2process, USGS_NED, ...)
 }
 \arguments{
-\item{polygon2process}{}
+\item{...}{}
 }
 \value{
 a single value, the elevation range in the watershed

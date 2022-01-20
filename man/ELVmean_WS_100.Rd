@@ -7,7 +7,7 @@
 ELVmean_WS_100(polygon2process, USGS_NED, ...)
 }
 \arguments{
-\item{polygon2process}{}
+\item{...}{}
 }
 \value{
 
