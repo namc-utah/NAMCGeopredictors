@@ -75,7 +75,7 @@ process_box_predictors = function(boxId) {
 #' @export
 #'
 #' @examples
-process_sample_predictors = function(sampleId, config = config) {
+process_sample_predictors = function(sampleId,modelId, config = config) {
   tryCatch({
     # ---------------------------------------------------------------
     # get needed inputs from the database
@@ -112,6 +112,7 @@ process_sample_predictors = function(sampleId, config = config) {
 
       ),
       sampleId = sampleId
+      #modelId = modelId
     )
 
     def_predictors = def_predictors[def_predictors$status != "current",]
