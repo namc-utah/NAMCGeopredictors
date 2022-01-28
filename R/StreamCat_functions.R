@@ -107,11 +107,19 @@ StreamCat_all<- function(SQLite_file_path,COMIDs=def_sites$COMID,...){
 
 
 #Get COMIDs
-getCOMIDs=function(nhd_dir,boxId){
+#' Get COMID using nhdpulsTools
+#'
+#' @param boxId
+#'
+#' @return
+#' @export
+#'
+#' @examples
+getCOMIDs=function(boxId){
   def_sites = NAMCr::query(
     api_endpoint = "samples",
     include = c("sampleId","siteId", "siteName", "usState", "siteLocation"),
-    boxId = 2150
+    boxId = boxId
   )
 
   points2process=geojsonsf::geojson_sf(def_sites$siteLocation)
@@ -126,7 +134,9 @@ getCOMIDs=function(nhd_dir,boxId){
     }
   }
   def_sites$COMID=comids
-}
+return(def_sites$COMID)
+  ##add saving comIDs endpoint here
+  }
 #
 # #Alternative joins to layers on disk, MUCH slower but could be needed if want to actually get catchment polygons
 #    ## Code to link points to hydrologic region
