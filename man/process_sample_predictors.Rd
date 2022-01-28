@@ -4,7 +4,7 @@
 \alias{process_sample_predictors}
 \title{Process sample predictors}
 \usage{
-process_sample_predictors(sampleId, config = config)
+process_sample_predictors(sampleId, modelId, config = config)
 }
 \arguments{
 \item{config}{}

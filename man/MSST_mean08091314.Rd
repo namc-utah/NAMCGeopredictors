@@ -4,7 +4,7 @@
 \alias{MSST_mean08091314}
 \title{Average mean summer stream temp across 2018-2014}
 \usage{
-MSST_mean08091314(SQLite_file_path, COMIDs, ...)
+MSST_mean08091314(SQLite_file_path, COMIDs = def_sites$COMID, ...)
 }
 \arguments{
 \item{COMIDs}{}

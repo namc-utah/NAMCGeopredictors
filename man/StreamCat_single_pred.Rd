@@ -4,7 +4,12 @@
 \alias{StreamCat_single_pred}
 \title{Get single StreamCat predictor from SQLite database on S3 to put into database}
 \usage{
-StreamCat_single_pred(SQLite_file_path, predictor_name, COMIDs, ...)
+StreamCat_single_pred(
+  SQLite_file_path,
+  predictor_name,
+  COMIDs = def_sites$COMID,
+  ...
+)
 }
 \arguments{
 \item{predictor_name}{predictor abbreviation as it is in the database}

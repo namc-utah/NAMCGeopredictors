@@ -4,7 +4,7 @@
 \alias{StreamCat_all}
 \title{Get all StreamCat predictors from SQLite database on S3 plus avg temps}
 \usage{
-StreamCat_all(SQLite_file_path, COMIDs, ...)
+StreamCat_all(SQLite_file_path, COMIDs = def_sites$COMID, ...)
 }
 \arguments{
 \item{COMIDs}{}
