@@ -67,7 +67,7 @@ Slope_WS<-function(polygon2process,geometry_input_path,USGS_NED,...){
   FlowLength=raster::raster(paste0(ShedFlowL))
   max_flow_length=raster::maxValue(FlowLength) # code previously multiplied by 10 and then divided by 100. make sure this output number is in proper units (m)
   media=(max_watershed_elevation-min_watershed_elevation)/max_flow_length
-   return(media)
+   return(media[1,1])
 }
 
 
@@ -86,24 +86,6 @@ Slope_WS<-function(polygon2process,geometry_input_path,USGS_NED,...){
  slpavg <- function(polygon2process,USGS_NED,...) {
   slopegee<-ee$Terrain$slope(USGS_NED) # slope
   slopegee.perc<- slopegee$divide(180)$multiply(3.14159)$tan()$multiply(1)$rename("percent")#Slope percent
-  zones.Albers.3 <- zones.Albers.2[, c(1:4)]
-  #Wsheds.att.OLD$PPT_ACCUM<-NA
-  zones.Albers.3$SlopeGEE <- NA
-
-  for (i in 1:nrow(zones.Albers.3)) {
-    tryCatch({
-      #if an error is found then it is printed, but the loop does not break and continues with the next iteration
-      objecto <- zones.Albers.3[i, ] # Take the first feature
-      slope.water <-
-        ee_extract(slopegee.perc,
-                   objecto,
-                   fun = ee$Reducer$mean(),
-                   scale = 30) %>% as_tibble()
-      print(slope.water)
-      slope.water <- pull(slope.water)
-      zones.Albers.3[[6]][i] <- slope.water
-    }, error = function(e) {
-      cat("ERROR :", conditionMessage(e), "/n")
-    })
-  }
-}
+  media<-rgee::ee_extract(slopegee.perc,polygon2process,fun = ee$Reducer$mean(),scale = 30)
+  return(media[1,1])
+ }
