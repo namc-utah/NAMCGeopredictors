@@ -75,7 +75,7 @@ process_box_predictors = function(boxId) {
 #' @export
 #'
 #' @examples
-process_sample_predictors = function(sampleId,modelId, config = config) {
+process_sample_predictors = function(sampleId,modelId, config = config) {#pred_geometry_base_path
   tryCatch({
     # ---------------------------------------------------------------
     # get needed inputs from the database
@@ -108,7 +108,7 @@ process_sample_predictors = function(sampleId,modelId, config = config) {
         "calculationScript",
         "isTemporal"
         #,"geometry_file_path",
-        #"is.rgee"
+        #"is_gee"
 
       ),
       sampleId = sampleId
