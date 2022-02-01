@@ -35,7 +35,7 @@ extract_watershed_mean <- function(polygon2process, predictor_name, predictor_ge
 #'
 #' @examples
 extract_point_value <- function(point2process, predictor_geometry, ...){
-    media<-raster::extract(predictor_geometry,point2process)
+    media<-raster::extract(predictor_geometry,sf::as_Spatial(point2process))
   return(media[1,1])
 }
 
