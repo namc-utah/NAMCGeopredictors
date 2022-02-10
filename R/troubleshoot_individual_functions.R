@@ -1,5 +1,13 @@
-#
+#-----------------------------------------------------------------------
+# input a sampleId and the predictor abbreviation you are troubleshooting
+#------------------------------------------------------------------------
+sampleId=155612
+predictor_name =
 
+#-----------------------------------------------------------------------
+# run this section to get needed function inputs
+# if errors occur reading in the predictor geometry or watersheds the issues are likely with those files
+#-----------------------------------------------------------------------
 def_samples = NAMCr::query(
   api_endpoint = "samples",
   include = c("sampleId", "siteId", "sampleDate"),
@@ -15,46 +23,27 @@ def_sites = NAMCr::query(
 #getting a list of needed predictors
 def_predictors = NAMCr::query(
   api_endpoint = "samplePredictorValues",
-  include = c(
-    #"boxid",
-    #"sampleId",
-    #"sampleDate",
-    #"siteId",
-    "predictorId",
-    "status",
-    "abbreviation",
-    "predictorValue",
-    "calculationScript",
-    "isTemporal"
-    #,"geometry_file_path",
-    #"is_gee"
-
-  ),
-  sampleId = sampleId
-  #modelId = modelId
+  sampleIds = sampleId
 )
+def_predictors = def_predictors[def_predictors$status != "Valid",]
+def_predictors = subset(def_predictors,abbreviation==predictor_name)
 
-def_predictors = def_predictors[def_predictors$status != "current",]
-
-
+def_sites=as.data.frame(def_sites)
 
 point2process =  geojsonsf::geojson_sf(def_sites$location[1])
-polygon2process =  sf::st_make_valid(geojsonsf::geojson_sf(def_sites$catchment[1]))
+polygon2process =  sf::st_make_valid(geojsonsf::geojson_sf(def_sites$catchment))
+predictor_geometry=
+JulianDate = lubridate::yday(def_samples$sampleDate[1])
+CurrentYear = lubridate::year(def_samples$sampleDate[1])
+geometry_input_path <-paste0(pred_geometry_base_path, predictor$geometry_file_path)
+
+#------------------------------------------------------------------------------
+# run the problematic indicator function line by line to see what lines are giving issues
+#------------------------------------------------------------------------------
+# to find the function name see the def_predictors calculationScript column- ideally in the UI or predictor endpoint
+# to find which script the function is in use the predictorType column- ideally in the UI or predictor endpoint
 
 
-pred_fns[["extract_watershed_mean"]](
-  polygon2process = polygon2process ,
-  #point2process =  geojsonsf::geojson_sf(def_sites$location[1]) ,
-  predictor_name = 'Tmax_WS',
-  predictor_geometry = pred_geometries[['Tmax_WS']]
-  #geometry_input_path <-
-  #  paste0(pred_geometry_base_path, predictor$geometry_file_path),
-  #CurrentYear = lubridate::year(def_samples$sampleDate[1]),
-  #JulianDate = lubridate::yday(def_samples$sampleDate[1]),
-  #USGS_NED=USGS_NED
-)
 
-def_predictors=subset(def_predictors,abbreviation=="Tmax_WS")
-def_predictors=def_predictors[1,]
-eval(parse(text=paste0('ER13')))
+
 
