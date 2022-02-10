@@ -1,11 +1,11 @@
 #'
-#' ####### Calculate predictors for one sample at a time
+#' ####### Calculate predictors for a box or project
 #' #' Calculate predictors
 #' #' @description
 #' #' @details saving each predictor for each sample one at a time in the database
 #' #'
-#' #' @param sampleIds
-#' #' @param modelIds
+#' #' @param boxId if boxId is absent function will use projectId
+#' #' @param projectId only used if boxId is absent
 #' #' @param pred_geometry_base_path
 #' #' @param SQLite_file_path
 #' #'
@@ -13,150 +13,163 @@
 #' #' @export
 #' #'
 #' #' @examples
-#' calculate_predictors = function(sampleIds,modelIds, pred_geometry_base_path,SQLite_file_path) {
-  tryCatch({
+#' calculate_predictors = function(boxId,projectId, pred_geometry_base_path,SQLite_file_path) {
     # ---------------------------------------------------------------
-    # get needed inputs from the database
+    # get existing predictor values and which predictor values need calculated based on which models are associated with each sample
     # ---------------------------------------------------------------
     # getting sample info including date
-    def_samples = NAMCr::query(
-      api_endpoint = "samples",
-      include = c("sampleId", "siteId", "sampleDate"),
-      sampleIds = sampleId,
+    if (exists("boxId")){
+      def_samples=NAMCr::query("samples",include = c("sampleId", "siteId", "sampleDate"),boxId=boxId)
+    }else {def_samples=NAMCr::query("samples",include = c("sampleId", "siteId", "sampleDate"),projectId=projectId)
+    }
 
-    )
-    # getting watershed
-    def_sites = NAMCr::query(
-      api_endpoint = "siteInfo",
-      include = c("siteId", "siteName", "usState", "location", "catchment"),
-      siteId = def_samples$siteId
-    )
-    #getting a list of needed predictors
+    # getting a list of samples and predictor values from the database
     def_predictors = NAMCr::query(
       api_endpoint = "samplePredictorValues",
-      include = c(
-        #"boxid",
-        #"sampleId",
-        #"sampleDate",
-        #"siteId",
-        "predictorId",
-        "status",
-        "abbreviation",
-        "predictorValue",
-        "calculationScript",
-        "isTemporal"
-        #,"geometry_file_path",
-        #"is_gee"
-
-      ),
-      sampleId = sampleId
+      sampleIds = def_samples$sampleId
       #modelId = modelId
     )
-
+    #subset this list to only samples/predictors that need calculated
     def_predictors = def_predictors[def_predictors$status != "current",]
-    # remove this section once apis and database is properly updated with proper fields
-    preddb=read.csv(temp_predictor_metadata)
-    preddb=preddb[,c("abbreviation","geometry_file_path","is_gee")]
-    def_predictors=dplyr::left_join(def_predictors,preddb,by="abbreviation")
+
+    # # remove this section once apis and database is properly updated with proper fields
+    # preddb=read.csv(temp_predictor_metadata)
+    # preddb=preddb[,c("abbreviation","geometry_file_path","is_gee")]
+    # def_predictors=dplyr::left_join(def_predictors,preddb,by="abbreviation")
+
+    # ---------------------------------------------------------------
+    # Get the watershed and location for each sample by looping over the siteInfo end point.
+    # Watersheds are too large to pass for multiple sites at a time in the sites endpoint
+    # ---------------------------------------------------------------
+    # get list of sites to loop over
+    siteIds=unlist(unique(def_predictors$siteId))
+    # for each site in def_predictors get site information from database
+    for (s in 1:length(siteIds)){
+      if(s==1){
+       def_sites = NAMCr::query(
+            api_endpoint = "siteInfo",
+            include = c("siteId", "siteName", "usState", "location", "catchment","waterbodyCode"),
+            siteId = siteIds[s]
+          )
+      }else{
+        def_sites1 = NAMCr::query(
+          api_endpoint = "siteInfo",
+          include = c("siteId", "siteName", "usState", "location", "catchment","waterbodyCode"),
+          siteId = siteIds[s]
+          )
+          def_sites=rbind(def_sites,def_sites1)
+      }
+
+    }
+    # convert list to data frame
+    def_sites=as.data.frame(def_sites)
+    def_predictors
+
+    # ---------------------------------------------------------------
+    # Get unique list of predictors  that need calculated
+    # ---------------------------------------------------------------
+    # subset samplePredictor values data frame to only include predictor pertinent info
+    # this ideally would just be a call to the predictor endpoint based on predictorIds in the above data frame
+    predictors=def_predictors[,c("abbreviation","isGee","geometryFilePath","calculationScript","isTemporal")]
+    #aggregate data frame to have one row per predictor
+    predictors=dplyr::distinct(predictors)
+
 
     # ---------------------------------------------------------------
     # Store predictor geometries (raster, vector, or google earth engine) in a list variable to enable referencing by name
     # ---------------------------------------------------------------
-    if (any(def_predictors$is_gee)) {
+    # load in google earth engine elevation layer for any elevation or slope predictors
+    if (any(def_predictors$isGee=="true")) {
       ee_Initialize()
       USGS_NED = ee$Image("USGS/NED")$select("elevation")
     } else {
       USGS_NED = NA
       }
 
-
+    #create empty list to store geometries in
     pred_geometries = list()
+    #create list of predictors to loop through
+    predlist=unlist(unique(predictors$abbreviation))
 
-    by(def_predictors, seq_len(nrow(def_predictors)), function(predictor) {
+    # loop through each predictor in the predictors data frame to load in all needed predictor geometries
+    for (p in 1:length(predlist)) {
       tryCatch({
         # change "" to is.na once end points are fixed to have this included
-        if (predictor$geometry_file_path=="") {
-          pred_geometries[[predictor$abbreviation]] = NA
-        } else if (!grepl(".shp", predictor$geometry_file_path)) {
-          pred_geometries[[predictor$abbreviation]] = raster::raster(paste0(
-            pred_geometry_base_path,
-            predictor$geometry_file_path
-          ))
+        if (is.na(predictors$geometryFilePath[p]) == TRUE) {
+          pred_geometries[[predictors$abbreviation[p]]] = NA
+        } else if (!grepl(".shp", predictors$geometryFilePath[p])) {
+          pred_geometries[[predictors$abbreviation[p]]] = raster::raster(paste0(pred_geometry_base_path,
+                                                                                predictors$geometryFilePath[p]))
         } else {
-          pred_geometries[[predictor$abbreviation]] = sf::st_read(paste0(
-            pred_geometry_base_path,
-            predictor$geometry_file_path
-          ))
-          pred_geometries[[predictor$abbreviation]] = sf::st_make_valid(pred_geometries[[predictor$abbreviation]]) # Fix invalid polygon geometries
+          pred_geometries[[predictors$abbreviation[p]]] = sf::st_read(paste0(pred_geometry_base_path,
+                                                                             predictors$geometryFilePath[p]))
+          pred_geometries[[predictors$abbreviation[p]]] = sf::st_make_valid(pred_geometries[[predictors$abbreviation[p]]]) # Fix invalid polygon geometries
         }
-#
-#         # ---------------------------------------------------------------
-#         # Loop through samples
-#         # ---------------------------------------------------------------
-#         by(def_predictors, seqlen(nrow(def_predictors)), function(sample) {
-#
-#         def_sites = NAMCr::query(
-#             api_endpoint = "siteInfo",
-#             include = c("siteId", "siteName", "usState", "location", "catchment","waterbodyCode","sampleId"),
-#             sampleId =
-#           )
-#
-#
-
-      # ---------------------------------------------------------------
-      # Calculate predictors
-      # ---------------------------------------------------------------
-      #
-      # uses environment[[ function_name ]]() syntax to call each predictor function
-      # Data needs to be in json format
-        if( is.na(def_sites$catchment[1])==FALSE) {
-        polygon2process = sf::st_make_valid(geojsonsf::geojson_sf(def_sites$catchment[1]))
-        } else {polygon2process = NA
-       print("watershed needs delineated")
-         }
-
-
-      predictor_value = eval(parse(text=paste0(predictor$calculationScript)))(
-        polygon2process = polygon2process ,
-        point2process =  geojsonsf::geojson_sf(def_sites$location[1]) ,
-        predictor_name = predictor$abbreviation,
-        predictor_geometry = pred_geometries[[paste0(predictor$abbreviation)]],
-        geometry_input_path <-
-          paste0(pred_geometry_base_path, predictor$geometry_file_path),
-        CurrentYear = lubridate::year(def_samples$sampleDate[1]),
-        JulianDate = lubridate::yday(def_samples$sampleDate[1]),
-        USGS_NED=USGS_NED
-        )
-
-
-      # ---------------------------------------------------------------
-      # Save predictors
-      # ---------------------------------------------------------------
-      if (predictor$isTemporal) {
-        NAMCr::save(
-          api_endpoint = "setSamplePredictorValue",
-          sampleId = def_samples$sampleId[1],
-          predictorId = predictor$predictorId,
-          value = predictor_value
-        )
-      } else{
-        NAMCr::save(
-          api_endpoint = "setSitePredictorValue",
-          siteId = def_samples$siteId[1],
-          predictorId = predictor$predictorId,
-          value = predictor_value
-        )
-      }
-      }, error=function(e){
-        cat(paste0("\n\tPREDICTOR ERROR: ",predictor$abbreviation,"\n"))
-        str(e,indent.str = "   "); cat("\n")
+      },  error = function(e) {
+        cat(paste0("\n\tERROR READING IN PREDICTOR GEOMETRY: ",predictors$abbreviation[p],"\n",
+                   pred_geometry_base_path,predictors$geometryFilePath[p]),"\n")
+        str(e, indent.str = "   ")
+        cat("\n")
       })
-    })
-  }, error = function(e) {
-    cat(paste0("\n\tSAMPLE ERROR: ",sampleId,"\n"))
-    str(e,indent.str = "   "); cat("\n")
-  })
-#}
+
+    # ---------------------------------------------------------------
+    # Calculate predictors
+    # ---------------------------------------------------------------
+    #subset the predictor values to be calculated to only one predictor at a time
+    samples=subset(def_predictors,abbreviation==predictors$abbreviation[p])
+
+          # for each sample that needs a given predictor calculated
+          for (s in 1:nrow(samples)){
+            tryCatch({
+            # subset the site information for only this sample
+            def_sites_sample=subset(def_sites,siteId=samples[s,"siteId"])
+            # Data needs to be in json format
+              if( is.na(def_sites$catchment[1])==FALSE) {
+              polygon2process = sf::st_make_valid(geojsonsf::geojson_sf(def_sites_sample$catchment))
+              } else {polygon2process = NA
+             print("watershed needs delineated")
+               }
+
+            # uses eval() to call each predictor function by name
+            predictor_value = eval(parse(text=paste0(predictors$calculationScript[p])))(
+              polygon2process = polygon2process ,
+              point2process =  geojsonsf::geojson_sf(def_sites_sample$location) ,
+              predictor_name = predictors$abbreviation[p],
+              predictor_geometry = pred_geometries[[paste0(predictors$abbreviation[p])]],
+              geometry_input_path <-
+                paste0(pred_geometry_base_path, predictors$geometry_file_path[p]),
+              CurrentYear = lubridate::year(samples$sampleDate[s]),
+              JulianDate = lubridate::yday(samples$sampleDate[s]),
+              USGS_NED=USGS_NED
+              )
+
+
+            # ---------------------------------------------------------------
+            # Save predictors
+            # ---------------------------------------------------------------
+            if (predictor$isTemporal) {
+              NAMCr::save(
+                api_endpoint = "setSamplePredictorValue",
+                sampleId = samples$sampleId[s],
+                predictorId = predictors$predictorId[p],
+                value = predictor_value
+              )
+            } else{
+              NAMCr::save(
+                api_endpoint = "setSitePredictorValue",
+                siteId = def_sites_sample$siteId,
+                predictorId = predictors$predictorId[p],
+                value = predictor_value
+              )
+            }
+            }, error = function(e) {
+          cat(paste0("\n\tSAMPLE ERROR: ",sampleId,"\n"))
+          str(e,indent.str = "   "); cat("\n")
+        })
+      }
+  }
+
+  #}
 
 
 # -----------------------------------------------------------------------
