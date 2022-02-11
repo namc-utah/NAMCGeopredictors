@@ -33,7 +33,8 @@
     )
     #subset this list to only samples/predictors that need calculated
     def_predictors = def_predictors[def_predictors$status != "Valid",]
-
+    modelpred=NAMCr::query("predictors",modelId=modelId)
+    def_predictors=subset(def_predictors,predictorId %in% modelpred$predictorId)
     # # remove this section once apis and database is properly updated with proper fields
     # preddb=read.csv(temp_predictor_metadata)
     # preddb=preddb[,c("abbreviation","geometry_file_path","is_gee")]

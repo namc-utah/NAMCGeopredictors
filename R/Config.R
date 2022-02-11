@@ -5,6 +5,7 @@ watershed_file_path="" #siteID must be in file!!!!
 watershed_layer_name=""
 # = 155612
 boxId=2141
+modelId=2
 projectId=
 def_samples=NAMCr::query("samples",sampleIds=c(155612,157568))
 ## Load required packages
