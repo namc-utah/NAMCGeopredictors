@@ -32,7 +32,14 @@ def_sites=as.data.frame(def_sites)
 
 point2process =  geojsonsf::geojson_sf(def_sites$location[1])
 polygon2process =  sf::st_make_valid(geojsonsf::geojson_sf(def_sites$catchment))
-predictor_geometry=
+#choose one of these options
+#option 1 raster data
+predictor_geometry= raster::raster(paste0(pred_geometry_base_path,
+                                         def_predictors$geometryFilePath))
+#option 2 vector data
+predictor_geometry=sf::st_read(paste0(pred_geometry_base_path,
+                                      def_predictors$geometryFilePath))
+                      predictor_geometry=sf::st_make_valid(predictor_geometry)
 JulianDate = lubridate::yday(def_samples$sampleDate[1])
 CurrentYear = lubridate::year(def_samples$sampleDate[1])
 geometry_input_path <-paste0(pred_geometry_base_path, predictor$geometry_file_path)
