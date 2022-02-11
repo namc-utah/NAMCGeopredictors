@@ -37,7 +37,7 @@ SUMMER<-function(points2process,predictor_geometry,geometry_input_path, ...){
   SUMMER.vec<-sf::st_read(geometry_input_path, wkt_filter = AOItrans_wkt)
 AOI_Buffer<-sf::st_join(AOItrans, SUMMER.vec, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
 media<-AOI_Buffer$summer
-return(media[1,1])
+return(media)
 }
 #################################################
 
@@ -74,7 +74,7 @@ WINTER<-function(points2process,predictor_geometry, geometry_input_path,...){
   WINTER.vec<-sf::st_read(geometry_input_path, wkt_filter = AOItrans_wkt)
 AOI_Buffer<-sf::st_join(AOItrans, WINTER.vec, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
 media<-AOI_Buffer$winter
-return(media[1,1])
+return(media)
 }
 #################################################
 
@@ -96,7 +96,7 @@ temp<-function(points2process,predictor_geometry, ...){
   points2process<-sf::st_transform(points2process, crs = crs2use)
   #Pred_Input_All_USGS.vec.WGS<-st_transform(Pred_Input_All_USGS.vec, crs = 4326)
   media<-sf::st_intersection(points2process, Pred_Input_All_USGS.vec)%>%pull(temp_Cx10)
-  return(media[1,1])
+  return(media)
 }
 
 

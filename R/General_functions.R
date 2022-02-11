@@ -54,5 +54,5 @@ extract_point_value <- function(point2process, predictor_geometry, ...){
 #' @examples
 DOY <- function(JulianDate,...) {
   media = JulianDate
-  return(media[1,1])
+  return(media)
 }

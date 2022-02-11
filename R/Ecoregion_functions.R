@@ -26,7 +26,7 @@ east<-function(points2process,predictor_geometry, ...){
   temp01$east<-0
   temp01$east[temp01$EastWest=="East"]<-1
   media<-temp01$east
-  return(media[1,1])
+  return(media)
 }
 
 #' Eco Region level 3 (number) of the point
@@ -50,7 +50,7 @@ ECO3<-function(points2process,predictor_geometry, ...){
   Eco3_PT.vec <- Eco3_PT.vec[myvars]
   Eco3_PT.vec.WGS<-sf::st_transform(predictor_geometry, crs = 4326)
   media<-sf::st_intersection(points2process, Eco3_PT.vec.WGS)%>% dplyr::pull(US_L3CODE)
-  return(media[1,1])
+  return(media)
 }
 
 
@@ -75,7 +75,7 @@ ECO4<-function(points2process,predictor_geometry, ...){
   Eco4_PT.vec <- Eco4_PT.vec[myvars]
   Eco4_PT.vec.WGS<-sf::st_transform(predictor_geometry, crs = 4326)
   media<-sf::st_intersection(points2process, Eco4_PT.vec.WGS)%>% dplyr::pull(US_L4CODE)
-  return(media[1,1])
+  return(media)
 }
 
 
@@ -107,7 +107,7 @@ ER13<-function(points2process,predictor_geometry, ...){
       Eco3_PT01 == 23 ~ "Y",
       Eco3_PT01 != 23 ~ "N"))%>% dplyr::pull(ER13)
   media<-points2process$ER13
-  return(media[1,1])
+  return(media)
 }
 
 
@@ -129,7 +129,7 @@ HV_UPPERPLATTE<-function(points2process,predictor_geometry, ...){
   tempinter$HV_UPPERPLATTE<-0
   tempinter$HV_UPPERPLATTE[tempinter$LAST_COUNT == "HIGH VALLEYS"]<-1
   media<-tempinter$HV_UPPERPLATTE
-  return(media[1,1])
+  return(media)
 }
 
 
@@ -151,7 +151,7 @@ MRE<-function(points2process,predictor_geometry, ...){
   tempinter$MRE<-0
   tempinter$MRE[tempinter$LAST_COUNT == "BLACK HILLS"]<-1
   media<-tempinter$MRE
-  return(media[1,1])
+  return(media)
 }
 
 #' Is the point within the Southern Foothills and Laramie Range ecoregion, WY
@@ -172,7 +172,7 @@ SFLR<-function(points2process,predictor_geometry, ...){
   tempinter$SFLR<-0
   tempinter$SFLR[tempinter$LAST_COUNT == "S WY FH & LARAMIE RANGE"]<-1
   media<-tempinter$SFLR
-  return(media[1,1])
+  return(media)
 }
 
 #' Is the point within the Southern Rockies and Bighorn Mountains ecoregion, WY
@@ -195,5 +195,5 @@ SR_BIGHORNS<-function(points2process,predictor_geometry, ...){
                           tempinter$LAST_COUNT == "BIGHORN BASIN FOOTHILLS"|
                           tempinter$LAST_COUNT == "WB - BIGHORN BASIN"]<-1
   media<-tempinter$SR_BIGHORNS
-  return(media[1,1])
+  return(media)
 }

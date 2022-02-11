@@ -19,7 +19,7 @@ Pct_Alfi<-function(polygon2process,predictor_geometry, ...){
   polygon2process$Pct_Alfi_01<-exactextractr::exact_extract(predictor_geometry,polygon2process,'sum')
   polygon2process$Pct_Alfi<-(polygon2process$Pct_Alfi_01*25/polygon2process$AREAHA)*100
   media<-polygon2process$Pct_Alfi
-  return(media[1,1])
+  return(media)
 }
 
 #' Percentage of watershed that is Sedimentary geology type (geology type number 5)
@@ -44,5 +44,5 @@ PCT_SEDIM<-function(polygon2process,predictor_geometry, ...){
   geo03<-geo03%>%
     filter(GEOLOGY=='Sedimentary')
   media<-sum(geo03$PORC)
-  return(media[1,1])
+  return(media)
 }

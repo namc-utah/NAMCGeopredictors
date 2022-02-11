@@ -205,7 +205,7 @@ SQRT_TOPO<-function(points2process,predictor_geometry,geometry_input_path, ...){
   SQRT_TOPO.vec<-sf::st_read(geometry_input_path, wkt_filter = AOItrans_wkt)
 AOI_Buffer<-sf::st_join(AOItrans, SQRT_TOPO.vec, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
 media<-AOI_Buffer$TOPOCV
-return(media[1,1])
+return(media)
 }
 #################################################
 

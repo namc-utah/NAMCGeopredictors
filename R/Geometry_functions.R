@@ -19,7 +19,7 @@
 #' @examples
 lat<-function(points2process,...){
    media<-sf::st_coordinates(points2process)[,2]
-  return(media[1,1])
+  return(media)
 }
 
 
@@ -35,7 +35,7 @@ lat<-function(points2process,...){
 #' @examples
 long<-function(points2process,...){
    media<-sf::st_coordinates(points2process)[,1]
-  return(media[1,1])
+  return(media)
 }
 
 
@@ -53,7 +53,7 @@ long<-function(points2process,...){
 #' @examples
 WSA_SQKM<-function(polygon2process,...){
    media<-units::drop_units(sf::st_area(polygon2process)/1000000)
-  return(media[1,1])
+  return(media)
 }
 
 #' Log watershed area in sq km
@@ -67,6 +67,6 @@ WSA_SQKM<-function(polygon2process,...){
 #' @examples
 LOG_WSA_SQKM<-function(polygon2process,...){
   media<-log10(WSA_SQKM(polygon2process))
-  return(media[1,1])
+  return(media)
 }
 

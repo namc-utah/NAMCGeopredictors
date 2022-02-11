@@ -17,7 +17,7 @@
 #' @examples
 LOG_PRECIP_SITE<-function(points2process,predictor_geometry, ...){
    media<-log10(raster::extract(predictor_geometry,points2process))
-  return(media[1,1])
+  return(media)
 }
 
 #' PRISM 2 month prior moving average precipitation for the watershed
@@ -55,7 +55,7 @@ PPT_2MoAvg<-function(polygon2process, CurrentYear, JulianDate,...){
   pcp.extraction.pre<-rgee::ee_extract(xxx, polygon2process, fun = ee$Reducer$mean(), scale=50)%>% as_tibble()# Compute pcp for PREVIOUS month
   polygon2process$PPT_2MoAvg<-unlist((pcp.extraction.pre+pcp.extraction.cur)/2)*100 # Obtain average and multiply by 100 so it is similar to Olson
   media<-polygon2process$PPT_2MoAvg
-  return(media[1,1])
+  return(media)
 }
 
 #' PRISM prior year (May-April) cumulative precipitation at the point
@@ -76,7 +76,7 @@ PPT_ACCUM<-function(points2process, CurrentYear,...){
   prism.accum0<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(WaterYearStart, WaterYearEnd))$select('ppt')
   prism.accum.precip<-prism.accum0$sum()
   media<-rgee::ee_extract(prism.accum.precip, points2process, fun = ee$Reducer$mean(), scale=50)
-  return(media[1,1])
+  return(media)
 }
 
 
@@ -95,7 +95,7 @@ precip<-function(points2process,predictor_geometry, ...){
   Pred_Input_All_USGS.vec <- predictor_geometry[myvars]
   Pred_Input_All_USGS.vec.WGS<-sf::st_transform(Pred_Input_All_USGS.vec, crs = 4326)
   media<-sf::st_intersection(points2process, Pred_Input_All_USGS.vec.WGS) %>% dplyr::pull(precip_mm)
-  return(media[1,1])
+  return(media)
 }
 
 #' PRISM calendar year average precipitation at the watershed (CO OE/ old MMI)
@@ -114,5 +114,5 @@ PRCPSHORTWS<-function(points2process, CurrentYear,...){
   prism.accum0<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(WaterYearStart, WaterYearEnd))$select('ppt')
   prism.accum.precip<-prism.accum0$sum()
   media<-ee_extract(prism.accum.precip, points2process, fun = ee$Reducer$mean(), scale=4000)
-  return(media[1,1])
+  return(media)
 }

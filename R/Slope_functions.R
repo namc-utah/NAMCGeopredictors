@@ -29,7 +29,7 @@ NHDSLOPE<-function(points2process,geometry_input_path,...){
   NHDSLOPE.vec<-sf::st_read(geometry_input_path, wkt_filter = AOItrans_wkt)
   AOI_Buffer<-sf::st_join(AOItrans, NHDSLOPE.vec, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
   media<-AOI_Buffer$SLOPE
-  return(media[1,1])
+  return(media)
 }
 
 
@@ -67,7 +67,7 @@ Slope_WS<-function(polygon2process,geometry_input_path,USGS_NED,...){
   FlowLength=raster::raster(paste0(ShedFlowL))
   max_flow_length=raster::maxValue(FlowLength) # code previously multiplied by 10 and then divided by 100. make sure this output number is in proper units (m)
   media=(max_watershed_elevation-min_watershed_elevation)/max_flow_length
-   return(media[1,1])
+   return(media)
 }
 
 
@@ -87,5 +87,5 @@ Slope_WS<-function(polygon2process,geometry_input_path,USGS_NED,...){
   slopegee<-ee$Terrain$slope(USGS_NED) # slope
   slopegee.perc<- slopegee$divide(180)$multiply(3.14159)$tan()$multiply(1)$rename("percent")#Slope percent
   media<-rgee::ee_extract(slopegee.perc,polygon2process,fun = ee$Reducer$mean(),scale = 30)
-  return(media[1,1])
+  return(media)
  }

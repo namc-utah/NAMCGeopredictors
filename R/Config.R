@@ -1,8 +1,12 @@
 pred_geometry_base_path="Z://GIS/GIS_Stats/"
 SQLite_file_path="C:/NAMC_S3/StreamCat/StreamCat.sqlite"
 temp_predictor_metadata="C:/Users/jenni/Box/NAMC (Trip Armstrong)/OE_Modeling/Geospatial predictors/predictor_table_for_database.csv"
-sampleId = 155612
-
+watershed_file_path="" #siteID must be in file!!!!
+watershed_layer_name=""
+# = 155612
+boxId=2141
+projectId=
+def_samples=NAMCr::query("samples",sampleIds=c(155612,157568))
 ## Load required packages
 library(sf)
 library(raster)
@@ -24,7 +28,7 @@ library(nhdplusTools)
 #library(whitebox)
 
 #jennifer needs to run this line but mac users likely dont need this. dont run unless ee_initallize() doesnt work
-#Sys.setenv(RETICULATE_PYTHON = "C:/Users/jenni/AppData/Local/ESRI/conda/envs/arcgispro-py3-clone-1/python.exe")
+Sys.setenv(RETICULATE_PYTHON = "C:/Users/jenni/AppData/Local/ESRI/conda/envs/arcgispro-py3-clone-1/python.exe")
 
 # Load all functions, comment out because the package should automatically do this
 source("R/Ecoregion_functions.R")

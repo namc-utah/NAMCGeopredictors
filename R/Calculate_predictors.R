@@ -49,21 +49,25 @@
     # for each site in def_predictors get site information from database
     # store as a list of lists referenced by "x" plus the siteId
     for (t in 1:length(siteIds)){
-      #if(t==1){
-
-       def_sites[[paste0("x",siteIds[t])]] = NAMCr::query(
-            api_endpoint = "siteInfo",
-            include = c("siteId", "siteName", "usState", "location", "catchment","waterbodyCode"),
-            siteId = siteIds[t]
-          )
-      # }else{
-      #   def_sites1 =NAMCr::query(
-      #     api_endpoint = "siteInfo",
-      #     include = c("siteId", "siteName", "usState", "location", "catchment","waterbodyCode"),
-      #     siteId = siteIds[t]
-      #     )
-      #     def_sites=rbind(def_sites,def_sites1)
-      # }
+      if(t==1){
+      def_sites= unlist(NAMCr::query(
+        api_endpoint = "siteInfo",
+        include = c("siteId", "siteName", "usState", "location", "catchment","waterbodyCode"),
+        siteId = siteIds[t]
+      ))
+      } else {def_sites1= unlist(NAMCr::query(
+        api_endpoint = "siteInfo",
+        include = c("siteId", "siteName", "usState", "location", "catchment","waterbodyCode"),
+        siteId = siteIds[t]
+      ))
+      #this section would get them as seperate lists instead but lists are kind of a pain...
+       # def_sites[[paste0("x",siteIds[t])]] = NAMCr::query(
+       #      api_endpoint = "siteInfo",
+       #      include = c("siteId", "siteName", "usState", "location", "catchment","waterbodyCode"),
+       #      siteId = siteIds[t]
+       #    )
+              def_sites=as.data.frame(rbind(def_sites,def_sites1))
+      }
 
     }
     # # convert list to data frame
@@ -124,65 +128,119 @@
         str(e, indent.str = "   ")
         cat("\n")
       })
+    }
 
     # ---------------------------------------------------------------
     # Calculate predictors
     # ---------------------------------------------------------------
     #subset the predictor values to be calculated to only one predictor at a time
-    samples=subset(def_predictors,abbreviation==predictors$abbreviation[p])
-
+    calculatedPredictorslist=list()
+    for (p in 1:length(predlist)){
+      tryCatch({
+      samples=subset(def_predictors,abbreviation==predictors$abbreviation[p])
+      predictor_value=list()
           # for each sample that needs a given predictor calculated
           for (s in 1:nrow(samples)){
             tryCatch({
             # subset the site information for only this sample
-            def_sites_sample=def_sites[[paste0("x",samples[1,"siteId"])]]
+            def_sites_sample=subset(def_sites,siteId==samples[s,"siteId"])
             # Data needs to be in json format
-              if( is.na(def_sites_sample$catchment[1])==FALSE) {
-              polygon2process = sf::st_make_valid(geojsonsf::geojson_sf(def_sites_sample[["catchment"]]))
+              if( def_sites_sample$catchment!="NULL") {
+              polygon2process = sf::st_make_valid(geojsonsf::geojson_sf(def_sites_sample$catchment))
               } else {polygon2process = NA
              print("watershed needs delineated")
                }
-
             # uses eval() to call each predictor function by name
-            predictor_value = eval(parse(text=paste0(predictors$calculationScript[p])))(
-              polygon2process = polygon2process ,
-              point2process =  geojsonsf::geojson_sf(def_sites_sample[["location"]]) ,
-              predictor_name = predictors$abbreviation[p],
-              predictor_geometry = pred_geometries[[paste0(predictors$abbreviation[p])]],
-              geometry_input_path <-
-                paste0(pred_geometry_base_path, predictors$geometryFilePath[p]),
-              CurrentYear = lubridate::year(samples$sampleDate[s]),
-              JulianDate = lubridate::yday(samples$sampleDate[s]),
-              USGS_NED=USGS_NED
-              )
-
-
-            # ---------------------------------------------------------------
-            # Save predictors
-            # ---------------------------------------------------------------
-            if (predictor$isTemporal) {
-              NAMCr::save(
-                api_endpoint = "setSamplePredictorValue",
-                sampleId = samples$sampleId[s],
-                predictorId = predictors$predictorId[p],
-                value = predictor_value
-              )
-            } else{
-              NAMCr::save(
-                api_endpoint = "setSitePredictorValue",
-                siteId = samples$siteId[s],
-                predictorId = predictors$predictorId[p],
-                value = predictor_value
-              )
+              predictor_value[[s]] = eval(parse(text=paste0(samples$calculationScript[s])))(
+                                polygon2process = polygon2process ,
+                                point2process =  geojsonsf::geojson_sf(def_sites_sample$location) ,
+                                predictor_name = samples$abbreviation[s],
+                                predictor_geometry = pred_geometries[[paste0(samples$abbreviation[s])]],
+                                geometry_input_path <-
+                                  paste0(pred_geometry_base_path, samples$geometryFilePath[s]),
+                                CurrentYear = lubridate::year(samples$sampleDate[s]),
+                                JulianDate = lubridate::yday(samples$sampleDate[s]),
+                                USGS_NED=USGS_NED
+                                )
+            calculatedPredictorslist[[paste0(samples$abbreviation[s])]][[paste0(samples$sampleId[s])]]<-unlist(predictor_value[[s]])
+              }, error = function(e) {
+              cat(paste0("\n\tERROR calculating: ",samples$abbreviation[s]," ",samples$sampleId[s],"\n"))
+              str(e,indent.str = "   "); cat("\n")
+            })
             }
-            }, error = function(e) {
-          cat(paste0("\n\tSAMPLE ERROR: ",samples$sampleId[s],"\n"))
-          str(e,indent.str = "   "); cat("\n")
-        })
-      }
-}
+      }, error = function(e) {
+        cat(paste0("\n\tERROR calculating: ",predictors$abbreviation[p],"\n"))
+        str(e,indent.str = "   "); cat("\n")
+      })
+    }
+    calculatedPredictors<-as.data.frame(data.table::rbindlist(calculatedPredictorslist,idcol=TRUE,fill=TRUE))
+    row=colnames(calculatedPredictors)[-1]
+    calculatedPredictors2=data.table::transpose(calculatedPredictors,make.names=".id")
+    calculatedPredictors2$sampleId<-as.numeric(row)
+    write.csv(calculatedPredictors2,"calculatedPredictors.csv")
 
-  #}
+
+    # ---------------------------------------------------------------
+    # Save predictors
+    # ---------------------------------------------------------------
+
+
+    #read in csv with just sampleId and predictors, sampleId should be the first column
+    #pivot the data
+    predp=reshape2::melt(calculatedPredictors2,id.vars=c("sampleId"),variable.name="abbreviation")
+    #removeNAs
+    predp=subset(predp,is.na(predp$value)==FALSE)
+
+    #get predictorIds from the database
+    predictorlist=NAMCr::query("predictors")
+    #join predictor ids to the predictor values
+    predp=dplyr::left_join(predp,predictorlist,by="abbreviation")
+
+    #get site ids from the database for these sampleIds
+    sampleIds=unique(predp$sampleId)
+    samples=NAMCr::query("samples",sampleIds=sampleIds)
+    #join siteIds to the predictor values
+    predp=dplyr::left_join(predp,samples, by="sampleId")
+
+    #subset to only needed columns
+    predsfinal=subset(predp,is.na(siteId)==FALSE,select=c("sampleId","siteId","predictorId","abbreviation","value","isTemporal"))
+
+    #compare these values to values already in the database
+    predictorValues=NAMCr::query("samplePredictorValues",sampleIds=unique(predsfinal$sampleId))
+    predictorValues=predictorValues[,c("sampleId","predictorId","predictorValue","qaqcDate","predictorValueUpdatedDate","status")]
+    predsfinal=dplyr::left_join(predsfinal,predictorValues,by=c("sampleId","predictorId"))
+    #subset to only include samples/predictors not already in the database
+    predsfinal=subset(predsfinal,status!="Valid")
+
+    #save each row in the database
+    for (i in 1:nrow(predsfinal)){
+      tryCatch({
+        if (predsfinal$isTemporal[i]==TRUE) {
+          NAMCr::save(
+            api_endpoint = "setSamplePredictorValue",
+            sampleId = predsfinal$sampleId[i],
+            predictorId = predsfinal$predictorId[i],
+            value = predsfinal$value[i]
+          )
+        } else{
+          NAMCr::save(
+            api_endpoint = "setSitePredictorValue",
+            siteId = predsfinal$siteId[i],
+            predictorId = predsfinal$predictorId[i],
+            value = predsfinal$value[i]
+          )
+        }
+      }, error = function(e) {
+        cat(paste0("\n\tERROR saving: ",predsfinal$sampleId[i]," ",predsfinal$predictorId[i],"\n"))
+        str(e,indent.str = "   "); cat("\n")
+
+      })
+    }
+
+    #verify that it worked
+    predictorValues=NAMCr::query("samplePredictorValues",sampleIds=unique(predsfinal$sampleId))
+    View(predictorValues)
+#}
 
 
 

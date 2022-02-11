@@ -23,7 +23,7 @@ alru_dom<-function(polygon2process,predictor_geometry, ...){
   polygon2process$AREAHA<-units::drop_units(st_area(polygon2process)/10000)
   polygon2process$alru_dom_01<-exactextractr::exact_extract(predictor_geometry,polygon2process,'count')
   media<-(polygon2process$alru_dom_01*0.09/polygon2process$AREAHA)*100
-  return(media[1,1])
+  return(media)
 }
 
 
@@ -48,7 +48,7 @@ Evergr_ave<-function(polygon2process,predictor_geometry, ...){
   polygon2process$Evergr_ave_01<-extactextractr::exact_extract(predictor_geometry,polygon2process,'sum')
   polygon2process$Evergr_ave<-(polygon2process$Evergr_ave_01*0.09/polygon2process$AREAHA)
   media<-polygon2process$Evergr_ave
-  return(media[1,1])
+  return(media)
 }
 
 
