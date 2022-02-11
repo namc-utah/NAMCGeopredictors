@@ -1,7 +1,7 @@
 #read in csv with just sampleId and predictors, sampleId should be the first column
 pred=read.csv("C:/Users/jenni/Box/NAMC (Trip Armstrong)/OE_Modeling/Geospatial predictors/UT_2021_pred.csv")
 #pivot the data
-predp=tidyr::pivot_longer(pred,cols=c(2:ncol(pred)), names_to="abbreviation")
+predp=reshape2::melt(calculatedPredictors2,id.vars=c("sampleId"),variable.name="abbreviation")
 
 #get predictorIds from the database
 predictorlist=NAMCr::query("predictors")
