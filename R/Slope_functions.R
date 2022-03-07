@@ -12,7 +12,7 @@
 #' Buffer the point by 200m, interest with NHD streams, extract SLOPE value
 #' Jennifer's notes- maxdist=500 meters needs reexamined. The original python code used 200 meters. really we should be using COMID and joining to that!!
 #'
-#' @param points2process
+#' @param point2process
 #' @param geometry_input_path
 #' @param ...
 #'
@@ -20,8 +20,8 @@
 #' @export
 #'
 #' @examples
-NHDSLOPE<-function(points2process,geometry_input_path,...){
-    AOItrans<-sf::st_transform(points2process, 5070) # must use the same EPSG as in the shapefile
+NHDSLOPE<-function(point2process,geometry_input_path,...){
+    AOItrans<-sf::st_transform(point2process, 5070) # must use the same EPSG as in the shapefile
   AOItrans_wkt <- AOItrans %>%
     sf::st_geometry() %>% # convert to sfc
     sf::st_buffer(200) %>% # buffer 200 meters

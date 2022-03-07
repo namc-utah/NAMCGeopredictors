@@ -12,7 +12,7 @@
 #' this new column is filled with 0's. The functions then assesses if the points have the
 #' attribute "East" in the "EastWest" column. If they do, then assigns a value of 1, else 0
 #'
-#' @param points2process
+#' @param point2process
 #' @param predictor_geometry
 #' @param ...
 #'
@@ -20,9 +20,9 @@
 #'
 #'
 #' @examples
-east<-function(points2process,predictor_geometry, ...){
-   EcoregionWGS<-sf::st_transform(predictor_geometry, crs = 4326)# transforming the input vector to the CRS of the geojson points
-  temp01<-sf::st_intersection(points2process,EcoregionWGS)
+east<-function(point2process,predictor_geometry, ...){
+  point2process<-sf::st_transform(point2process, crs = 5070)# transforming the input vector to the CRS of the geojson points
+  temp01<-sf::st_intersection(point2process,predictor_geometry)
   temp01$east<-0
   temp01$east[temp01$EastWest=="East"]<-1
   media<-temp01$east
@@ -37,7 +37,7 @@ east<-function(points2process,predictor_geometry, ...){
 #' it then intersects the point with the Eco_Level_III_US.shp layer and just pulls the value for the
 #' "US_L3CODE" attribute
 #'
-#' @param points2process
+#' @param point2process
 #' @param predictor_geometry
 #' @param ...
 #'
@@ -45,11 +45,11 @@ east<-function(points2process,predictor_geometry, ...){
 #'
 #'
 #' @examples
-ECO3<-function(points2process,predictor_geometry, ...){
-   myvars <- "US_L3CODE"
-  Eco3_PT.vec <- Eco3_PT.vec[myvars]
-  Eco3_PT.vec.WGS<-sf::st_transform(predictor_geometry, crs = 4326)
-  media<-sf::st_intersection(points2process, Eco3_PT.vec.WGS)%>% dplyr::pull(US_L3CODE)
+ECO3<-function(point2process,predictor_geometry, ...){
+  myvars <- "US_L3CODE"
+  predictor_geometry <- predictor_geometry[myvars]
+  point2process<-sf::st_transform(point2process, crs = 5070)
+  media<-sf::st_intersection(point2process, predictor_geometry)%>% dplyr::pull(US_L3CODE)
   return(media)
 }
 
@@ -62,7 +62,7 @@ ECO3<-function(points2process,predictor_geometry, ...){
 #' it then intersects the point with the Eco_Level_III_US.shp layer and just pulls the value for the
 #' "US_L4CODE" attribute
 #'
-#' @param points2process
+#' @param point2process
 #' @param predictor_geometry
 #' @param ...
 #'
@@ -70,11 +70,11 @@ ECO3<-function(points2process,predictor_geometry, ...){
 #'
 #'
 #' @examples
-ECO4<-function(points2process,predictor_geometry, ...){
+ECO4<-function(point2process,predictor_geometry, ...){
    myvars <- "US_L4CODE"
-  Eco4_PT.vec <- Eco4_PT.vec[myvars]
-  Eco4_PT.vec.WGS<-sf::st_transform(predictor_geometry, crs = 4326)
-  media<-sf::st_intersection(points2process, Eco4_PT.vec.WGS)%>% dplyr::pull(US_L4CODE)
+   predictor_geometry <- predictor_geometry[myvars]
+ point2process<-sf::st_transform(point2process, crs = 5070)
+  media<-sf::st_intersection(point2process, predictor_geometry)%>% dplyr::pull(US_L4CODE)
   return(media)
 }
 
@@ -89,7 +89,7 @@ ECO4<-function(points2process,predictor_geometry, ...){
 #' "US_L3CODE" attribute. A new column "ER13" is created whereby if the intersected value is 23 then it
 #' will be populated with "Y", else it will be populated with "N"
 #'
-#' @param points2process
+#' @param point2process
 #' @param predictor_geometry
 #' @param ...
 #'
@@ -97,23 +97,23 @@ ECO4<-function(points2process,predictor_geometry, ...){
 #'
 #'
 #' @examples
-ER13<-function(points2process,predictor_geometry, ...){
-   points2process<-st_transform(points2process, 5070)
+ER13<-function(point2process,predictor_geometry, ...){
+   point2process<-st_transform(point2process, 5070)
   myvars <- "US_L3CODE"
   Eco3_PT.vec <- predictor_geometry[myvars]
-  points2process$Eco3_PT01<-sf::st_intersection(points2process, Eco3_PT.vec)%>% dplyr::pull(US_L3CODE)
-  points2process$ER13<- points2process %>%
+  point2process$Eco3_PT01<-sf::st_intersection(point2process, Eco3_PT.vec)%>% dplyr::pull(US_L3CODE)
+  point2process$ER13<- point2process %>%
     dplyr::mutate(ER13 = case_when(
       Eco3_PT01 == 23 ~ "Y",
       Eco3_PT01 != 23 ~ "N"))%>% dplyr::pull(ER13)
-  media<-points2process$ER13
+  media<-point2process$ER13
   return(media)
 }
 
 
 #' Is the point within the High Valleys and Upper North Platte ecoregion, WY
 #'
-#' @param points2process
+#' @param point2process
 #' @param predictor_geometry
 #' @param ...
 #'
@@ -121,11 +121,11 @@ ER13<-function(points2process,predictor_geometry, ...){
 #' @export
 #'
 #' @examples
-HV_UPPERPLATTE<-function(points2process,predictor_geometry, ...){
-   points2process<-sf::st_transform(points2process, 5070)
+HV_UPPERPLATTE<-function(point2process,predictor_geometry, ...){
+   point2process<-sf::st_transform(point2process, 5070)
   biovar<-"LAST_COUNT"
   WYBio<-predictor_geometry[biovar]
-  tempinter<-sf::st_intersection(points2process, WYBio)
+  tempinter<-sf::st_intersection(point2process, WYBio)
   tempinter$HV_UPPERPLATTE<-0
   tempinter$HV_UPPERPLATTE[tempinter$LAST_COUNT == "HIGH VALLEYS"]<-1
   media<-tempinter$HV_UPPERPLATTE
@@ -135,7 +135,7 @@ HV_UPPERPLATTE<-function(points2process,predictor_geometry, ...){
 
 #'Is the point within the Black hills ecoregion, WY
 #'
-#' @param points2process
+#' @param point2process
 #' @param predictor_geometry
 #' @param ...
 #'
@@ -143,11 +143,11 @@ HV_UPPERPLATTE<-function(points2process,predictor_geometry, ...){
 #' @export
 #'
 #' @examples
-MRE<-function(points2process,predictor_geometry, ...){
-   points2process<-sf::st_transform(points2process, 5070)
+MRE<-function(point2process,predictor_geometry, ...){
+   point2process<-sf::st_transform(point2process, 5070)
   biovar<-"LAST_COUNT"
   WYBio<-predictor_geometry[biovar]
-  tempinter<-sf::st_intersection(points2process, WYBio)
+  tempinter<-sf::st_intersection(point2process, WYBio)
   tempinter$MRE<-0
   tempinter$MRE[tempinter$LAST_COUNT == "BLACK HILLS"]<-1
   media<-tempinter$MRE
@@ -156,7 +156,7 @@ MRE<-function(points2process,predictor_geometry, ...){
 
 #' Is the point within the Southern Foothills and Laramie Range ecoregion, WY
 #'
-#' @param points2process
+#' @param point2process
 #' @param predictor_geometry
 #' @param ...
 #'
@@ -164,11 +164,11 @@ MRE<-function(points2process,predictor_geometry, ...){
 #' @export
 #'
 #' @examples
-SFLR<-function(points2process,predictor_geometry, ...){
-   points2process<-sf::st_transform(points2process, 5070)
+SFLR<-function(point2process,predictor_geometry, ...){
+   point2process<-sf::st_transform(point2process, 5070)
   biovar<-"LAST_COUNT"
   WYBio<-predictor_geometry[biovar]
-  tempinter<-sf::st_intersection(points2process, WYBio)
+  tempinter<-sf::st_intersection(point2process, WYBio)
   tempinter$SFLR<-0
   tempinter$SFLR[tempinter$LAST_COUNT == "S WY FH & LARAMIE RANGE"]<-1
   media<-tempinter$SFLR
@@ -177,7 +177,7 @@ SFLR<-function(points2process,predictor_geometry, ...){
 
 #' Is the point within the Southern Rockies and Bighorn Mountains ecoregion, WY
 #'
-#' @param points2process
+#' @param point2process
 #' @param predictor_geometry
 #' @param ...
 #'
@@ -185,11 +185,11 @@ SFLR<-function(points2process,predictor_geometry, ...){
 #' @export
 #'
 #' @examples
-SR_BIGHORNS<-function(points2process,predictor_geometry, ...){
-    points2process<-sf::st_transform(points2process, 5070)
+SR_BIGHORNS<-function(point2process,predictor_geometry, ...){
+    point2process<-sf::st_transform(point2process, 5070)
   biovar<-"LAST_COUNT"
   WYBio<-predictor_geometry[biovar]
-  tempinter<-sf::st_intersection(points2process, WYBio)
+  tempinter<-sf::st_intersection(point2process, WYBio)
   tempinter$SR_BIGHORNS<-0
   tempinter$SR_BIGHORNS[tempinter$LAST_COUNT == "SOUTHERN ROCKIES"|
                           tempinter$LAST_COUNT == "BIGHORN BASIN FOOTHILLS"|

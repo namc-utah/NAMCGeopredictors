@@ -24,20 +24,20 @@ ELVmean_WS<-function(polygon2process,USGS_NED,...){
   return(media[1,1])
 }
 
-#' Watershed mean elevation divided by 100
-#'
-#' @param polygon2process
-#' @param USGS_NED
-#' @param ...
-#'
-#' @return
-#' @export
-#'
-#' @examples
-ELVmean_WS_100<-function(polygon2process,USGS_NED,...){
-  media<-ELVmean_WS(polygon2process,USGS_NED)/100
-  return(media[1,1])
-}
+#' #' Watershed mean elevation divided by 100
+#' #' old CO model but not even used in that
+#' #' @param polygon2process
+#' #' @param USGS_NED
+#' #' @param ...
+#' #'
+#' #' @return
+#' #' @export
+#' #'
+#' #' @examples
+#' ELVmean_WS_100<-function(polygon2process,USGS_NED,...){
+#'   media<-ELVmean_WS(polygon2process,USGS_NED)/100
+#'   return(media[1,1])
+#' }
 
 
 #' Watershed max elevation
@@ -171,42 +171,35 @@ ELEV_SITE_CV<-function(points2process,USGS_NED,...){
 
 
 
-#################################################
-### These are VERY LARGE vector datasets --- I am inclined to query what is needed directly from disk
-### as opposed to load the entire vectors in memory
-### Regular version of a function that works with an object loaded to memory
-# Spatial join to get the square root of topo at the point (the line shapefile is already square rooted)
-# SQRT_TOPO<-function(points2process,predictor_geometry, ...){
-#   crs2use<-crs(predictor_geometry)
-#   AOItrans<-st_transform(points2process, crs2use)
-#   AOI_Buffer<-st_join(AOItrans, predictor_geometry, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
-#   media<-AOI_Buffer$TOPOCV
-#   return(media)
-# }
-
-#### Super fast version - loads into memory ONLY WHAT is strictly necessary
-#' Square root of topo from the line shapefile (OLD CO OE or MMI)
-#'
-#' @param points2process
-#' @param predictor_geometry
-#' @param geometry_input_path
-#' @param ...
-#'
-#' @return
-#' @export
-#'
-#' @examples
-SQRT_TOPO<-function(points2process,predictor_geometry,geometry_input_path, ...){
-  AOItrans<-sf::st_transform(points2process, 5070) # must use the same EPSG as in the shapefile
-  AOItrans_wkt <- AOItrans %>%
-    sf::st_geometry() %>% # convert to sfc
-    sf::st_buffer(150) %>% # buffer 150 meters
-    sf::st_as_text() # convert to well known text
-  SQRT_TOPO.vec<-sf::st_read(geometry_input_path, wkt_filter = AOItrans_wkt)
-AOI_Buffer<-sf::st_join(AOItrans, SQRT_TOPO.vec, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
-media<-AOI_Buffer$TOPOCV
-return(media)
-}
-#################################################
+#' #################################################
+#' ### commented out because (OLD CO OE or MMI), predictor no longer used
+#' These are VERY LARGE vector datasets --- I am inclined to query what is needed directly from disk
+#' ### as opposed to load the entire vectors in memory
+#' ### Regular version of a function that works with an object loaded to memory
+#' # Spatial join to get the square root of topo at the point (the line shapefile is already square rooted)
+#' #### Super fast version - loads into memory ONLY WHAT is strictly necessary
+#' #' Square root of topo from the line shapefile
+#' #'
+#' #' @param points2process
+#' #' @param predictor_geometry
+#' #' @param geometry_input_path
+#' #' @param ...
+#' #'
+#' #' @return
+#' #' @export
+#' #'
+#' #' @examples
+#' SQRT_TOPO<-function(points2process,predictor_geometry,geometry_input_path, ...){
+#'   AOItrans<-sf::st_transform(points2process, 5070) # must use the same EPSG as in the shapefile
+#'   AOItrans_wkt <- AOItrans %>%
+#'     sf::st_geometry() %>% # convert to sfc
+#'     sf::st_buffer(150) %>% # buffer 150 meters
+#'     sf::st_as_text() # convert to well known text
+#'   SQRT_TOPO.vec<-sf::st_read(geometry_input_path, wkt_filter = AOItrans_wkt)
+#' AOI_Buffer<-sf::st_join(AOItrans, SQRT_TOPO.vec, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
+#' media<-AOI_Buffer$TOPOCV
+#' return(media)
+#' }
+#' #################################################
 
 

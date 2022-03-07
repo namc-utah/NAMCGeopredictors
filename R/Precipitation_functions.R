@@ -3,9 +3,9 @@
 #   Precipitation   #
 
 ####################
-#' Log 10 precipitation at the point
+#' Log 10 precipitation at the point, used for PIBO and old CO model
 #'
-#' @param points2process
+#' @param point2process
 #' @param ...
 #' @param predictor_geometry
 #'
@@ -15,8 +15,8 @@
 #' @export
 #'
 #' @examples
-LOG_PRECIP_SITE<-function(points2process,predictor_geometry, ...){
-   media<-log10(raster::extract(predictor_geometry,points2process))
+LOG_PRECIP_SITE<-function(point2process,predictor_geometry, ...){
+   media<-log10(raster::extract(predictor_geometry,point2process))
   return(media)
 }
 
@@ -60,7 +60,7 @@ PPT_2MoAvg<-function(polygon2process, CurrentYear, JulianDate,...){
 
 #' PRISM prior year (May-April) cumulative precipitation at the point
 #'
-#' @param points2process
+#' @param point2process
 #' @param CurrentYear
 #' @param ...
 #'
@@ -68,21 +68,21 @@ PPT_2MoAvg<-function(polygon2process, CurrentYear, JulianDate,...){
 #' @export
 #'
 #' @examples
-PPT_ACCUM<-function(points2process, CurrentYear,...){
+PPT_ACCUM<-function(point2process, CurrentYear,...){
    prevYear1<-CalendarYear-1
   prevYear0<-prevYear1-1
   WaterYearStart<-paste0(prevYear0,"-05-01")
   WaterYearEnd<-paste0(prevYear1,"-04-30")
   prism.accum0<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(WaterYearStart, WaterYearEnd))$select('ppt')
   prism.accum.precip<-prism.accum0$sum()
-  media<-rgee::ee_extract(prism.accum.precip, points2process, fun = ee$Reducer$mean(), scale=50)
+  media<-rgee::ee_extract(prism.accum.precip, point2process, fun = ee$Reducer$mean(), scale=50)
   return(media)
 }
 
 
 #' Precipitation from vector layer (OR- WCCP model)
 #'
-#' @param points2process
+#' @param point2process
 #' @param predictor_geometry
 #' @param ...
 #'
@@ -90,29 +90,29 @@ PPT_ACCUM<-function(points2process, CurrentYear,...){
 #' @export
 #'
 #' @examples
-precip<-function(points2process,predictor_geometry, ...){
+precip<-function(point2process,predictor_geometry, ...){
    myvars <- "precip_mm"
   Pred_Input_All_USGS.vec <- predictor_geometry[myvars]
   Pred_Input_All_USGS.vec.WGS<-sf::st_transform(Pred_Input_All_USGS.vec, crs = 4326)
-  media<-sf::st_intersection(points2process, Pred_Input_All_USGS.vec.WGS) %>% dplyr::pull(precip_mm)
+  media<-sf::st_intersection(point2process, Pred_Input_All_USGS.vec.WGS) %>% dplyr::pull(precip_mm)
   return(media)
 }
 
-#' PRISM calendar year average precipitation at the watershed (CO OE/ old MMI)
-#'
-#' @param points2process
-#' @param CurrentYear
-#' @param ...
-#'
-#' @return
-#' @export
-#'
-#' @examples
-PRCPSHORTWS<-function(points2process, CurrentYear,...){
-  WaterYearStart<-paste0(CurrentYear,"-01-01")
-  WaterYearEnd<-paste0(CurrentYear,"-12-31")
-  prism.accum0<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(WaterYearStart, WaterYearEnd))$select('ppt')
-  prism.accum.precip<-prism.accum0$sum()
-  media<-ee_extract(prism.accum.precip, points2process, fun = ee$Reducer$mean(), scale=4000)
-  return(media)
-}
+#' #' PRISM calendar year average precipitation at the watershed (CO OE/ old MMI)
+#' #' No longer an actively used predictor
+#' #' @param point2process
+#' #' @param CurrentYear
+#' #' @param ...
+#' #'
+#' #' @return
+#' #' @export
+#' #'
+#' #' @examples
+#' PRCPSHORTWS<-function(point2process, CurrentYear,...){
+#'   WaterYearStart<-paste0(CurrentYear,"-01-01")
+#'   WaterYearEnd<-paste0(CurrentYear,"-12-31")
+#'   prism.accum0<-ee$ImageCollection('OREGONSTATE/PRISM/AN81m')$filter(ee$Filter$date(WaterYearStart, WaterYearEnd))$select('ppt')
+#'   prism.accum.precip<-prism.accum0$sum()
+#'   media<-ee_extract(prism.accum.precip, point2process, fun = ee$Reducer$mean(), scale=4000)
+#'   return(media)
+#' }

@@ -1,4 +1,4 @@
-pred_geometry_base_path="Z://GIS/GIS_Stats/"
+pred_geometry_base_path="C:/Users/jenni/Box/NAMC (Trip Armstrong)/"
 SQLite_file_path="C:/NAMC_S3/StreamCat/StreamCat.sqlite"
 temp_predictor_metadata="C:/Users/jenni/Box/NAMC (Trip Armstrong)/OE_Modeling/Geospatial predictors/predictor_table_for_database.csv"
 watershed_file_path="" #siteID must be in file!!!!
@@ -9,6 +9,7 @@ modelId=2
 projectId=
 def_samples=NAMCr::query("samples",sampleIds=c(155612,157568))
 ## Load required packages
+library(NAMCr)
 library(sf)
 library(raster)
 library(exactextractr)

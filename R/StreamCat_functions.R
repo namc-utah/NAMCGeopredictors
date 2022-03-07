@@ -122,11 +122,11 @@ getCOMIDs=function(boxId){
     boxId = boxId
   )
 
-  points2process=geojsonsf::geojson_sf(def_sites$siteLocation)
+  point2process=geojsonsf::geojson_sf(def_sites$siteLocation)
 
   library(nhdplusTools)
-  for (p in 1:nrow(points2process)){
-    start_comid <- nhdplusTools::discover_nhdplus_id(points2process[p,1])
+  for (p in 1:nrow(point2process)){
+    start_comid <- nhdplusTools::discover_nhdplus_id(point2process[p,1])
     if(p == 1){
       comids= start_comid
     }else{
@@ -147,13 +147,13 @@ return(def_sites$COMID)
 #
 #   #Read in polygons
 #   vpus = sf::st_read(file.path(nhd_dir,'NHDPlusGlobalData/VPUs.shp'))
-#   vpus=sf::st_transform(vpus,st_crs(points2process))
+#   vpus=sf::st_transform(vpus,st_crs(point2process))
 #   #Extract data from polygon based on point locations
-#   pts2 = sf::st_join(points2process,vpus)
+#   pts2 = sf::st_join(point2process,vpus)
 #   #Add column of region and vpu IDs
-#   points2process$region_vpu = paste0(pts2$DrainageID, '_', pts2$UnitID)
+#   point2process$region_vpu = paste0(pts2$DrainageID, '_', pts2$UnitID)
 #   #Find unique combinations of region and vpus IDs
-#   regions = unique(points2process$region_vpu)
+#   regions = unique(point2process$region_vpu)
 #   #Loop through these combinations to read in the correct region
 #   #Also selects just points for this region
 #
@@ -161,14 +161,14 @@ return(def_sites$COMID)
 #   start.time.0 = Sys.time()
 #   for(i in 1:length(regions)){
 #     print(regions[i])
-#     pts_tmp = points2process[points2process$region_vpu == regions[i],]
+#     pts_tmp = point2process[point2process$region_vpu == regions[i],]
 #     #Split up unique region/vpu ID to use in path
 #     reg = strsplit(regions[i], '_')[[1]][[1]]
 #     vpu = strsplit(regions[i], '_')[[1]][[2]]
 #     #Define path
 #     cat_dir = paste0(nhd_dir,'/NHDPlus',reg,'/NHDPlus',vpu,'/NHDPlusCatchment')
 #     catchment=sf::st_read(paste0(cat_dir, '/Catchment.shp'))
-#     catchment=st_transform(catchment,st_crs(points2process))
+#     catchment=st_transform(catchment,st_crs(point2process))
 #     #Extract COMID from catchment shapefile
 #     pointscatchments=sf::st_join(
 #       pts_tmp,catchment)

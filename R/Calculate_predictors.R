@@ -96,7 +96,7 @@
     # ---------------------------------------------------------------
     # Store predictor geometries (raster, vector, or google earth engine) in a list variable to enable referencing by name
     # ---------------------------------------------------------------
-    # load in google earth engine elevation layer for any elevation or slope predictors
+    # load in google earth engine elevation layer for any elevation or slope predictors, really should be using source here instead but not in samplePredictorValues endpoint
     if (any(def_predictors$isGee=="true")) {
       ee_Initialize()
       USGS_NED = ee$Image("USGS/NED")$select("elevation")
@@ -113,7 +113,7 @@
     for (p in 1:length(predlist)) {
       tryCatch({
         # change "" to is.na once end points are fixed to have this included
-        if (is.na(predictors$geometryFilePath[p]) == TRUE) {
+        if (is.na(predictors$geometryFilePath[p]) == TRUE|predictors$geometryFilePath[p]=="") {
           pred_geometries[[predictors$abbreviation[p]]] = NA
         } else if (!grepl(".shp", predictors$geometryFilePath[p])) {
           pred_geometries[[predictors$abbreviation[p]]] = raster::raster(paste0(pred_geometry_base_path,

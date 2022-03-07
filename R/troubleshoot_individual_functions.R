@@ -2,7 +2,7 @@
 # input a sampleId and the predictor abbreviation you are troubleshooting
 #------------------------------------------------------------------------
 sampleId=155612
-predictor_name =
+predictor_name ="SR_BIGHORNS"
 
 #-----------------------------------------------------------------------
 # run this section to get needed function inputs
