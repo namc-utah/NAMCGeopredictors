@@ -1,5 +1,4 @@
-#read in csv with just sampleId and predictors, sampleId should be the first column
-pred=read.csv("C:/Users/jenni/Box/NAMC (Trip Armstrong)/OE_Modeling/Geospatial predictors/UT_2021_pred.csv")
+pred=read.csv(historic_pred_file_path)
 #pivot the data
 predp=reshape2::melt(pred,id.vars=c("sampleId"),variable.name="abbreviation")
 

@@ -1,13 +1,17 @@
 pred_geometry_base_path="C:/Users/jenni/Box/NAMC (Trip Armstrong)/"
 SQLite_file_path="C:/NAMC_S3/StreamCat/StreamCat.sqlite"
-temp_predictor_metadata="C:/Users/jenni/Box/NAMC (Trip Armstrong)/OE_Modeling/Geospatial predictors/predictor_table_for_database.csv"
 watershed_file_path="" #siteID must be in file!!!!
 watershed_layer_name=""
 # = 155612
 boxId=2141
-modelId=2
-projectId=
-def_samples=NAMCr::query("samples",sampleIds=c(155612,157568))
+modelId=1
+#projectId=
+
+#read in csv with just sampleId and predictors, sampleId should be the first column
+historic_pred_file_path="C:/Users/jenni/Box/NAMC (Trip Armstrong)/OE_Modeling/Geospatial predictors/UT_2021_pred.csv"
+
+
+#def_samples=NAMCr::query("samples",sampleIds=c(155612,157568))
 ## Load required packages
 library(NAMCr)
 library(sf)
@@ -19,7 +23,7 @@ library(dplyr)
 library(lubridate)
 library(units)
 library(geojsonsf)
-library(tictoc)
+library(tictoc)#what is this used for
 library(R6)
 library(DBI)
 library(RSQLite)
