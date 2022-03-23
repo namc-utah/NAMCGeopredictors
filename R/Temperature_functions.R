@@ -103,7 +103,7 @@ temp<-function(point2process,predictor_geometry, ...){
 #' @examples
 Tmax_PT<-function(point2process,predictor_geometry, ...){
    media<-raster::extract(predictor_geometry,sf::as_Spatial(point2process))/10
-  return(media[1,1])
+  return(media)
 }
 
 
