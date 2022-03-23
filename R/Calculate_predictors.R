@@ -133,7 +133,7 @@
               if( nrow(def_watersheds_sample)>0) {
               polygon2process = def_watersheds_sample
               } else {polygon2process = NA
-             print("watershed needs delineated")
+             print(paste0("siteId=",samples[s,"siteId"]," sampleId=",samples$sampleId[s]," watershed needs delineated"))
                }
             # uses eval() to call each predictor function by name
               predictor_value[[s]] = eval(parse(text=paste0(samples$calculationScript[s])))(

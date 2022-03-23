@@ -6,11 +6,11 @@ watershed_file_path=paste0(pred_geometry_base_path,"GIS/Watersheds/Mastersheds/m
 watershed_layer_name="mastersheds" #siteId must be in file!!!!
 
 # input boxId or projectId
-boxId=2141
+boxId=2196
 #projectId=
 
-# input modelId to subset predictors calculated to only one model. you should be able to input multiple models as a list using c()
-modelId=1
+# input modelId to subset predictors calculated to only one model.note you cant input a list of models here.
+modelId=10
 
 #def_samples=NAMCr::query("samples",sampleIds=c(155612,157568))
 
