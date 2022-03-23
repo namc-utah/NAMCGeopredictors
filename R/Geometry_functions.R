@@ -10,15 +10,15 @@
 #' This function returns the Y coordinate of the point in decimal degrees
 #' The st_coordinates function returns the second column [,2] which is the latitude
 #'
-#' @param points2process
+#' @param point2process
 #' @param ...
 #'
 #' @return this functions returns one value which is the latitude of the point
 #' @export
 #'
 #' @examples
-lat<-function(points2process,...){
-   media<-sf::st_coordinates(points2process)[,2]
+lat<-function(point2process,...){
+   media<-sf::st_coordinates(point2process)[,2]
   return(media)
 }
 
@@ -26,15 +26,15 @@ lat<-function(points2process,...){
 #### long ####
 #' Longitude of the point
 #'
-#' @param points2process
+#' @param point2process
 #' @param ...
 #'
 #' @return
 #' @export
 #'
 #' @examples
-long<-function(points2process,...){
-   media<-sf::st_coordinates(points2process)[,1]
+long<-function(point2process,...){
+   media<-sf::st_coordinates(point2process)[,1]
   return(media)
 }
 
