@@ -1,18 +1,22 @@
+#change file paths to match your computer
 pred_geometry_base_path="C:/Users/jenni/Box/NAMC (Trip Armstrong)/"
 SQLite_file_path="C:/NAMC_S3/StreamCat/StreamCat2022.sqlite"
-watershed_file_path="C:/Users/jenni/Box/NAMC (Trip Armstrong)/GIS/Watersheds/Mastersheds/mastersheds.shp" #siteID must be in file!!!!
-watershed_layer_name="mastersheds" #siteID must be in file!!!!
+watershed_file_path=paste0(pred_geometry_base_path,"GIS/Watersheds/Mastersheds/mastersheds.shp") #siteId must be in file!!!!
+watershed_layer_name="mastersheds" #siteId must be in file!!!!
 
-# = 155612
+# input boxId or projectId
 boxId=2141
-modelId=1
 #projectId=
+
+# input modelId to subset predictors calculated to only one model. you should be able to input multiple models as a list using c()
+modelId=1
+
+#def_samples=NAMCr::query("samples",sampleIds=c(155612,157568))
 
 #read in csv with just sampleId and predictors, sampleId should be the first column
 historic_pred_file_path="C:/Users/jenni/Box/NAMC (Trip Armstrong)/OE_Modeling/Geospatial predictors/UT_2021_pred.csv"
 
 
-#def_samples=NAMCr::query("samples",sampleIds=c(155612,157568))
 ## Load required packages
 library(NAMCr)
 library(sf)

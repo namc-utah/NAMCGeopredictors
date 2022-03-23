@@ -106,7 +106,7 @@ ELEV_RANGE<-function(polygon2process,USGS_NED,...){
 #' The rgee function rgee::ee_extract is used here without fun = ee$Reducer$min,mean,max()
 #' argument since it only needs the information at the point
 #'
-#' @param points2process
+#' @param point2process
 #' @param USGS_NED
 #' @param ...
 #'
@@ -114,8 +114,8 @@ ELEV_RANGE<-function(polygon2process,USGS_NED,...){
 #' @export
 #'
 #' @examples
-ELEV_SITE<-function(points2process,USGS_NED,...){
-  media<-rgee::ee_extract(USGS_NED, points2process, scale=90)/10 # do NOT divide by 10 for CO.... need to see if CSCI? requires /10
+ELEV_SITE<-function(point2process,USGS_NED,...){
+  media<-rgee::ee_extract(USGS_NED, point2process, scale=90)/10 # do NOT divide by 10 for CO.... need to see if CSCI? requires /10
   return(media[1,1])
 }
 
@@ -127,7 +127,7 @@ ELEV_SITE<-function(points2process,USGS_NED,...){
 #' the function first extracts the elevation at the point. This elevation is then divided by
 #' 10 and then the square root is extracted
 #'
-#' @param points2process
+#' @param point2process
 #' @param USGS_NED
 #' @param ...
 #'
@@ -135,8 +135,8 @@ ELEV_SITE<-function(points2process,USGS_NED,...){
 #' @export
 #'
 #' @examples
-ELEV_SITE_SQRT<-function(points2process,USGS_NED,...){
-   elevation<-rgee::ee_extract(USGS_NED, points2process, scale=90)
+ELEV_SITE_SQRT<-function(point2process,USGS_NED,...){
+   elevation<-rgee::ee_extract(USGS_NED, point2process, scale=90)
   media<-sqrt((elevation/10))
   return(media[1,1])
 }
@@ -153,7 +153,7 @@ ELEV_SITE_SQRT<-function(points2process,USGS_NED,...){
 #' Extracts the mean and the standard deviation of the elevation within this AOI, and then
 #' it calculates the coefficient of variation
 #'
-#' @param points2process
+#' @param point2process
 #' @param USGS_NED
 #' @param ...
 #'
@@ -161,8 +161,8 @@ ELEV_SITE_SQRT<-function(points2process,USGS_NED,...){
 #' @export
 #'
 #' @examples
-ELEV_SITE_CV<-function(points2process,USGS_NED,...){
-  AOI<-sf::st_buffer(st_transform(points2process, 6703),150)
+ELEV_SITE_CV<-function(point2process,USGS_NED,...){
+  AOI<-sf::st_buffer(st_transform(point2process, 6703),150)
   elev.mean<-rgee::ee_extract(USGS_NED, AOI, fun = ee$Reducer$mean(), scale=90)
   elev.stdev<-rgee::ee_extract(USGS_NED, AOI, fun = ee$Reducer$stdDev(), scale=90)
   media<-elev.stdev/elev.mean
@@ -180,7 +180,7 @@ ELEV_SITE_CV<-function(points2process,USGS_NED,...){
 #' #### Super fast version - loads into memory ONLY WHAT is strictly necessary
 #' #' Square root of topo from the line shapefile
 #' #'
-#' #' @param points2process
+#' #' @param point2process
 #' #' @param predictor_geometry
 #' #' @param geometry_input_path
 #' #' @param ...
@@ -189,8 +189,8 @@ ELEV_SITE_CV<-function(points2process,USGS_NED,...){
 #' #' @export
 #' #'
 #' #' @examples
-#' SQRT_TOPO<-function(points2process,predictor_geometry,geometry_input_path, ...){
-#'   AOItrans<-sf::st_transform(points2process, 5070) # must use the same EPSG as in the shapefile
+#' SQRT_TOPO<-function(point2process,predictor_geometry,geometry_input_path, ...){
+#'   AOItrans<-sf::st_transform(point2process, 5070) # must use the same EPSG as in the shapefile
 #'   AOItrans_wkt <- AOItrans %>%
 #'     sf::st_geometry() %>% # convert to sfc
 #'     sf::st_buffer(150) %>% # buffer 150 meters
