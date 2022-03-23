@@ -1,7 +1,8 @@
 pred_geometry_base_path="C:/Users/jenni/Box/NAMC (Trip Armstrong)/"
-SQLite_file_path="C:/NAMC_S3/StreamCat/StreamCat.sqlite"
-watershed_file_path="" #siteID must be in file!!!!
-watershed_layer_name=""
+SQLite_file_path="C:/NAMC_S3/StreamCat/StreamCat2022.sqlite"
+watershed_file_path="C:/Users/jenni/Box/NAMC (Trip Armstrong)/GIS/Watersheds/Mastersheds/mastersheds.shp" #siteID must be in file!!!!
+watershed_layer_name="mastersheds" #siteID must be in file!!!!
+
 # = 155612
 boxId=2141
 modelId=1

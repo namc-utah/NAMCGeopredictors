@@ -35,53 +35,36 @@
     def_predictors = def_predictors[def_predictors$status != "Valid",]
     modelpred=NAMCr::query("predictors",modelId=modelId)
     def_predictors=subset(def_predictors,predictorId %in% modelpred$predictorId)
-    # # remove this section once apis and database is properly updated with proper fields
-    # preddb=read.csv(temp_predictor_metadata)
-    # preddb=preddb[,c("abbreviation","geometry_file_path","is_gee")]
-    # def_predictors=dplyr::left_join(def_predictors,preddb,by="abbreviation")
 
     # ---------------------------------------------------------------
-    # Get the watershed and location for each sample by looping over the siteInfo end point.
-    # Watersheds are too large to pass for multiple sites at a time in the sites endpoint
+    # Get the coordinates and COMID for each sample by looping over the siteInfo end point.
+    # Get watersheds for each sample by pulling in watersheds by siteId from the mastersheds file on box
     # ---------------------------------------------------------------
     # get list of sites to loop over
     siteIds=unlist(unique(def_predictors$siteId))
     def_sites=list()
-    # for each site in def_predictors get site information from database
+    # for each site in def_predictors get site coordinates and comid from database
     # store as a list of lists referenced by "x" plus the siteId
     for (t in 1:length(siteIds)){
       if(t==1){
       def_sites= unlist(NAMCr::query(
         api_endpoint = "siteInfo",
-        include = c("siteId", "siteName", "usState", "location", "catchment","waterbodyCode"),
+        include = c("siteId", "siteName", "usState", "location","waterbodyCode"),
         siteId = siteIds[t]
       ))
       } else {def_sites1= unlist(NAMCr::query(
         api_endpoint = "siteInfo",
-        include = c("siteId", "siteName", "usState", "location", "catchment","waterbodyCode"),
+        include = c("siteId", "siteName", "usState", "location","waterbodyCode"),
         siteId = siteIds[t]
       ))
-      #this section would get them as seperate lists instead but lists are kind of a pain...
-       # def_sites[[paste0("x",siteIds[t])]] = NAMCr::query(
-       #      api_endpoint = "siteInfo",
-       #      include = c("siteId", "siteName", "usState", "location", "catchment","waterbodyCode"),
-       #      siteId = siteIds[t]
-       #    )
-              def_sites=as.data.frame(rbind(def_sites,def_sites1))
+                def_sites=as.data.frame(rbind(def_sites,def_sites1))
       }
 
     }
-    # # convert list to data frame
-    # def_sites=as.data.frame(def_sites)
 
-    #
-#     # alternatively get coordinates from database and read watersheds in from a shapefile/geodatabase
-#     def_watersheds=sf::st_read(watershed_layer_name, query=sprintf('SELECT * FROM %s WHERE siteId in(%s)',watershed_layer_name, inLOOP(substr(siteIds, 1, 10))))
+    # get watersheds in from the mastersheds shapefile/geodatabase on box
+     def_watersheds=sf::st_make_valid(sf::st_read(watershed_file_path, query=sprintf('SELECT * FROM %s WHERE siteId in(%s)',watershed_layer_name, inLOOP(substr(siteIds, 1, 10)))))
 
-#
-#     if (any(def_sites$catchment=="NULL")){
-#       print("watersheds are missing, please delineate and add to database. then rerun this code")
-#     } else{
 
     # ---------------------------------------------------------------
     # Get unique list of predictors  that need calculated
@@ -145,9 +128,10 @@
             tryCatch({
             # subset the site information for only this sample
             def_sites_sample=subset(def_sites,siteId==samples[s,"siteId"])
+            def_watersheds_sample=subset(def_watersheds, siteId==samples[s,"siteId"])
             # Data needs to be in json format
-              if( def_sites_sample$catchment!="NULL") {
-              polygon2process = sf::st_make_valid(geojsonsf::geojson_sf(def_sites_sample$catchment))
+              if( nrow(def_watersheds_sample)>0) {
+              polygon2process = def_watersheds_sample
               } else {polygon2process = NA
              print("watershed needs delineated")
                }
@@ -157,6 +141,7 @@
                                 point2process =  geojsonsf::geojson_sf(def_sites_sample$location) ,
                                 predictor_name = samples$abbreviation[s],
                                 predictor_geometry = pred_geometries[[paste0(samples$abbreviation[s])]],
+                                COMIDs=def_sites_sample$waterbodyCode,
                                 geometry_input_path <-
                                   paste0(pred_geometry_base_path, samples$geometryFilePath[s]),
                                 CurrentYear = lubridate::year(samples$sampleDate[s]),
