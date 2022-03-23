@@ -16,7 +16,7 @@
 #' @examples
 Wb_mx_area<-function(polygon2process,predictor_geometry, ...){
   polygon2process<-sf::st_transform(polygon2process, 5070)
-    bodies<-sf::st_intersection(predictor_geometry, validgeometry2)
+    bodies<-sf::st_intersection(predictor_geometry, polygon2process)
   bodies$AreaSqKm<-units::drop_units(sf::st_area(bodies)/1000000)
   media<-ifelse(is.infinite(max(bodies$AreaSqKm)),0,max(bodies$AreaSqKm))
   return(media)

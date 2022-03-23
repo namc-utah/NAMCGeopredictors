@@ -69,7 +69,7 @@ PPT_2MoAvg<-function(polygon2process, CurrentYear, JulianDate,...){
 #'
 #' @examples
 PPT_ACCUM<-function(point2process, CurrentYear,...){
-   prevYear1<-CalendarYear-1
+   prevYear1<-CurrentYear-1
   prevYear0<-prevYear1-1
   WaterYearStart<-paste0(prevYear0,"-05-01")
   WaterYearEnd<-paste0(prevYear1,"-04-30")
