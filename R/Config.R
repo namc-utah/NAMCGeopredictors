@@ -1,7 +1,6 @@
 #change file paths to match your computer
 pred_geometry_base_path="C:/Users/jenni/Box/NAMC (Trip Armstrong)/"
 SQLite_file_path="C:/NAMC_S3/StreamCat/StreamCat2022.sqlite"
-conn <- DBI::dbConnect(RSQLite::SQLite(), SQLite_file_path)
 watershed_file_path=paste0(pred_geometry_base_path,"GIS/Watersheds/Mastersheds/mastersheds.shp") #siteId must be in file!!!!
 watershed_layer_name="mastersheds" #siteId must be in file!!!!
 
