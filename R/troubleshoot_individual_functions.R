@@ -42,7 +42,7 @@ predictor_geometry=sf::st_read(paste0(pred_geometry_base_path,
                       predictor_geometry=sf::st_make_valid(predictor_geometry)
 JulianDate = lubridate::yday(def_samples$sampleDate[1])
 CurrentYear = lubridate::year(def_samples$sampleDate[1])
-geometry_input_path <-paste0(pred_geometry_base_path, predictor$geometry_file_path)
+geometry_input_path <-paste0(pred_geometry_base_path, "GIS/GIS_Stats/Colorado/temperature/summer.shp")
 
 #------------------------------------------------------------------------------
 # run the problematic indicator function line by line to see what lines are giving issues

@@ -96,7 +96,9 @@
     for (p in 1:length(predlist)) {
       tryCatch({
         # change "" to is.na once end points are fixed to have this included
-        if (is.na(predictors$geometryFilePath[p]) == TRUE|predictors$geometryFilePath[p]=="") {
+        if (predictors$abbreviation[p]=="SUMMER"|predictors$abbreviation[p]=="NHDSLOPE"|predictors$abbreviation[p]=="WINTER"){
+          pred_geometries[[predictors$abbreviation[p]]] = NA
+        } else if (is.na(predictors$geometryFilePath[p]) == TRUE|predictors$geometryFilePath[p]=="") {
           pred_geometries[[predictors$abbreviation[p]]] = NA
         } else if (!grepl(".shp", predictors$geometryFilePath[p])) {
           pred_geometries[[predictors$abbreviation[p]]] = raster::raster(paste0(pred_geometry_base_path,
@@ -150,7 +152,7 @@
                                 SQLite_file_path=SQLite_file_path
                                 )
             calculatedPredictorslist[[paste0(samples$abbreviation[s])]][[paste0(samples$sampleId[s])]]<-unlist(predictor_value[[s]])
-              }, error = function(e) {calculatedPredictorslist[[paste0(samples$abbreviation[s])]][[paste0(samples$sampleId[s])]]<-NA
+              }, error = function(e) {
               cat(paste0("\n\tERROR calculating: ",samples$abbreviation[s]," ",samples$sampleId[s],"\n"))
               str(e,indent.str = "   "); cat("\n")
             })
