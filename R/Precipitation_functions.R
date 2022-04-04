@@ -91,10 +91,8 @@ PPT_ACCUM<-function(point2process, CurrentYear,...){
 #'
 #' @examples
 precip<-function(point2process,predictor_geometry, ...){
-   myvars <- "precip_mm"
-  Pred_Input_All_USGS.vec <- predictor_geometry[myvars]
-  Pred_Input_All_USGS.vec.WGS<-sf::st_transform(Pred_Input_All_USGS.vec, crs = 4326)
-  media<-sf::st_intersection(point2process, Pred_Input_All_USGS.vec.WGS) %>% dplyr::pull(precip_mm)
+  point2process<-sf::st_transform(point2process, st_crs(predictor_geometry))
+  media<-sf::st_intersection(point2process, predictor_geometry) %>% dplyr::pull(precip_mm)
   return(media)
 }
 

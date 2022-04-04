@@ -81,12 +81,8 @@ return(media)
 #'
 #' @examples
 temp<-function(point2process,predictor_geometry, ...){
-   myvars <- "temp_Cx10"
-  Pred_Input_All_USGS.vec <- predictor_geometry[myvars]
-  crs2use<-crs(Pred_Input_All_USGS.vec) # is this the raster or sf function.... it is a vector
-  point2process<-sf::st_transform(point2process, crs = crs2use)
-  #Pred_Input_All_USGS.vec.WGS<-st_transform(Pred_Input_All_USGS.vec, crs = 4326)
-  media<-sf::st_intersection(point2process, Pred_Input_All_USGS.vec)%>%pull(temp_Cx10)
+  point2process<-sf::st_transform(point2process, st_crs(predictor_geometry))
+  media<-sf::st_intersection(point2process, predictor_geometry)%>%pull(temp_Cx10)
   return(media)
 }
 

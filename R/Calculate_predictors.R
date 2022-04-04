@@ -32,7 +32,7 @@
       #modelId = modelId
     )
     #subset this list to only samples/predictors that need calculated
-    def_predictors = def_predictors[def_predictors$status != "Valid",]
+    #def_predictors = def_predictors[def_predictors$status != "Valid",]
     modelpred=NAMCr::query("predictors",modelId=modelId)
     def_predictors=subset(def_predictors,predictorId %in% modelpred$predictorId)
 
@@ -150,7 +150,7 @@
                                 SQLite_file_path=SQLite_file_path
                                 )
             calculatedPredictorslist[[paste0(samples$abbreviation[s])]][[paste0(samples$sampleId[s])]]<-unlist(predictor_value[[s]])
-              }, error = function(e) {
+              }, error = function(e) {calculatedPredictorslist[[paste0(samples$abbreviation[s])]][[paste0(samples$sampleId[s])]]<-NA
               cat(paste0("\n\tERROR calculating: ",samples$abbreviation[s]," ",samples$sampleId[s],"\n"))
               str(e,indent.str = "   "); cat("\n")
             })

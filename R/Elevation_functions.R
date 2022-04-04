@@ -20,8 +20,8 @@
 #'
 #' @examples
 ELVmean_WS<-function(polygon2process,USGS_NED,...){
-  media<-rgee::ee_extract(USGS_NED, polygon2process, fun = ee$Reducer$mean(), scale=90)
-  return(media[1,1])
+  media<-rgee::ee_extract(USGS_NED, polygon2process[["_ogr_geometry_"]], fun = ee$Reducer$mean(), scale=90)
+  return(media[1,2])
 }
 
 #' #' Watershed mean elevation divided by 100
@@ -34,9 +34,9 @@ ELVmean_WS<-function(polygon2process,USGS_NED,...){
 #' #' @export
 #' #'
 #' #' @examples
-#' ELVmean_WS_100<-function(polygon2process,USGS_NED,...){
+#' ELVmean_WS_100<-function(polygon2process[["_ogr_geometry_"]],USGS_NED,...){
 #'   media<-ELVmean_WS(polygon2process,USGS_NED)/100
-#'   return(media[1,1])
+#'   return(media[1,2])
 #' }
 
 
@@ -51,8 +51,8 @@ ELVmean_WS<-function(polygon2process,USGS_NED,...){
 #'
 #' @examples
 ELVmax_WS<-function(polygon2process,USGS_NED,...){
-   media<-rgee::ee_extract(USGS_NED, polygon2process, fun = ee$Reducer$max(), scale=90)
-  return(media[1,1])
+   media<-rgee::ee_extract(USGS_NED, polygon2process[["_ogr_geometry_"]], fun = ee$Reducer$max(), scale=90)
+  return(media[1,2])
 }
 
 #' Average of min elevation in the watershed
@@ -70,8 +70,8 @@ ELVmax_WS<-function(polygon2process,USGS_NED,...){
 #'
 #' @examples
 ELVmin_WS<-function(polygon2process,USGS_NED,...){
-   media<-rgee::ee_extract(USGS_NED, polygon2process, fun = ee$Reducer$min(), scale=90)
-  return(media[1,1])
+   media<-rgee::ee_extract(USGS_NED, polygon2process[["_ogr_geometry_"]], fun = ee$Reducer$min(), scale=90)
+  return(media[1,2])
 }
 
 
@@ -92,10 +92,10 @@ ELVmin_WS<-function(polygon2process,USGS_NED,...){
 #'
 #' @examples
 ELEV_RANGE<-function(polygon2process,USGS_NED,...){
-   max<-rgee::ee_extract(USGS_NED, polygon2process, fun = ee$Reducer$max(), scale=90)
-  min<-rgee::ee_extract(USGS_NED, polygon2process, fun = ee$Reducer$min(), scale=90)
+   max<-rgee::ee_extract(USGS_NED, polygon2process[["_ogr_geometry_"]], fun = ee$Reducer$max(), scale=90)
+  min<-rgee::ee_extract(USGS_NED, polygon2process[["_ogr_geometry_"]], fun = ee$Reducer$min(), scale=90)
   media<-max-min
-  return(media[1,1])
+  return(media[1,2])
 }
 
 #' Elevation of the point

@@ -50,8 +50,8 @@ Slope_WS<-function(polygon2process,geometry_input_path,USGS_NED,...){
   # watershed slope = rise/ run
   ### rise= max watershed elevation - min watershed elevation ###
   # call elevation functions to get min and max watershed elevations
-  max_watershed_elevation=ELVmax_WS(polygon2process,USGS_NED)
-  min_watershed_elevation=ELVmin_WS(polygon2process,USGS_NED)
+  max_watershed_elevation=ELVmax_WS(polygon2process[["_ogr_geometry_"]],USGS_NED)
+  min_watershed_elevation=ELVmin_WS(polygon2process[["_ogr_geometry_"]],USGS_NED)
 
   ### run= flow length as determined by ArcGIS from DEM flow length raster ###
   polygon2processtrans<-sf::st_transform(polygon2process, 5072)# transforming to CRS of NV D8 point Flow Direction
@@ -66,7 +66,7 @@ Slope_WS<-function(polygon2process,geometry_input_path,USGS_NED,...){
   ShedFlowL=sa$FlowLength(clippedFlowRaster,'UPSTREAM')# previous python code had downstream but not sure why!!
   FlowLength=raster::raster(paste0(ShedFlowL))
   max_flow_length=raster::maxValue(FlowLength) # code previously multiplied by 10 and then divided by 100. make sure this output number is in proper units (m)
-  media=(max_watershed_elevation-min_watershed_elevation)/max_flow_length
+  media=(max_watershed_elevation[1,2]-min_watershed_elevation[1,2])/max_flow_length
    return(media)
 }
 
@@ -86,6 +86,6 @@ Slope_WS<-function(polygon2process,geometry_input_path,USGS_NED,...){
  slpavg <- function(polygon2process,USGS_NED,...) {
   slopegee<-ee$Terrain$slope(USGS_NED) # slope
   slopegee.perc<- slopegee$divide(180)$multiply(3.14159)$tan()$multiply(1)$rename("percent")#Slope percent
-  media<-rgee::ee_extract(slopegee.perc,polygon2process,fun = ee$Reducer$mean(),scale = 30)
-  return(media)
+  media<-rgee::ee_extract(slopegee.perc,polygon2process[["_ogr_geometry_"]],fun = ee$Reducer$mean(),scale = 30)
+  return(media[1,2])
  }
