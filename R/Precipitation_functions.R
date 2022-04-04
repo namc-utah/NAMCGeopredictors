@@ -53,7 +53,7 @@ PPT_2MoAvg<-function(polygon2process, CurrentYear, JulianDate,...){
   xxx<-eval(parse(text = paste0("prism.",monthy.pre)))# Evaluations that are required so that a variable is recognized as such
   pcp.extraction.cur<-rgee::ee_extract(xx, polygon2process[["_ogr_geometry_"]], fun = ee$Reducer$mean(), scale=50)%>% as_tibble() # Compute pcp for CURRENT month
   pcp.extraction.pre<-rgee::ee_extract(xxx, polygon2process[["_ogr_geometry_"]], fun = ee$Reducer$mean(), scale=50)%>% as_tibble()# Compute pcp for PREVIOUS month
-  polygon2process$PPT_2MoAvg<-unlist((pcp.extraction.pre+pcp.extraction.cur)/2)*100 # Obtain average and multiply by 100 so it is similar to Olson
+  polygon2process$PPT_2MoAvg<-unlist((pcp.extraction.pre[1,2]+pcp.extraction.cur[1,2])/2)*100 # Obtain average and multiply by 100 so it is similar to Olson
   media<-polygon2process$PPT_2MoAvg
   return(media)
 }
