@@ -32,7 +32,7 @@
       #modelId = modelId
     )
     #subset this list to only samples/predictors that need calculated
-    #def_predictors = def_predictors[def_predictors$status != "Valid",]
+    def_predictors = def_predictors[def_predictors$status != "Valid",]
     modelpred=NAMCr::query("predictors",modelId=modelId)
     def_predictors=subset(def_predictors,predictorId %in% modelpred$predictorId)
 
@@ -166,7 +166,8 @@
     row=colnames(calculatedPredictors)[-1]
     calculatedPredictors2=data.table::transpose(calculatedPredictors,make.names=".id")
     calculatedPredictors2$sampleId<-as.numeric(row)
-    write.csv(calculatedPredictors2,"calculatedPredictors.csv")
+    write.csv(calculatedPredictors2,paste0("modelId_",modelId,"_preds_",system.date(),'.csv'))
+
 
 
     # ---------------------------------------------------------------
@@ -226,12 +227,66 @@
       })
     }
 
-    #verify that it worked
-    predictorValues=NAMCr::query("samplePredictorValues",sampleIds=unique(predsfinal$sampleId))
-    View(predictorValues)
-#}
+
+    # ---------------------------------------------------------------
+    # QC results
+    # ---------------------------------------------------------------
+    #load in predictors that were just saved
+    testpredictorValues=NAMCr::query("samplePredictorValues",sampleIds=unique(def_samples$sampleId))
+    testpredictorValues=subset(testpredictorValues,status=="Valid")
+    testpredictorValues$Type="Test"
+
+    # load in reference data predictors for the model of interest
+    referencesites=NAMCr::query("modelSamples",modelId=modelId)
+    referencepred=NAMCr::query("samplePredictorValues",sampleIds=unique(referencesites$sampleId))
+    referencepred=subset(referencepred,status=="Valid")
+    referencepred$Type="Ref"
+    all_preds=rbind(testpredictorValues,referencepred)
+    all_preds=subset(all_preds,predictorId %in% modelpred$predictorId)
+    all_preds$predictorValue=as.numeric(all_preds$predictorValue)
+
+    #pivot data for boxplots
+    all_preds_wider=as.data.frame(tidyr::pivot_wider(all_preds,id_cols=c("sampleId","Type"),names_from="abbreviation",values_from="predictorValue"))
 
 
+    png(paste0("modelId_",modelId,"_preds_",system.date(),'.png'),height=1000,width=2000,units="px")
+    par(mfrow=c(3,7))
+    for (i in 3:(length(all_preds_wider))) {
+      boxplot(all_preds_wider[,i]~all_preds_wider$Type, main=names(all_preds_wider)[i],ylab="",xlab="",col=c(7,4))
+    }
+    dev.off()
+
+
+    # ---------------------------------------------------------------
+    # Set QC date in database if predictors look good
+    # ---------------------------------------------------------------
+    for (i in 1:nrow(testpredictorValues)){
+      tryCatch({
+        if (testpredictorValuesl$isTemporal[i]==TRUE) {
+          NAMCr::save(
+            api_endpoint = "setSamplePredictorValue",
+            sampleId = testpredictorValues$sampleId[i],
+            predictorId = testpredictorValues$predictorId[i],
+            qaqcDate=system.date()
+          )
+        } else{
+          NAMCr::save(
+            api_endpoint = "setSitePredictorValue",
+            siteId = testpredictorValuesl$siteId[i],
+            predictorId = testpredictorValues$predictorId[i],
+            qaqcDate=system.date()
+          )
+        }
+      }, error = function(e) {
+        cat(paste0("\n\tERROR saving: ",predsfinal$sampleId[i]," ",predsfinal$predictorId[i],"\n"))
+        str(e,indent.str = "   "); cat("\n")
+
+      })
+    }
+
+
+
+    #}
 
 #'
 #' ###### function to run all samples in the database at once. API endpoint still needs developed
