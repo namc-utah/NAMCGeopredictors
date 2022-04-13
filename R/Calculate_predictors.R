@@ -149,7 +149,8 @@
                                 CurrentYear = lubridate::year(samples$sampleDate[s]),
                                 JulianDate = lubridate::yday(samples$sampleDate[s]),
                                 USGS_NED=USGS_NED,
-                                SQLite_file_path=SQLite_file_path
+                                SQLite_file_path=SQLite_file_path,
+                                sa=sa
                                 )
             calculatedPredictorslist[[paste0(samples$abbreviation[s])]][[paste0(samples$sampleId[s])]]<-unlist(predictor_value[[s]])
               }, error = function(e) {
@@ -278,7 +279,7 @@
           )
         }
       }, error = function(e) {
-        cat(paste0("\n\tERROR saving: ",predsfinal$sampleId[i]," ",predsfinal$predictorId[i],"\n"))
+        cat(paste0("\n\tERROR saving: ",testpredictorValues$sampleId[i]," ",testpredictorValues$predictorId[i],"\n"))
         str(e,indent.str = "   "); cat("\n")
 
       })
