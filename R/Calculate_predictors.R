@@ -32,7 +32,9 @@
       #modelId = modelId
     )
     #subset this list to only samples/predictors that need calculated
-    def_predictors = def_predictors[def_predictors$status != "Valid",]
+
+     def_predictors = def_predictors[def_predictors$status != "Valid",]
+
     modelpred=NAMCr::query("predictors",modelId=modelId)
     def_predictors=subset(def_predictors,predictorId %in% modelpred$predictorId)
 
@@ -167,7 +169,7 @@
     row=colnames(calculatedPredictors)[-1]
     calculatedPredictors2=data.table::transpose(calculatedPredictors,make.names=".id")
     calculatedPredictors2$sampleId<-as.numeric(row)
-    write.csv(calculatedPredictors2,paste0("modelId_",modelId,"_preds_",system.date(),'.csv'))
+    write.csv(calculatedPredictors2,paste0("modelId_",modelId,"_preds_",Sys.Date(),'.csv'))
 
 
 
@@ -201,8 +203,9 @@
     predictorValues=predictorValues[,c("sampleId","predictorId","predictorValue","qaqcDate","predictorValueUpdatedDate","status")]
     predsfinal=dplyr::left_join(predsfinal,predictorValues,by=c("sampleId","predictorId"))
     #subset to only include samples/predictors not already in the database
+    if(overwrite=='N'){
     predsfinal=subset(predsfinal,status!="Valid")
-
+    } else{}
     #save each row in the database
     for (i in 1:nrow(predsfinal)){
       tryCatch({
@@ -250,7 +253,7 @@
     all_preds_wider=as.data.frame(tidyr::pivot_wider(all_preds,id_cols=c("sampleId","Type"),names_from="abbreviation",values_from="predictorValue"))
 
 
-    png(paste0("modelId_",modelId,"_preds_",system.date(),'.png'),height=1000,width=2000,units="px")
+    png(paste0("modelId_",modelId,"_preds_",Sys.Date(),'.png'),height=1000,width=2000,units="px")
     par(mfrow=c(3,7))
     for (i in 3:(length(all_preds_wider))) {
       boxplot(all_preds_wider[,i]~all_preds_wider$Type, main=names(all_preds_wider)[i],ylab="",xlab="",col=c(7,4))

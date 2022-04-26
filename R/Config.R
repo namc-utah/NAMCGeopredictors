@@ -6,11 +6,15 @@ watershed_layer_name="mastersheds" #siteId must be in file!!!!
 
 # input boxId or projectId
 boxId=2193
-#projectId=
+projectId=387
+
+# all predictors will always be computed but enter in Y or N here to control which predictors are saved in the database
+#if overwrite='Y' all predictors will be saved if overwrite='N', only predictors that dont already exist in the database will be saved
+overwrite='Y' # or 'N'
 
 models=NAMCr::query("models")
 # input modelId to subset predictors calculated to only one model.note you cant input a list of models here.
-modelId=9
+modelId=136
 
 #def_samples=NAMCr::query("samples",sampleIds=c(155612,157568))
 
