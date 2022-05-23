@@ -82,3 +82,7 @@ tryCatch({lengths3[[s]]=NHDSLOPE(point2process=geojsonsf::geojson_sf(def_sites$l
   str(e,indent.str = "   "); cat("\n")
 } )
 }
+
+
+lengths=list()
+for (s in 1:nrow(def_sites)){

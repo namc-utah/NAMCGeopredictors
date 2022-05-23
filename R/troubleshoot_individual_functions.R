@@ -11,15 +11,39 @@ predictor_name ="SR_BIGHORNS"
 def_samples = NAMCr::query(
   api_endpoint = "samples",
   include = c("sampleId", "siteId", "sampleDate"),
-  sampleIds = sampleId,
+  boxId=2770,
 
 )
 # getting watershed
-def_sites = NAMCr::query(
-  api_endpoint = "siteInfo",
-  include = c("siteId", "siteName", "usState", "location", "catchment"),
-  siteId = def_samples$siteId
-)
+siteIds=unlist(unique(def_samples$siteId))
+def_sites=list()
+# for each site in def_predictors get site coordinates and comid from database
+# store as a list of lists referenced by "x" plus the siteId
+for (t in 1:length(siteIds)){
+  if(t==1){
+    def_sites= unlist(NAMCr::query(
+      api_endpoint = "siteInfo",
+      include = c("siteId", "siteName", "usState", "location","waterbodyCode"),
+      siteId = siteIds[t]
+    ))
+  } else {def_sites1= unlist(NAMCr::query(
+    api_endpoint = "siteInfo",
+    include = c("siteId", "siteName", "usState", "location","waterbodyCode"),
+    siteId = siteIds[t]
+  ))
+  def_sites=as.data.frame(rbind(def_sites,def_sites1))
+  }
+
+}
+
+
+
+
+
+
+
+
+
 #getting a list of needed predictors
 def_predictors = NAMCr::query(
   api_endpoint = "samplePredictorValues",
@@ -31,7 +55,7 @@ def_predictors = subset(def_predictors,abbreviation==predictor_name)
 def_sites=as.data.frame(def_sites)
 
 point2process =  geojsonsf::geojson_sf(def_sites$location[1])
-polygon2process =  sf::st_make_valid(geojsonsf::geojson_sf(def_sites$catchment))
+polygon2process =  )
 #choose one of these options
 #option 1 raster data
 predictor_geometry= raster::raster(paste0(pred_geometry_base_path,
