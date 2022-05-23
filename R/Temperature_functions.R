@@ -107,13 +107,13 @@ Tmax_PT<-function(point2process,predictor_geometry, ...){
 #'
 #' @param polygon2process
 #' @param predictor_geometry
+#' @param predictor_name
 #' @param ...
-#'
 #' @return
 #' @export
 #'
 #' @examples
 
-Tmax_WS<-function(polygon2process,predictor_geometry){
-  media<-extract_watershed_mean(polygon2process,predictor_geometry)/10
+Tmax_WS<-function(polygon2process,predictor_name,predictor_geometry,...){
+  media<-extract_watershed_mean(polygon2process,predictor_name,predictor_geometry)/10
 }
