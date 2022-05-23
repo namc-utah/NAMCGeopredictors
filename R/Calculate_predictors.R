@@ -98,7 +98,7 @@
     for (p in 1:length(predlist)) {
       tryCatch({
         # change "" to is.na once end points are fixed to have this included
-        if (predictors$abbreviation[p]=="SUMMER"|predictors$abbreviation[p]=="NHDSLOPE"|predictors$abbreviation[p]=="WINTER"){
+        if (predictors$abbreviation[p]=="SUMMER"|predictors$abbreviation[p]=="NHDSLOPE"|predictors$abbreviation[p]=="Slope_WS"|predictors$abbreviation[p]=="WINTER"){
           pred_geometries[[predictors$abbreviation[p]]] = NA
         } else if (is.na(predictors$geometryFilePath[p]) == TRUE|predictors$geometryFilePath[p]=="") {
           pred_geometries[[predictors$abbreviation[p]]] = NA
@@ -152,7 +152,6 @@
                                 JulianDate = lubridate::yday(samples$sampleDate[s]),
                                 USGS_NED=USGS_NED,
                                 SQLite_file_path=SQLite_file_path,
-                                sa=sa
                                 )
             calculatedPredictorslist[[paste0(samples$abbreviation[s])]][[paste0(samples$sampleId[s])]]<-unlist(predictor_value[[s]])
               }, error = function(e) {

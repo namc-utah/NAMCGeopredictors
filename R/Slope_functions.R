@@ -45,30 +45,33 @@ NHDSLOPE<-function(point2process,geometry_input_path,...){
 #' @export
 #'
 #' @examples
-Slope_WS<-function(polygon2process,geometry_input_path,USGS_NED,...){
-  #geometry_input_path="Z:/GIS/Delineation/NewPythonMethod/Rasters/NVmod/NVFLD8.tif"
-  # watershed slope = rise/ run
-  ### rise= max watershed elevation - min watershed elevation ###
-  # call elevation functions to get min and max watershed elevations
-
-
-  ### run= flow length as determined by ArcGIS from DEM flow length raster ###
-  polygon2processtrans<-sf::st_transform(polygon2process, 5072)# transforming to CRS of NV D8 point Flow Direction
-  #write buffer of watershed out as a shapefile
-  sf::write_sf(polygon2processtrans,"polygon2processtrans.shp")#write it out to your project working directory!
-
-  # clip the NV flow accumulation grid to the watershed boundary using the spatial analyst extract by mask tool and save to local app data. File path of the new file created will be stored in the extract2 object
-  clippedFlowRaster=sa$ExtractByMask(geometry_input_path,'polygon2processtrans.shp')
-  #calculate flow length using the spatial analyst FlowLength tool and save to local app data. File path of the new file created will be stored in the extract2 object
-  ShedFlowL=sa$FlowLength(clippedFlowRaster,'UPSTREAM')# previous python code had downstream but not sure why!!
-  FlowLength=raster::raster(paste0(ShedFlowL))
-  max_flow_length=raster::maxValue(FlowLength) # code previously multiplied by 10 and then divided by 100. make sure this output number is in proper units (m)
-  max_watershed_elevation=ELVmax_WS(polygon2process,USGS_NED)
-  min_watershed_elevation=ELVmin_WS(polygon2process,USGS_NED)
-  media=(max_watershed_elevation[1,2]-min_watershed_elevation[1,2])/max_flow_length
-   return(media)
-}
-
+# Slope_WS<-function(polygon2process,geometry_input_path,USGS_NED,...){
+#   arc=import("arcpy")
+#   #import the spatial analyst arc py module/ library to get needed functions
+#   sa=reticulate::import("arcpy.sa")
+#   #geometry_input_path="Z:/GIS/Delineation/NewPythonMethod/Rasters/NVmod/NVFLD8.tif"
+#   # watershed slope = rise/ run
+#   ### rise= max watershed elevation - min watershed elevation ###
+#   # call elevation functions to get min and max watershed elevations
+#
+#
+#   ### run= flow length as determined by ArcGIS from DEM flow length raster ###
+#   polygon2processtrans<-sf::st_transform(polygon2process, 5072)# transforming to CRS of NV D8 point Flow Direction
+#   #write buffer of watershed out as a shapefile
+#   sf::write_sf(polygon2processtrans,"polygon2processtrans.shp")#write it out to your project working directory!
+#
+#   # clip the NV flow accumulation grid to the watershed boundary using the spatial analyst extract by mask tool and save to local app data. File path of the new file created will be stored in the extract2 object
+#   clippedFlowRaster=sa$ExtractByMask(geometry_input_path,'polygon2processtrans.shp')
+#   #calculate flow length using the spatial analyst FlowLength tool and save to local app data. File path of the new file created will be stored in the extract2 object
+#   ShedFlowL=sa$FlowLength(clippedFlowRaster,'UPSTREAM')# previous python code had downstream but not sure why!!
+#   FlowLength=raster::raster(paste0(ShedFlowL))
+#   max_flow_length=raster::maxValue(FlowLength) # code previously multiplied by 10 and then divided by 100. make sure this output number is in proper units (m)
+#   max_watershed_elevation=ELVmax_WS(polygon2process,USGS_NED)
+#   min_watershed_elevation=ELVmin_WS(polygon2process,USGS_NED)
+#   media=(max_watershed_elevation[1,2]-min_watershed_elevation[1,2])/max_flow_length
+#    return(media)
+# }
+#
 
 
 

@@ -5,7 +5,7 @@ watershed_file_path=paste0(pred_geometry_base_path,"GIS/Watersheds/Mastersheds/m
 watershed_layer_name="mastersheds" #siteId must be in file!!!!
 
 # input boxId or projectId
-boxId=2193
+boxId=2770
 projectId=387
 
 # all predictors will always be computed but enter in Y or N here to control which predictors are saved in the database
@@ -14,7 +14,7 @@ overwrite='Y' # or 'N'
 
 models=NAMCr::query("models")
 # input modelId to subset predictors calculated to only one model.note you cant input a list of models here.
-modelId=136
+modelId=3
 
 #def_samples=NAMCr::query("samples",sampleIds=c(155612,157568))
 
@@ -46,9 +46,6 @@ library(nhdplusTools)
 #jennifer needs to run this line but mac users likely dont need this. dont run unless ee_initallize() doesnt work
 Sys.setenv(RETICULATE_PYTHON = "C:/Users/jenni/AppData/Local/ESRI/conda/envs/arcgispro-py3-clone-1/python.exe")
 
-arc=import("arcpy")
-#import the spatial analyst arc py module/ library to get needed functions
-sa=reticulate::import("arcpy.sa")
 
 # Load all functions, comment out because the package should automatically do this
 source("R/Ecoregion_functions.R")

@@ -1,7 +1,7 @@
 #-----------------------------------------------------------------------
 # input a sampleId and the predictor abbreviation you are troubleshooting
 #------------------------------------------------------------------------
-sampleId=155612
+sampleId=111285
 predictor_name ="SR_BIGHORNS"
 
 #-----------------------------------------------------------------------
@@ -42,7 +42,7 @@ predictor_geometry=sf::st_read(paste0(pred_geometry_base_path,
                       predictor_geometry=sf::st_make_valid(predictor_geometry)
 JulianDate = lubridate::yday(def_samples$sampleDate[1])
 CurrentYear = lubridate::year(def_samples$sampleDate[1])
-geometry_input_path <-paste0(pred_geometry_base_path, "GIS/GIS_Stats/Colorado/temperature/summer.shp")
+geometry_input_path <-"C:/Users/jenni/Box/NAMC (Trip Armstrong)/GIS/GIS_Stats/CONUS/streams/NHD_West_str_ord.shp"
 
 #------------------------------------------------------------------------------
 # run the problematic indicator function line by line to see what lines are giving issues
