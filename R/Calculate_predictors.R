@@ -275,7 +275,7 @@
         } else{
           NAMCr::save(
             api_endpoint = "setSitePredictorValue",
-            siteId = testpredictorValuesl$siteId[i],
+            siteId = testpredictorValues$siteId[i],
             predictorId = testpredictorValues$predictorId[i],
             qaqcDate=system.date()
           )
