@@ -115,7 +115,7 @@ ELEV_RANGE<-function(polygon2process,USGS_NED,...){
 #'
 #' @examples
 ELEV_SITE<-function(point2process,USGS_NED,...){
-  media<-rgee::ee_extract(USGS_NED, point2process, scale=90)/10 # do NOT divide by 10 for CO.... need to see if CSCI? requires /10
+  media<-rgee::ee_extract(USGS_NED, point2process, scale=90) # neither CO MMI nor CSCI use /10 transformation
   return(media[1,1])
 }
 
