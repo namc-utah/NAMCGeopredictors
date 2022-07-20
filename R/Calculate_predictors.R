@@ -98,7 +98,7 @@
     for (p in 1:length(predlist)) {
       tryCatch({
         # change "" to is.na once end points are fixed to have this included
-        if (predictors$abbreviation[p]=="SUMMER"|predictors$abbreviation[p]=="NHDSLOPE"|predictors$abbreviation[p]=="Slope_WS"|predictors$abbreviation[p]=="WINTER"){
+        if (predictors$abbreviation[p]=="SUMMER"|predictors$abbreviation[p]=="NHDSLOPE"|predictors$abbreviation[p]=="Slope_WS"|predictors$abbreviation[p]=="WINTER"|predictors$abbreviation[p]=="pct_46003"){
           pred_geometries[[predictors$abbreviation[p]]] = NA
         } else if (is.na(predictors$geometryFilePath[p]) == TRUE|predictors$geometryFilePath[p]=="") {
           pred_geometries[[predictors$abbreviation[p]]] = NA
