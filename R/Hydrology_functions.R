@@ -140,6 +140,8 @@ pct_46003<-function(point2process,geometry_input_path,...){
   media=units::drop_units((sum(length_46003)/sum(length_total))*100)
   return(media)
 }
+
+
 #' Drainage density of intermittent streams in NHD Plus (km per 25 km radius buffer)
 #' @param point2process
 #' @param geometry_input_path
