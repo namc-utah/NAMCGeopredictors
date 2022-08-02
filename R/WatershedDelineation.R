@@ -31,6 +31,8 @@ streamStatsState=st_read(paste0(pred_geometry_base_path, "GIS/StreamStatsGrids/S
 pointsState=st_intersection(points_subset,streamStatsState)
 #view a unique list of states represented in the dataset
 unique(pointsState$STATE_ABBR)
+
+##### Step 5 generate two sets of points, points that need to be delineated manually, and those that can be delineated using StreamStats ######
 #exclude points in the following states because they will need to manually delineated... WY and NV stream stats grids have not been completed
 #and Jennifer could not get a polyline file to be created from the NM raster
 points2process=subset(pointsState,!(STATE_ABBR %in% c('WY','NV','NM')))
@@ -39,7 +41,7 @@ points2process=subset(pointsState,!(STATE_ABBR %in% c('WY','NV','NM')))
 st_write(subset(pointsState,STATE_ABBR %in% c('WY','NV','NM')),paste0(pred_geometry_base_path,'GIS/Watersheds/ManualDelineations/',Sys.Date(),".shp"),append=FALSE)
 
 
-##### Step 5 loop over points to snap points to stream stats polylines #####
+##### Step 6 loop over points to snap points to stream stats polylines #####
 # must snap points to stream stats polylines and not NHD to get proper watersheds delineated that match the DEM layers instead of topographic maps (NHD)
 if (inherits(points2process, "sf")) n = nrow(points2process)
 if (inherits(x, "sfc")) n = length(x)
@@ -49,7 +51,7 @@ max_dist=400
 buffer_size=200
 # for each point in the points2process sf object get the streams and then snap the points to those lines
 out = do.call(c,lapply(seq(n), function(i) {
-              # Step 5a Get state specific StreamStats lines to snap to but only lines within a 200 meter buffer of the point to save memory and time
+              # Step 6a Get state specific StreamStats lines to snap to but only lines within a 200 meter buffer of the point to save memory and time
               geometry_input_path=paste0(pred_geometry_base_path,"GIS/StreamStatsGrids/",points2process$STATE_ABBR[i],"_stream_stats_polyline.shp")
               # transform points from NAD83 to albers equal area conic USGS- all stream polylines are in albers and must be in albers (meters) not NAD83 (decimal degrees) to ensure that the buffer below gets the correct streams
               AOItrans<-sf::st_transform(points2process, 5070) # must use the same EPSG as in the shapefile
@@ -63,7 +65,7 @@ out = do.call(c,lapply(seq(n), function(i) {
               #read in streams within a 200 m buffer of the point
               line_geometry<-sf::st_read(geometry_input_path, wkt_filter = AOItrans_wkt)
 
-              #Step 5b loop through snapping each point to the lines
+              #Step 6b loop through snapping each point to the lines
                 # this part:
                 # 1. loops through every piece of data (every point)
                 # 2. snaps a point to the nearest line geometries
@@ -80,7 +82,7 @@ out = do.call(c,lapply(seq(n), function(i) {
 )
 
 
-##### Step 6 format the ouput #####
+##### Step 7 format the ouput #####
 #convert list output to dataframe
 out_xy <- st_coordinates(out) %>% as.data.frame()
 #convert dataframe to sf object and tranform albers back to NAD83
@@ -101,13 +103,13 @@ out_xy=out_xy[order(out_xy$siteId),]
 
 
 
-##### Step 7 QC the output ####
+##### Step 8 QC the output ####
 #zoom in to an points that were moved more than 50 meters  and compare original (red)  and snapped point locations (blue)
 mapview(out_xy)+
   mapview(points2process,col.regions="red")
 
 
-#### Step 8 read out individual shapefiles for each state and QC further using QGIS, the NHD, and waterbody name if needed.
+#### Step 9 read out individual shapefiles for each state and QC further using QGIS, the NHD, and waterbody name if needed.
 # Also need to QC points that were not moved at all because no stream stats line was close
 states=unique(out_xy$STATE_ABBR)
 
@@ -117,7 +119,7 @@ st_write(out_xysub,paste0(pred_geometry_base_path,'GIS/Watersheds/SnappedPointsS
 
 }
 
-##### Step 9 Send to stream stats in batches of 200 points by state (one batch at a time!!- wait till we get results back from one batch before submitting another) #####
+##### Step 10 Send to stream stats in batches of 200 points by state (one batch at a time!!- wait till we get results back from one batch before submitting another) #####
 #https://streamstatsags.cr.usgs.gov/ss_bp/
 #select get points back in same coordinate system as input NOT source layers
 
@@ -128,7 +130,7 @@ st_write(out_xysub,paste0(pred_geometry_base_path,'GIS/Watersheds/SnappedPointsS
 
 
 
-#### Step 10 QC watersheds we get back from stream stats
+#### Step 11 QC watersheds we get back from stream stats
 # Place output from stream stats in "GIS\Watersheds\StreamStatsOutput"
 #read in streamstats output (watershed layer only)
 shed <- st_read(streamStatsOutputFilePath, layer = "GlobalWatershed")
@@ -140,7 +142,7 @@ sheds<- cbind(shed,points)
 mapview(sheds)
 
 
-#### Step 11 add watersheds to mastersheds layer
+#### Step 12 add watersheds to mastersheds layer
 #read in mastersheds layer
 mastersheds=st_read(watershed_file_path)
 #subset columns to only include siteID and the geometry
