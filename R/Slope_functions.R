@@ -32,6 +32,33 @@ NHDSLOPE<-function(point2process,geometry_input_path,...){
   return(media)
 }
 
+#' NHD Plus stream order and slope value taken from the nearest stream segment
+#' st_transform changes the CRS of the point to meters using 5070 Albers Contiguous US, now we have the point in meter (projection)
+#' Using the new object for the point in meters, a well-known text (WKT) string will be created to query the required vector predictor
+#' this WKT can be used as an argument in st_read to query a big vector shapefile or geopackages and just bring into memory the AOI
+#' i.e. like a bounding without overwhelming R
+#' Buffer the point by 200m, interest with NHD streams, extract SLOPE value
+#' Jennifer's notes- maxdist=500 meters needs reexamined. The original python code used 200 meters. really we should be using COMID and joining to that!!
+#'
+#' @param point2process
+#' @param geometry_input_path
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+NHDStreamOrder<-function(point2process,geometry_input_path,...){
+  AOItrans<-sf::st_transform(point2process, 5070) # must use the same EPSG as in the shapefile
+  AOItrans_wkt <- AOItrans %>%
+    sf::st_geometry() %>% # convert to sfc
+    sf::st_buffer(200) %>% # buffer 200 meters
+    sf::st_as_text() # convert to well known text
+  NHDSLOPE.vec<-sf::st_read(geometry_input_path, wkt_filter = AOItrans_wkt)
+  AOI_Buffer<-sf::st_join(AOItrans, NHDSLOPE.vec, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
+  media<-AOI_Buffer[,c("SLOPE","StreamOr_1")]
+  return(media)
+}
 
 
 #' #' Watershed slope using flow length- NV MMI model
