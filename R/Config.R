@@ -3,18 +3,20 @@ pred_geometry_base_path="C:/Users/jenni/Box/NAMC (Trip Armstrong)/"
 SQLite_file_path="C:/NAMC_S3/StreamCat/StreamCat2022.sqlite"
 watershed_file_path=paste0(pred_geometry_base_path,"GIS/Watersheds/Mastersheds/mastersheds.shp") #siteId must be in file!!!!
 watershed_layer_name="mastersheds" #siteId must be in file!!!!
+#file path for .gdb that streamstats sends back
+streamStatsOutputFilePath=
 
 # input boxId or projectId
-boxId=2770
-projectId=387
+boxId=2190
+projectId=684
 
 # all predictors will always be computed but enter in Y or N here to control which predictors are saved in the database
 #if overwrite='Y' all predictors will be saved if overwrite='N', only predictors that dont already exist in the database will be saved
-overwrite='Y' # or 'N'
+overwrite='N' # or 'N'
 
 models=NAMCr::query("models")
 # input modelId to subset predictors calculated to only one model.note you cant input a list of models here.
-modelId=3
+modelId=25
 
 #def_samples=NAMCr::query("samples",sampleIds=c(155612,157568))
 
@@ -38,6 +40,7 @@ library(R6)
 library(DBI)
 library(RSQLite)
 library(nhdplusTools)
+library(mapview)
 
 ## Load useful packages
 #library(rmapshaper)
