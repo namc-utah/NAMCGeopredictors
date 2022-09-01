@@ -133,21 +133,22 @@ st_write(out_xysub,paste0(pred_geometry_base_path,'GIS/Watersheds/SnappedPointsS
 #### Step 11 QC watersheds we get back from stream stats
 # Place output from stream stats in "GIS\Watersheds\StreamStatsOutput"
 #read in streamstats output (watershed layer only)
-shed <- st_read(streamStatsOutputFilePath, layer = "GlobalWatershed")
+sheds <- st_read(streamStatsOutputFilePath, layer = "GlobalWatershed")
+sheds$siteId=as.numeric(sheds$Name)
+sheds$geometry=sheds$Shape
 #read in corresponding points sent to streamcat
-points<-st_read(SnappedPointsSentStreamStats)
+points<-st_read("C:/Users/jenni/Box/NAMC (Trip Armstrong)/GIS/Watersheds/SnappedPointsSentStreamStats/CA_2022-08-12.shp")
 #join back in siteId identifiers
-sheds<- cbind(shed,points)
+sheds<- cbind(sheds,points)
 #check watersheds on map to make sure no weird watersheds
 mapview(sheds)
-
-
 #### Step 12 add watersheds to mastersheds layer
 #read in mastersheds layer
 mastersheds=st_read(watershed_file_path)
 #subset columns to only include siteID and the geometry
 shedsToAdd=subset(sheds[,c('siteId','geometry')])
 #append new watersheds to mastersheds
-mastershedsnew=rbind.fill(mastersheds,shedsToAdd)
+mastershedsnew=plyr::rbind.fill(mastersheds,shedsToAdd)
 #overwrite existing mastersheds layer
-st_write(mastershedsnew,watershed_file_path)
+st_write(mastershedsnew,watershed_file_path,append=FALSE)
+st_crs(mastersheds)
