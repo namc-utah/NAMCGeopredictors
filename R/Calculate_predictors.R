@@ -261,23 +261,23 @@
 
 
     # ---------------------------------------------------------------
-    # Set QC date in database if predictors look good
+    # Set QC date in database if predictors look good #code currently not working because you cant save on column at a time, qc date must be saved with the predictor value itself the way the end point is set up!
     # ---------------------------------------------------------------
     for (i in 1:nrow(testpredictorValues)){
       tryCatch({
-        if (testpredictorValuesl$isTemporal[i]==TRUE) {
+        if (testpredictorValues$isTemporal[i]==TRUE) {
           NAMCr::save(
             api_endpoint = "setSamplePredictorValue",
             sampleId = testpredictorValues$sampleId[i],
             predictorId = testpredictorValues$predictorId[i],
-            qaqcDate=system.date()
+            qaqcDate=paste0(Sys.Date())
           )
         } else{
           NAMCr::save(
             api_endpoint = "setSitePredictorValue",
             siteId = testpredictorValues$siteId[i],
             predictorId = testpredictorValues$predictorId[i],
-            qaqcDate=system.date()
+            qaqcDate=paste0(Sys.Date())
           )
         }
       }, error = function(e) {
