@@ -137,7 +137,7 @@ ELEV_SITE<-function(point2process,USGS_NED,...){
 #' @examples
 ELEV_SITE_SQRT<-function(point2process,USGS_NED,...){
    elevation<-rgee::ee_extract(USGS_NED, point2process, scale=90)
-  media<-sqrt((elevation/10))
+  media<-sqrt((elevation))
   return(media[1,1])
 }
 
