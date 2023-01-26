@@ -6,6 +6,7 @@ library(nhdplusTools)
 library(raster)
 library(dplyr)
 
+
 ##Snap_Points_to_Lines_Tool
 #This is the function that snaps the points to the flowlines
 st_snap_points <- function(x, y, namevar, max_dist = 1000) {
