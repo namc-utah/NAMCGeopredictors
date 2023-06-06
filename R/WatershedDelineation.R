@@ -93,7 +93,7 @@ out_xy$SnpLONG=sf::st_coordinates(out_xy)[,1]
 out_xy$SnpLAT=sf::st_coordinates(out_xy)[,2]
 out_xy=subset(out_xy,select=-c(X,Y))
 #Add in identifiers from orignial dataframe
-out_xy=cbind(out_xy,st_drop_geometry(points2process[,c('siteId','STATE_ABBR','waterbodyName')]),st_coordinates(points2process))
+out_xy=cbind(out_xy,st_drop_geometry(points2process[,c('siteId','STATE_ABBR')]),st_coordinates(points2process))
 out_xy=dplyr::rename(out_xy,OrgLAT=Y)
 out_xy=dplyr::rename(out_xy,OrgLONG=X)
 #calculate the distance between the snapped point and the orignial point in meters
