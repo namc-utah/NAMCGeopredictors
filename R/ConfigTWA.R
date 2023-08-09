@@ -1,18 +1,20 @@
 #change file paths to match your computer:office
 #pred_geometry_base_path="/Users/triparmstrong/Library/CloudStorage/Box-Box/NAMC/"
 ##Home:
-pred_geometry_base_path="/Users/namc/Library/CloudStorage/Box-Box/NAMC/"
-SQLite_file_path="/Users/namc/Documents/StreamCat2022.sqlite"  ##need to edit this for home
+#pred_geometry_base_path="/Users/namc/Library/CloudStorage/Box-Box/NAMC/"
+#SQLite_file_path="/Users/namc/Documents/StreamCat2022.sqlite"  ##need to edit this for home
 ##Office
-#pred_geometry_base_path="/Users/triparmstrong/Library/CloudStorage/Box-Box/NAMC/"
-#SQLite_file_path="/Users/triparmstrong/NAMC_S3/StreamCat2022.sqlite"
+pred_geometry_base_path="/Users/triparmstrong/Library/CloudStorage/Box-Box/NAMC"
+SQLite_file_path="/Users/triparmstrong/NAMC_S3/StreamCat2022.sqlite"
 
-watershed_file_path=paste0(pred_geometry_base_path,"GIS/Watersheds/Mastersheds/mastersheds.shp") #siteId must be in file!!!!
+#/Users/triparmstrong/Library/CloudStorage/Box-Box/NAMC/GIS/Watersheds/Mastersheds
+
+watershed_file_path=paste0(pred_geometry_base_path,"/GIS/Watersheds/Mastersheds/mastersheds.shp") #siteId must be in file!!!!
 watershed_layer_name="mastersheds" #siteId must be in file!!!!
 
 
 # input boxId or projectId
-boxId=5311
+boxId=5476
 #projectId=1014
 
 # all predictors will always be computed but enter in Y or N here to control which predictors are saved in the database
@@ -67,3 +69,4 @@ source("R/Slope_functions.R")
 source("R/StreamCat_functions.R")
 source("R/Temperature_functions.R")
 source("R/Vegetation_functions.R")
+

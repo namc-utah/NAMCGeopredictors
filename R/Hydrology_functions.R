@@ -151,7 +151,7 @@ pct_46003<-function(point2process,geometry_input_path,...){
 #' @export
 #'
 #' @examples
-length_A1_3<-function(point2process,geometry_input_path,...){
+A1_3<-function(point2process,geometry_input_path,...){
   AOItrans<-sf::st_transform(point2process, 5070) # must use the same EPSG as in the shapefile
   AOItrans_wkt <- AOItrans %>%
     sf::st_geometry() %>% # convert to sfc
@@ -162,6 +162,29 @@ length_A1_3<-function(point2process,geometry_input_path,...){
   clipped=sf::st_intersection(NHD.vec,buffer)
   NHD.vec_A1_3<-subset(clipped,predict3cl=='A1')
   length=sf::st_length(NHD.vec_A1_3)
+  media=units::drop_units(sum(length)/1000)
+  return(media)
+}
+#' Drainage density of intermittent streams in NHD Plus (km per 25 km radius buffer)
+#' @param point2process
+#' @param geometry_input_path
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+A2_5<-function(point2process,geometry_input_path,...){
+  AOItrans<-sf::st_transform(point2process, 5070) # must use the same EPSG as in the shapefile
+  AOItrans_wkt <- AOItrans %>%
+    sf::st_geometry() %>% # convert to sfc
+    sf::st_buffer(25000) %>% # buffer 25 km radius
+    sf::st_as_text() # convert to well known text
+  NHD.vec<-sf::st_zm(sf::st_read(geometry_input_path, wkt_filter = AOItrans_wkt))
+  buffer=sf::st_buffer(AOItrans,25000)
+  clipped=sf::st_intersection(NHD.vec,buffer)
+  NHD.vec_A2_5<-subset(clipped,predict5cl=='A2')
+  length=sf::st_length(NHD.vec_A2_5)
   media=units::drop_units(sum(length)/1000)
   return(media)
 }
