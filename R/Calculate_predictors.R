@@ -20,6 +20,18 @@
     # get existing predictor values and which predictor values need calculated based on which models are associated with each sample
     # ---------------------------------------------------------------
     # getting sample info including date
+
+    #small addition for OR models (10,11,and 12)
+    #run this section for OR and no not run the if (exists ("boxID"))
+    if(1){
+    ClPl<-model10
+    NBR<-model12
+    MWCP<-model11
+
+    def_samples=NAMCr::query("samples",include = c("sampleId", "siteId", "sampleDate"),sampleIds=NBR) #change the sampleIds accordingly
+    }
+
+
     if (exists("boxId")){
       def_samples=NAMCr::query("samples",include = c("sampleId", "siteId", "sampleDate"),boxId=boxId)
     }else {def_samples=NAMCr::query("samples",include = c("sampleId", "siteId", "sampleDate"),projectId=projectId)
