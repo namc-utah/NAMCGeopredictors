@@ -14,11 +14,13 @@ library(sp)
 #library(rgl)
 
 #box query for NAMCr
-boxnum<-5747
+boxnum<-4453
 #query the box in question
 x<-query(
   api_endpoint = "samples",
   args = list(boxId = boxnum))
+#special case for CA
+x<-x[x$sampleId %in% c(211231,211233,211234,211235),]
 #make a dataframe of just the coordinates
 #but make Lon positive for easy url import.
 #more detail below, but TNM stores their
@@ -58,7 +60,18 @@ setwd('C://Users//andrew.caudillo//Box//NAMC//GIS//DEMs//TNM')
 #since 2013.
 url_list<-read.csv('DEM_url_list.csv',stringsAsFactors = F)
 setwd('C://Users//andrew.caudillo//Box//NAMC//GIS//DEMs//TNM//NV_DEMs')
+setwd('C://Users//andrew.caudillo//Box//NAMC//GIS//DEMs//TNM//NV_DEMs//AllNV')
+NV<-read.csv('ALL_NV_DEMS.csv',stringsAsFactors = F)
 
+stringr::str_match(NV$url,"3_\\s*(.*?)\\s*_2")
+for(i in 1:nrow(NV)){
+  print('reading raster')
+  x<-raster::raster(NV$url[i])
+  locs<-stringr::str_match(NV$url[i],"3_\\s*(.*?)\\s*_2")
+  print('writing raster')
+  raster::writeRaster(x,paste(Namestate,locs[,2],'10m.tif',sep='_'),'GTiff',overwrite=T)
+  print('Ho-kay, mane. Onto next one!')
+}
 #for loop 1) download only necessary DEMs
 for(i in 1:nrow(Lcoarse_pts)){
 #subset the url list to match the one we need via the pattern towards the
@@ -80,7 +93,8 @@ print(paste('finished iteration',i,'of', nrow(Lcoarse_pts)))
 
 #for loop 2) Watershed delineation and export
 for(i in 1:length(unique(dfcoords$siteId))){
-  setwd('C://Users//andrew.caudillo//Box//NAMC//GIS//DEMs//TNM//NV_DEMs')
+  #setwd('C://Users//andrew.caudillo//Box//NAMC//GIS//DEMs//TNM//NV_DEMs')
+  setwd('C://Users//andrew.caudillo//Box//NAMC//GIS//DEMs//TNM')
   #subset out the first siteId
   print(paste('starting loop, iteration: ',i,sep=''))
   coord_subset<-dfcoords[dfcoords$siteId == unique(dfcoords$siteId)[i],]
@@ -93,17 +107,17 @@ for(i in 1:length(unique(dfcoords$siteId))){
 
   wbt_breach_depressions_least_cost(
     dem=paste(Namestate,coord_subset$cLat,abs(coord_subset$cLon),'10m.tif',sep='_'),
-    output=paste(Namestate,coord_subset$siteId,'_breached.tif',sep=''),
+    output=paste(Namestate,'fill',coord_subset$siteId,'_breached.tif',sep=''),
     dist=10,
     fill=T)
   #this step does the flow accumulation analysis, based on the filled DEM
 
-  wbt_d8_flow_accumulation(input = paste(Namestate,coord_subset$siteId,"_breached.tif",sep=''),
-                           output = paste(Namestate,coord_subset$siteId,"breached_acc.tif",sep=''))
+  wbt_d8_flow_accumulation(input = paste(Namestate,'fill',coord_subset$siteId,"_breached.tif",sep=''),
+                           output = paste(Namestate,'fill',coord_subset$siteId,"breached_acc.tif",sep=''))
 
   #this step does the flow direction analysis
-  wbt_d8_pointer(dem = paste(Namestate,coord_subset$siteId,"_breached.tif",sep=''),
-                 output = paste(Namestate,coord_subset$siteId,"_breached_dir.tif",sep=''))
+  wbt_d8_pointer(dem = paste(Namestate,'fill',coord_subset$siteId,"_breached.tif",sep=''),
+                 output = paste(Namestate,'fill',coord_subset$siteId,"_breached_dir.tif",sep=''))
 
 #this is making a little dataframe of the pour point
 
@@ -124,7 +138,7 @@ for(i in 1:length(unique(dfcoords$siteId))){
                               snap_dist = 0.0005) #careful with this! Know the units of your data
   #this is the final step. the watershed delineation.
 
-  wbt_watershed(d8_pntr = paste(Namestate,coord_subset$siteId,"_breached_dir.tif",sep=''),
+  wbt_watershed(d8_pntr = paste(Namestate,'fill',coord_subset$siteId,"_breached_dir.tif",sep=''),
                 pour_pts = paste(Namestate,"snap_pps",coord_subset$siteId,".shp",sep=''),
                 output = paste(Namestate,"_watersheds",coord_subset$siteId,".tif",sep=''))
   print(paste('Watershed ', i, ' delineated. Onto the next one.'))
@@ -132,3 +146,21 @@ for(i in 1:length(unique(dfcoords$siteId))){
 
 #plot with mapview?
 
+setwd('C://Users//andrew.caudillo//Box//NAMC//GIS//DEMs//bioclim')
+elevWC<-raster::raster('wc2.1_30s_elev.tif')
+library(maptools)
+library(tigris)
+
+yes<-tigris::states()
+nv<-yes[yes$NAME=='Nevada',]
+nv<-spTransform(nv,CRS(elevWC))
+CRS(elevWC)
+lilNV<-SpatialDataFrame(o[,1:2],o,proj4string = CRS("+proj=longlat +ellps=GRS80"))
+o<-as.data.frame(nv$geometry[[1]][1])
+CRS(nv)
+shapefile(lilNV,filename='TIGER_NV')
+clipNV30s<-raster::raster('NV_elev30s.tif')
+
+clipper<-raster(resolution=c(9.259259e-05, 9.259259e-05),crs=proj4string(clipNV30s),ext=extent(clipNV30s))
+
+rs<-resample(clipNV30s,clipper,method='ngb')

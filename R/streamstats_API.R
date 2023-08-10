@@ -8,12 +8,19 @@ x<-query(
 #special case for CA
 x<-x[x$sampleId %in% c(211231,211233,211234,211235),]
 
+#edit to make more robust for regio code (state). Will just need an ifelse statement for abbreviations.
 
 sheds<-list()
 for(i in 1:nrow(x)){
 
-url<-paste0('https://streamstats.usgs.gov/streamstatsservices/watershed.geojson?',
-            'rcode=CA&xlocation=',x$sampleLongitude[i],'&ylocation=',x$sampleLatitude[i],'&crs=4326&includeparameters=false&includeflowtypes=false&includefeatures=true&simplify=false')
-sheds[[i]]<-st_read(url)
+
+ws<-streamstats::delineateWatershed(xlocation = x$sampleLongitude[i],
+                                    ylocation = x$sampleLatitude[i],
+                                    includefeatures = 'true',includeparameters = 'false',
+                                    includeflowtypes = 'false',
+                                    crs=4326,rcode = 'CA')
 print('iteration done')
+sheds[[i]]<-ws
+
 }
+streamstats::leafletWatershed(sheds[[4]])
