@@ -14,13 +14,15 @@ library(sp)
 #library(rgl)
 
 #box query for NAMCr
-boxnum<-4453
+boxnum<-5745
 #query the box in question
 x<-query(
   api_endpoint = "samples",
   args = list(boxId = boxnum))
-#special case for CA
-x<-x[x$sampleId %in% c(211231,211233,211234,211235),]
+
+#can make this more robust if needed
+x<-x[x$sampleId %in% 211612,]
+
 #make a dataframe of just the coordinates
 #but make Lon positive for easy url import.
 #more detail below, but TNM stores their
@@ -46,7 +48,9 @@ Namestate<-unique(x$usState)
 #Cavaet: the integers are positive (probably for URL reasons)
 #so we need positive values, even though we use negative
 #Longitude
-coarse_pts<-as.data.frame(sapply(dfcoords[,1:2],ceiling))
+
+coarse_pts<-transmute_all(dfcoords[,1:2],ceiling)
+
 #remove duplicates, because we don't need them
 Lcoarse_pts<-coarse_pts[!duplicated(coarse_pts),]
 dfcoords$cLon<-coarse_pts$Lon;dfcoords$cLat<-coarse_pts$Lat
@@ -59,18 +63,18 @@ setwd('C://Users//andrew.caudillo//Box//NAMC//GIS//DEMs//TNM')
 #some files are updated periodically, where some have not been updated
 #since 2013.
 url_list<-read.csv('DEM_url_list.csv',stringsAsFactors = F)
-setwd('C://Users//andrew.caudillo//Box//NAMC//GIS//DEMs//TNM//NV_DEMs')
-setwd('C://Users//andrew.caudillo//Box//NAMC//GIS//DEMs//TNM//NV_DEMs//AllNV')
-NV<-read.csv('ALL_NV_DEMS.csv',stringsAsFactors = F)
+setwd('C://Users//andrew.caudillo//Box//NAMC//GIS//DEMs//TNM//WY')
 
-stringr::str_match(NV$url,"3_\\s*(.*?)\\s*_2")
-for(i in 1:nrow(NV)){
+if(0){
+#stringr::str_match(NV$url,"3_\\s*(.*?)\\s*_2")
+for(i in 1:nrow(coarse_pts)){
   print('reading raster')
   x<-raster::raster(NV$url[i])
   locs<-stringr::str_match(NV$url[i],"3_\\s*(.*?)\\s*_2")
   print('writing raster')
   raster::writeRaster(x,paste(Namestate,locs[,2],'10m.tif',sep='_'),'GTiff',overwrite=T)
   print('Ho-kay, mane. Onto next one!')
+}
 }
 #for loop 1) download only necessary DEMs
 for(i in 1:nrow(Lcoarse_pts)){
@@ -94,7 +98,7 @@ print(paste('finished iteration',i,'of', nrow(Lcoarse_pts)))
 #for loop 2) Watershed delineation and export
 for(i in 1:length(unique(dfcoords$siteId))){
   #setwd('C://Users//andrew.caudillo//Box//NAMC//GIS//DEMs//TNM//NV_DEMs')
-  setwd('C://Users//andrew.caudillo//Box//NAMC//GIS//DEMs//TNM')
+  setwd('C://Users//andrew.caudillo//Box//NAMC//GIS//DEMs//TNM//WY')
   #subset out the first siteId
   print(paste('starting loop, iteration: ',i,sep=''))
   coord_subset<-dfcoords[dfcoords$siteId == unique(dfcoords$siteId)[i],]
@@ -105,8 +109,17 @@ for(i in 1:length(unique(dfcoords$siteId))){
   #or if not a file path, a file in the active working directory.
   #issues will arise if you hand it a URL
 
+  #wbt_breach_depressions_least_cost(
+  #  dem=paste(Namestate,coord_subset$cLat,abs(coord_subset$cLon),'10m.tif',sep='_'),
+  #  output=paste(Namestate,'fill',coord_subset$siteId,'_breached.tif',sep=''),
+  #  dist=10,
+  #  fill=T)
+
+  #manual version with larger tifs
+  #i.e., the point falls within multiple tile boundaries
+  #merged tiles can be used here
   wbt_breach_depressions_least_cost(
-    dem=paste(Namestate,coord_subset$cLat,abs(coord_subset$cLon),'10m.tif',sep='_'),
+    dem='WY_108_109_42_41.tif',
     output=paste(Namestate,'fill',coord_subset$siteId,'_breached.tif',sep=''),
     dist=10,
     fill=T)
@@ -122,12 +135,14 @@ for(i in 1:length(unique(dfcoords$siteId))){
 #this is making a little dataframe of the pour point
 
   pps<-data.frame(coord_subset$Lon,coord_subset$Lat)
+if(pps$coord_subset.Lon>0)
+  pps$coord_subset.Lon<-(pps$coord_subset.Lon)*(-1)
   pps<-SpatialPointsDataFrame(pps[,1:2],data=pps,proj4string = CRS('+proj=longlat +datum=WGS84 +no_defs'))
 #write the pour point out as its own shapefile. helps with QCing watersheds and pour points
   shapefile(pps, filename = paste(Namestate,"_pps",coord_subset$siteId,".shp",sep=''), overwrite = TRUE)
 #this step gets the streams.not really used by NAMC, but required for the watershed process.
 
-  wbt_extract_streams(flow_accum = paste(Namestate,coord_subset$siteId,"breached_acc.tif",sep=''),
+  wbt_extract_streams(flow_accum = paste(Namestate,'fill',coord_subset$siteId,"breached_acc.tif",sep=''),
                       output = paste(Namestate,"_streams",coord_subset$siteId,".tif",sep=''),
                       threshold = 6000)
 #this step is snapping the pour points to the streams from above.
@@ -144,10 +159,16 @@ for(i in 1:length(unique(dfcoords$siteId))){
   print(paste('Watershed ', i, ' delineated. Onto the next one.'))
 }
 
-#plot with mapview?
 
+library(raster)
+looky<-raster::raster(paste(Namestate,"_watersheds",coord_subset$siteId,".tif",sep=''))
+stre<-raster::raster(paste(Namestate,"_streams",coord_subset$siteId,".tif",sep=''))
+fldr<-raster::raster(paste(Namestate,'fill',coord_subset$siteId,"_breached_dir.tif",sep=''))
+mapview::mapview(looky)
 setwd('C://Users//andrew.caudillo//Box//NAMC//GIS//DEMs//bioclim')
 elevWC<-raster::raster('wc2.1_30s_elev.tif')
+mapview(snappy)
+snappy<-st_read(paste(Namestate,"snap_pps",coord_subset$siteId,".shp",sep=''))
 library(maptools)
 library(tigris)
 
