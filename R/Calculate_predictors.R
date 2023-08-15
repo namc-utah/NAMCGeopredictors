@@ -23,7 +23,7 @@
 
     #small addition for OR models (10,11,and 12)
     #run this section for OR and no not run the if (exists ("boxID"))
-    if(1){
+    if(0){
     ClPl<-model10
     NBR<-model12
     MWCP<-model11
@@ -145,11 +145,14 @@
             # subset the site information for only this sample
             def_sites_sample=subset(def_sites,siteId==samples[s,"siteId"])
             def_watersheds_sample=subset(def_watersheds, siteId==samples[s,"siteId"])
+
             # Data needs to be in json format
               if( nrow(def_watersheds_sample)>0) {
               polygon2process = def_watersheds_sample
               } else {polygon2process = NA
              print(paste0("siteId=",samples[s,"siteId"]," sampleId=",samples$sampleId[s]," watershed needs delineated"))
+             print(str(polygon2process))
+             print(nrow(def_watersheds_sample))
                }
             # uses eval() to call each predictor function by name
               predictor_value[[s]] = eval(parse(text=paste0(samples$calculationScript[s])))(
