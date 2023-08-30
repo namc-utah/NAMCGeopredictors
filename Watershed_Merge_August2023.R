@@ -1,19 +1,18 @@
 library(sf)
 library(mapview)
 #load the separate shapefiles
-shp_42877 <- st_read("~/Library/CloudStorage/Box-Box/NAMC/GIS/Watersheds/streamstats_R/ws_shp/42877_shed.shp")
-shp_42879 <- st_read("~/Library/CloudStorage/Box-Box/NAMC/GIS/Watersheds/streamstats_R/ws_shp/42879_shed.shp")
-shp_42880 <- st_read("~/Library/CloudStorage/Box-Box/NAMC/GIS/Watersheds/streamstats_R/ws_shp/42880_shed.shp")
-shp_42881 <- st_read("~/Library/CloudStorage/Box-Box/NAMC/GIS/Watersheds/streamstats_R/ws_shp/42881_shed.shp")
+shp <- st_read("C://Users//andrew.caudillo//Box//NAMC//GIS//Watersheds//nhdPlusTools//missingOR_sheds.shp")
+
 #Combine the shapefiles into one
-shp <- rbind(shp_42877, shp_42879, shp_42880, shp_42881)
+#shp <- rbind(shp_42877, shp_42879, shp_42880, shp_42881)
 #Check to see if the watersheds make sense
 mapview(shp)
 #Add siteId as a column to the shapefile
-shp$siteId <- c(42877, 42879, 42880, 42881)
+#get this from the nhd WS delineation code, which you should run before this
+shp$siteId <- samps_For_sheds$siteId
 shedsToAdd <- subset(shp[,c('siteId', 'geometry')])
 #load mastersheds
-mastersheds <- st_read("~/Library/CloudStorage/Box-Box/NAMC/GIS/Watersheds/Mastersheds/mastersheds.shp")
+mastersheds <- st_read("C://Users//andrew.caudillo//Box//NAMC//GIS/Watersheds//Mastersheds//mastersheds.shp")
 #Make sure shapefile is in the same crs as mastersheds shapefile
 crs2use <- crs(mastersheds)
 shedsToAdd <- st_transform(shedsToAdd, crs2use)
@@ -29,6 +28,6 @@ dim(mastershedsnew)
 #Make sure mastershedsnew is an sf object
 temp <- st_as_sf(mastershedsnew)
 #write output as mastersheds file
-st_write(temp, "~/Library/CloudStorage/Box-Box/NAMC/GIS/Watersheds/Mastersheds/mastersheds.shp")
+st_write(temp, "C://Users//andrew.caudillo//Box//NAMC//GIS/Watersheds//Mastersheds//mastersheds.shp")
 #copy and paste siteIds from shedsRoAdd shapefie to excel file
 clipr::write_clip(shedsToAdd$siteId)
