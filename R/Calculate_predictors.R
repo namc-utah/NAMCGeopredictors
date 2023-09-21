@@ -28,7 +28,7 @@
     NBR<-model12
     MWCP<-model11
 
-    def_samples=NAMCr::query("samples",include = c("sampleId", "siteId", "sampleDate"),sampleIds=NBR) #change the sampleIds accordingly
+    def_samples=NAMCr::query("samples",include = c("sampleId", "siteId", "sampleDate"),sampleIds=ClPl) #change the sampleIds accordingly
     }
 
 
@@ -44,11 +44,14 @@
       #modelIds = modelId
     )
     #subset this list to only samples/predictors that need calculated
+    modelpred=NAMCr::query("predictors",modelId=modelId)
+
+    def_predictors=subset(def_predictors,predictorId %in% modelpred$predictorId)
 
      def_predictors = def_predictors[def_predictors$status != "Valid",]
 
-    modelpred=NAMCr::query("predictors",modelId=modelId)
-    def_predictors=subset(def_predictors,predictorId %in% modelpred$predictorId)
+
+
 
     # ---------------------------------------------------------------
     # Get the coordinates and COMID for each sample by looping over the siteInfo end point.
@@ -66,6 +69,9 @@
         include = c("siteId", "siteName", "usState", "location","waterbodyCode"),
         siteId = siteIds[t]
       ))
+      #forcing named vector to be dataframe for subsetting
+      #if only 1 site, the code above forces it to named vector via unlist()
+      def_sites<-data.frame(as.list(def_sites))
       } else {def_sites1= unlist(NAMCr::query(
         api_endpoint = "siteInfo",
         include = c("siteId", "siteName", "usState", "location","waterbodyCode"),

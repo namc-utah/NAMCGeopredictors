@@ -1,17 +1,13 @@
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  # Name: Quick Watershed Delineation using NHDPlusTools
+# Quick Watershed Delineation using NHDPlusTools
   # Coder: Nate Jones (cnjones7@ua.edu),
-  # adapted by NAMC staff
-  # Date: 8/114/2023
-  # Purpose: Watershed Delineation using NHDPlust Tools
-  #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # adapted for NAMC use by Andrew Caudillo
 
-  # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
   # 1.0 Setup Environment --------------------------------------------------------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #clear memory
 rm(list=ls())
-boxId<-5745
+
 #Call relevant libraries
 library(tidyverse)
 library(mapview)
@@ -27,19 +23,22 @@ mastershed<-st_read(watershed_file_path)
 
 samps<-NAMCr::query(
   api_endpoint = "samples",
-  boxId=boxId
+  projectId=projectId
 )
 
 missings_sheds<-samps$siteId[samps$siteId %in% mastershed$siteId==F]
 missings_sheds
 samps_For_sheds<-samps[samps$siteId %in% missings_sheds,]
 #Load state shape
-bama <- states() %>% dplyr::filter((STUSPS %in% c('WY')))
+#it is imperative to change the state abbreviation!
+bama <- states() %>% dplyr::filter((STUSPS %in% c('NV','WY','NM','OR')))
 
-samps_For_sheds_Coords<-samps_For_sheds[,c("sampleLatitude","sampleLongitude")]
-#making df of points
+#making df of just the site points
+#remember that NAMC uses sites, not samples, for model application and predictors
+samps_For_sheds_Coords<-samps_For_sheds[,c("siteLatitude","siteLongitude")]
 
-outlet<-sf::st_as_sf(samps_For_sheds_Coords, coords = c("sampleLongitude","sampleLatitude"),crs=4269)
+#this is the "pour point" essentially
+outlet<-sf::st_as_sf(samps_For_sheds_Coords, coords = c("siteLongitude","siteLatitude"),crs=4269)
 
 
 #Rerpoject and clip to continental US
@@ -53,24 +52,26 @@ outlet <- st_transform(outlet, 5070)
 #Create starting point
 shed_list<-st_sfc(crs=5070)
 
-
+#for loop that allows N sheds to be delineated
+#and then binds them into one object at the end
+#excellent use for large sets, especially
+#AIM sets when they first come in.
 for(i in 1:nrow(outlet)){
   print(i)
 start_comid <- discover_nhdplus_id(outlet$geometry[i])
 start_comid
 
-#Snag flowline
+# flowlines
 flowlines <- navigate_nldi(list(featureSource = "comid",
                                 featureID = start_comid),
                            mode = "upstreamTributaries",
                            distance_km = 1000)
 
-#plot for funzies
-#mapview(cahaba_outlet) + mapview(flowlines)
+
 
 # Note, the next step pulls NHDplus data from NLNDI server. For large watersheds,
 # it will likely be faster to download the WBD form the USGS National Map website (link below),
-# and intersect the "fowlines" shape above with the downloaded layer.
+# and intersect the "flowlines" shape above with the downloaded layer.
 # https://www.usgs.gov/national-hydrography/access-national-hydrography-products
 
 #get nhdplus files
@@ -80,7 +81,7 @@ subset <- subset_nhdplus(comids = as.integer(flowlines$UT$nhdplus_comid),
                          nhdplus_data = "download",
                          flowline_only = FALSE,
                          return_data = TRUE, overwrite = TRUE)
-#Snag catchment files
+#catchments
 catchment <- sf::read_sf(subset_file, "CatchmentSP")
 
 #Dissovle files to single catchment
@@ -88,10 +89,14 @@ catchment <- sf::st_union(catchment)
 ouch<-sfheaders::sf_remove_holes(catchment)
 
 ouch<-st_transform(ouch,5070)
+#make a list of sheds that grows with each iteration
 shed_list = rbind(shed_list, st_as_sf(ouch))
 
 }
+#plot just to see everything looks alright
+#if a shed looks incorrect, use a different method like whitebox.
+#could also use global watersheds for a quick look.
+mapview(list(outlet,shed_list))
+shed_list$siteid<-missings_sheds
 
-setwd('C://Users//andrew.caudillo//Box//NAMC//GIS//Watersheds//nhdPlusTools')
-
-st_write(shed_list,dsn='missingWY_sheds.shp')
+st_write(shed_list,dsn='C://Users//andrew.caudillo//Box//NAMC//GIS//Watersheds//nhdPlusTools//miscAIM22_sheds.shp')
