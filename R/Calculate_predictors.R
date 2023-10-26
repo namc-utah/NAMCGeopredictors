@@ -48,7 +48,7 @@
 
     def_predictors=subset(def_predictors,predictorId %in% modelpred$predictorId)
 
-     def_predictors = def_predictors[def_predictors$status != "Valid",]
+     #def_predictors = def_predictors[def_predictors$status != "Valid",]
 
 
 
