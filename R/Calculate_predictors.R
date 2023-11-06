@@ -21,6 +21,11 @@
     # ---------------------------------------------------------------
     # getting sample info including date
 
+
+    #create an object that is just the list of sites with no sheds in MS
+    #allows us to quickly look for sites without sheds, despite the error messages
+no_sheds<-list()
+watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
     #small addition for OR models (10,11,and 12)
     #run this section for OR and no not run the if (exists ("boxID"))
     if(0){
@@ -50,6 +55,92 @@
 
      #def_predictors = def_predictors[def_predictors$status != "Valid",]
 
+
+    #This little section will look for COMIDs in a set.
+    #if no COMID exists for a site, a list will be populated
+    #from which we can either 1) retrieve a COMID via the following loop
+    #or ask AIM for it, if it is an AIM site. (you will still have a COMID,
+    #but AIM should be the ones giving us their COMIDs for COC reasons etc.)
+    #Once you are given a list of COMIDs, you can either manually add them to sites
+    #or ask North Arrow Research (via GitHub) to bulk import them.
+    #General advice: if there are more than 10 site without a COMID,
+    #ask NAR. Don't waste more time manually inputting info than
+    #is needed.
+    #Typically, AIM will provide all COMIDS, so any small set of samples
+    #without COMIDs is usually ~10 samples. And most small clients
+    #don't even want an index score. Proceed as you see fit.
+
+    #Step 1) checking for sites without COMIDs
+
+    comid_check = query(
+      api_endpoint = "sites",
+      args = list(boxIds=boxId))
+    #subset out the empties
+    #to use as a condition in Step 2
+    comid_check<-comid_check[is.na(comid_check$waterbodyCode)==T,]
+    #models$modelId[sub("\\;.*", "", models$description)=="watershed delineation required"]
+
+
+    #leave this collapsed for simplicity, open the brackets
+    #to edit or peek at the inner workings
+    #Step 2) getting COMID, if needed
+    #once this step finishes,
+    #look at "fresh_COMIDs" for sites without COMIDs that now have them
+    #the samples and def_predictors objects will be
+    #SMALLER after this step (if it runs)
+    #because we are subsetting out sites that do not have COMIDs
+    if(nrow(comid_check>=1)){
+      #make a litte df
+    COMID_blanks<-data.frame(comid_check$siteId,comid_check$siteName,comid_check$longitude,comid_check$latitude)
+    #rename
+    names(COMID_blanks)<-c('siteId','name','lon','lat')
+    #neat little fxn
+    #that uses streamcat and nhdplustools
+    #to get a COMID for each site without one
+    sc_get_comid <- function(df = NULL, xcoord = NULL,
+                             ycoord=NULL, crsys=NULL) {
+      if (!'sf' %in% class(df) & ((is.null(xcoord)) |
+                                  (is.null(ycoord)) |
+                                  (is.null(crsys)))) {
+        "\nMake sure you supply parameters for xcoord, ycoord, and a crs as an epsg code."
+      } else {
+        df <- sf::st_as_sf(df, coords = c(xcoord, ycoord), crs = crsys, remove = FALSE)
+      }
+
+      run_for <- 1:nrow(df)
+      output <- do.call(rbind, lapply(1:nrow(df), function(i){
+        comid <- nhdplusTools::discover_nhdplus_id(df[i,c('geometry')])
+        if (length(comid)==0L) comid <- NA else comid <- comid
+        return(comid)
+      }))
+      output <- as.data.frame(output)
+      names(output)[1] <- 'COMID'
+      if (any(is.na(output$COMID))){
+        missing <- which(is.na(output$COMID))
+        message(cat('The following rows in the input file came back with no corresponding \nCOMIDS, likely because the sites were outside of the \nNHDPlus COMID features: ',as.character(missing)))
+      }
+      comids <- paste(output$COMID, collapse=',')
+      return(comids)
+    }
+
+
+    fresh_COMIDs<-COMID_blanks
+    #First convert the dataframe to a sf object
+    df <- st_as_sf(fresh_COMIDs, coords = c("lon", "lat"), crs = 4269)
+
+    comids <- sc_get_comid(df) #Get COMIDs for points
+    df$COMID <- strsplit(comids, ",")[[1]] #Convert the output from a character string to a vector and append to the sf object
+    fresh_COMIDs <- sfheaders::sf_to_df(df, fill = T) #COnvert sf object back to dataframe
+    return(fresh_COMIDs)
+    #subest out watershed models
+    #if we are missing sheds and sheds need to be computed,
+    #no point running the sites and getting errors.
+    if(modelId %in% watershed_models){
+    samples<-samples[samples$siteId %in% COMID_blanks$siteId==F,]
+    def_predictors<-def_predictors[def_predictors$siteId %in% COMID_blanks$siteID==F,]
+    }
+
+}else{print('All sites have a COMID. Lucky you!')}
 
 
 
@@ -157,6 +248,10 @@
               polygon2process = def_watersheds_sample
               } else {polygon2process = NA
              print(paste0("siteId=",samples[s,"siteId"]," sampleId=",samples$sampleId[s]," watershed needs delineated"))
+             #now we fill in nosheds
+             #with each siteID that does not have a corresponding shed
+             #in mastersheds.shp
+             no_sheds[[s]]<-samples$siteId[s]
              print(str(polygon2process))
              print(nrow(def_watersheds_sample))
                }
@@ -185,6 +280,10 @@
         str(e,indent.str = "   "); cat("\n")
       })
     }
+    #force the list into a dataframe that you can use later
+    #for shed delineation
+    no_sheds<-do.call(rbind,no_sheds)
+
     calculatedPredictors<-as.data.frame(data.table::rbindlist(calculatedPredictorslist,idcol=TRUE,fill=TRUE))
     row=colnames(calculatedPredictors)[-1]
     calculatedPredictors2=data.table::transpose(calculatedPredictors,make.names=".id")
@@ -376,4 +475,4 @@
 #'   logger$stopLog()
 #' }
 
-
+mastersheds[mastersheds$siteId=="44899",]
