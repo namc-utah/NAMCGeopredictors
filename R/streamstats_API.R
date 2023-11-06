@@ -1,12 +1,12 @@
 library(NAMCr)
 library(sf)
-boxnum<-4453
+boxnum<-7621
 #query the box in question
 x<-query(
-  api_endpoint = "samples",
-  args = list(boxId = boxnum))
+  api_endpoint = "sites",
+  args = list(boxIds = boxnum))
 #special case for CA
-x<-x[x$sampleId %in% c(211231,211233,211234,211235),]
+x<-x[x$sampleId %in% c(213513),]
 
 #edit to make more robust for regio code (state). Will just need an ifelse statement for abbreviations.
 
@@ -14,11 +14,11 @@ sheds<-list()
 for(i in 1:nrow(x)){
 
 
-ws<-streamstats::delineateWatershed(xlocation = x$sampleLongitude[i],
-                                    ylocation = x$sampleLatitude[i],
+ws<-streamstats::delineateWatershed(xlocation = x$longitude[i],
+                                    ylocation = x$latitude[i],
                                     includefeatures = 'true',includeparameters = 'false',
                                     includeflowtypes = 'false',
-                                    crs=4326,rcode = 'CA')
+                                    crs=4326,rcode = 'WY')
 print('iteration done')
 sheds[[i]]<-ws
 
@@ -52,3 +52,10 @@ combinedShp <- do.call(what = sf:::rbind.sf, args=listOfShp)
 yy<-do.call(rbind,sheds)
 
 plot(combinedShp$geometry)
+
+nhdsheds<-read.csv('C://Users//andrew.caudillo//Box//NAMC//GIS//Watersheds//Mastersheds//NHDsheds.csv')
+
+samp_info<-query(api_endpoint = 'samples',
+      args=list(siteIds=nhdsheds$NHDsheds))
+samp_info<-samp_info[samp_info$boxId>5000,]
+table(samp_info$boxId)
