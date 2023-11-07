@@ -85,7 +85,8 @@ watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
     #to edit or peek at the inner workings
     #Step 2) getting COMID, if needed
     #once this step finishes,
-    #look at "fresh_COMIDs" for sites without COMIDs that now have them
+    #the fxn will print out the list, or just look at freshCOMIDs
+    #if it is too large
     #the samples and def_predictors objects will be
     #SMALLER after this step (if it runs)
     #because we are subsetting out sites that do not have COMIDs
@@ -131,14 +132,15 @@ watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
     comids <- sc_get_comid(df) #Get COMIDs for points
     df$COMID <- strsplit(comids, ",")[[1]] #Convert the output from a character string to a vector and append to the sf object
     fresh_COMIDs <- sfheaders::sf_to_df(df, fill = T) #COnvert sf object back to dataframe
-    return(fresh_COMIDs)
+
     #subest out watershed models
     #if we are missing sheds and sheds need to be computed,
     #no point running the sites and getting errors.
-    if(modelId %in% watershed_models){
+   # if(modelId %in% watershed_models){
     samples<-samples[samples$siteId %in% COMID_blanks$siteId==F,]
     def_predictors<-def_predictors[def_predictors$siteId %in% COMID_blanks$siteID==F,]
-    }
+    #}
+    print(fresh_COMIDs[,c(1:3)])
 
 }else{print('All sites have a COMID. Lucky you!')}
 
@@ -246,14 +248,16 @@ watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
             # Data needs to be in json format
               if( nrow(def_watersheds_sample)>0) {
               polygon2process = def_watersheds_sample
-              } else {polygon2process = NA
-             print(paste0("siteId=",samples[s,"siteId"]," sampleId=",samples$sampleId[s]," watershed needs delineated"))
+              } else {polygon2process = NA{
+              if(modelId %in% watershed_models){
+             print(paste0("siteId=",samples[s,"siteId"]," sampleId=",samples$sampleId[s]," watershed needs delineation"))
              #now we fill in nosheds
              #with each siteID that does not have a corresponding shed
              #in mastersheds.shp
              no_sheds[[s]]<-samples$siteId[s]
              print(str(polygon2process))
              print(nrow(def_watersheds_sample))
+              }
                }
             # uses eval() to call each predictor function by name
               predictor_value[[s]] = eval(parse(text=paste0(samples$calculationScript[s])))(
