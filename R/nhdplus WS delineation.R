@@ -20,18 +20,29 @@ pred_geometry_base_path="C://Users//andrew.caudillo//Box//NAMC//"
 watershed_file_path=paste0(pred_geometry_base_path,"GIS//Watersheds//Mastersheds//mastersheds.shp")
 mastershed<-st_read(watershed_file_path)
 
-
+nv<-st_read('C://Users//andrew.caudillo//Box//NAMC//GIS//Watersheds//SnappedPointsSentStreamStats//CA_2023-11-01.shp')
 samps<-NAMCr::query(
   api_endpoint = "samples",
-  projectId=projectId
+  args=list(siteIds=nv$siteId[!duplicated(nv$siteId)])
 )
+#samps<-samps[samps$sampleId==213513,]
+#for input from WS Delineation script...
 
-missings_sheds<-samps$siteId[samps$siteId %in% mastershed$siteId==F]
-missings_sheds
-samps_For_sheds<-samps[samps$siteId %in% missings_sheds,]
+missings_sheds<-st_read('C://Users//andrew.caudillo//Box//NAMC//GIS//Watersheds//ManualDelineations//2023-11-01.shp')
+
+#missings_sheds<-missings_sheds[missings_sheds$siteId %in% mastershed$siteId==F,]
+
+missings_sheds<-samps[samps$siteId %in% mastershed$siteId==F,]
+#missings_sheds<-samps
+#missings_sheds<-samps$siteId[samps$siteId %in% missings_sheds]
+samps_For_sheds<-samps[samps$siteId %in% missings_sheds$siteId,]
+
+#samps_For_sheds<-missings_sheds
+#samps_For_sheds<-samps
+
 #Load state shape
 #it is imperative to change the state abbreviation!
-bama <- states() %>% dplyr::filter((STUSPS %in% c('NV','WY','NM','OR')))
+bama <- states() %>% dplyr::filter((STUSPS %in% c('NV')))
 
 #making df of just the site points
 #remember that NAMC uses sites, not samples, for model application and predictors
@@ -44,7 +55,7 @@ outlet<-sf::st_as_sf(samps_For_sheds_Coords, coords = c("siteLongitude","siteLat
 #Rerpoject and clip to continental US
 bama <- st_transform(bama, 5070)
 outlet <- st_transform(outlet, 5070)
-
+#outlet<-st_transform(missings_sheds,5070)
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # 2.0 Delineate ----------------------------------------------------------------
@@ -97,6 +108,11 @@ shed_list = rbind(shed_list, st_as_sf(ouch))
 #if a shed looks incorrect, use a different method like whitebox.
 #could also use global watersheds for a quick look.
 mapview(list(outlet,shed_list))
-shed_list$siteid<-missings_sheds
 
-st_write(shed_list,dsn='C://Users//andrew.caudillo//Box//NAMC//GIS//Watersheds//nhdPlusTools//miscAIM22_sheds.shp')
+mapview(shed_list)
+shed_list$siteid<-missings_sheds$siteId
+pal=mapviewPalette("mapviewTopoColors")
+mapview(shed_list,col.regions=pal(11))
+
+st_write(shed_list,dsn='C://Users//andrew.caudillo//Box//NAMC//GIS//Watersheds//nhdPlusTools//nv_sheds_231101.shp',append = F)
+st_write(ouch, dsn='C://Users//andrew.caudillo//Box//NAMC//GIS//Watersheds//NHD_streamstats_Compare_231102//ORID_shedtocomp.shp',append = F)
