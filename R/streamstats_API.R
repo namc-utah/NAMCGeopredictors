@@ -18,7 +18,7 @@ library(sf)
 #WY or NV. If so, use nhd script!!
 points2process<-query(
   api_endpoint = "samples",
-  args = list(boxId = 7720))
+  args = list(boxId = boxId))
 #base path for reading in files
 pred_geometry_base_path="C://Users//andrew.caudillo//Box//NAMC//"
 #assigning a state abbreviation
@@ -136,3 +136,9 @@ for(i in 1:nrow(out_xy)){
   print(paste('watershed number ', i, ' of ',nrow(out_xy),' delineated and saved!'))
 }
 mapview(shed_list)
+
+#write out shapefile to merge with mastersheds
+
+shed_list$siteid<-out_xy$siteId
+
+st_write(shed_list,dsn='C://Users//andrew.caudillo//Box//NAMC//GIS//Watersheds//nhdPlusTools//nv_sheds_231101.shp',append = F)
