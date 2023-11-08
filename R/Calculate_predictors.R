@@ -59,9 +59,11 @@ watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
     #This little section will look for COMIDs in a set.
     #if no COMID exists for a site, a list will be populated
     #from which we can either 1) retrieve a COMID via the following loop
-    #or ask AIM for it, if it is an AIM site. (you will still have a COMID,
+    #or ask AIM for it, if it is an AIM site.
+    #(the code will return  a COMID,
     #but AIM should be the ones giving us their COMIDs for COC reasons etc.)
     #Once you are given a list of COMIDs, you can either manually add them to sites
+    #Via INSTAR
     #or ask North Arrow Research (via GitHub) to bulk import them.
     #General advice: if there are more than 10 site without a COMID,
     #ask NAR. Don't waste more time manually inputting info than
@@ -78,18 +80,23 @@ watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
     #subset out the empties
     #to use as a condition in Step 2
     comid_check<-comid_check[is.na(comid_check$waterbodyCode)==T,]
+
+    #line that finds what models needs sheds
     #models$modelId[sub("\\;.*", "", models$description)=="watershed delineation required"]
 
 
     #leave this collapsed for simplicity, open the brackets
     #to edit or peek at the inner workings
+
     #Step 2) getting COMID, if needed
     #once this step finishes,
-    #the fxn will print out the list, or just look at freshCOMIDs
-    #if it is too large
+    #the fxn will print out the list,
+    #(or just look at freshCOMIDs if the list is too large)
     #the samples and def_predictors objects will be
     #SMALLER after this step (if it runs)
     #because we are subsetting out sites that do not have COMIDs
+    #you can either stop after this section, input the missing
+    #COMIDs, and run again, or run two "incomplete" cycles of this whole script
     if(nrow(comid_check>=1)){
       #make a litte df
     COMID_blanks<-data.frame(comid_check$siteId,comid_check$siteName,comid_check$longitude,comid_check$latitude)
@@ -143,7 +150,6 @@ watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
     print(fresh_COMIDs[,c(1:3)])
 
 }else{print('All sites have a COMID. Lucky you!')}
-
 
 
     # ---------------------------------------------------------------
@@ -248,8 +254,8 @@ watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
             # Data needs to be in json format
               if( nrow(def_watersheds_sample)>0) {
               polygon2process = def_watersheds_sample
-              } else {polygon2process = NA{
-              if(modelId %in% watershed_models){
+              } else {polygon2process = NA{ #else poly
+              if(modelId %in% watershed_models){#if modelID
              print(paste0("siteId=",samples[s,"siteId"]," sampleId=",samples$sampleId[s]," watershed needs delineation"))
              #now we fill in nosheds
              #with each siteID that does not have a corresponding shed
@@ -257,8 +263,8 @@ watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
              no_sheds[[s]]<-samples$siteId[s]
              print(str(polygon2process))
              print(nrow(def_watersheds_sample))
-              }
-               }
+              } #if modelID
+               }#else poly
             # uses eval() to call each predictor function by name
               predictor_value[[s]] = eval(parse(text=paste0(samples$calculationScript[s])))(
                                 polygon2process = polygon2process ,
@@ -283,7 +289,7 @@ watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
         cat(paste0("\n\tERROR calculating: ",predictors$abbreviation[p],"\n"))
         str(e,indent.str = "   "); cat("\n")
       })
-    }
+      }
     #force the list into a dataframe that you can use later
     #for shed delineation
     no_sheds<-do.call(rbind,no_sheds)
