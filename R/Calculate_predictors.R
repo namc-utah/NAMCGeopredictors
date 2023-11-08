@@ -24,7 +24,7 @@
 
     #create an object that is just the list of sites with no sheds in MS
     #allows us to quickly look for sites without sheds, despite the error messages
-no_sheds<-list()
+#no_sheds<-list()
 watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
     #small addition for OR models (10,11,and 12)
     #run this section for OR and no not run the if (exists ("boxID"))
@@ -183,7 +183,13 @@ watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
 
     # get watersheds in from the mastersheds shapefile/geodatabase on box
      def_watersheds=sf::st_make_valid(sf::st_read(watershed_file_path, query=sprintf('SELECT * FROM %s WHERE siteId in(%s)',watershed_layer_name, inLOOP(substr(siteIds, 1, 10)))))
-
+     #assigning a vector of sites that do not have sheds,
+     #based on hte def_watersheds file
+     if(modelId %in% watershed_models & exists("fresh_COMIDs")){
+     no_sheds<-fresh_COMIDS$siteId[fresh_COMIDS$siteId %in% def_watersheds$siteId==F]
+     }else{
+       print("All sites have COMIDs and sheds!")
+     }
 
     # ---------------------------------------------------------------
     # Get unique list of predictors  that need calculated
@@ -259,10 +265,11 @@ watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
             #now we fill in nosheds
             #with each siteID that does not have a corresponding shed
             #in mastersheds.shp
-            if(modelId %in% watershed_models & exists("fresh_COMIDs")){
-              print(paste0("siteId=",samples[s,"siteId"]," sampleId=",samples$sampleId[s]," watershed needs delineated"))
-            no_sheds[[s]]<-samples$siteId[s]
-            }
+
+            #if(modelId %in% watershed_models & exists("fresh_COMIDs")){
+            #  print(paste0("siteId=",samples[s,"siteId"]," sampleId=",samples$sampleId[s]," watershed needs delineated"))
+            #no_sheds[[s]]<-samples$siteId[s]
+            #}
            }
             # uses eval() to call each predictor function by name
             predictor_value[[s]] = eval(parse(text=paste0(samples$calculationScript[s])))(
