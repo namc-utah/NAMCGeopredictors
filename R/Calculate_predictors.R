@@ -242,54 +242,53 @@ watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
     calculatedPredictorslist=list()
     for (p in 1:length(predlist)){
       tryCatch({
-      samples=subset(def_predictors,abbreviation==predictors$abbreviation[p])
-      predictor_value=list()
-          # for each sample that needs a given predictor calculated
-          for (s in 1:nrow(samples)){
-            tryCatch({
+        samples=subset(def_predictors,abbreviation==predictors$abbreviation[p])
+        predictor_value=list()
+        # for each sample that needs a given predictor calculated
+        for (s in 1:nrow(samples)){
+          tryCatch({
             # subset the site information for only this sample
             def_sites_sample=subset(def_sites,siteId==samples[s,"siteId"])
             def_watersheds_sample=subset(def_watersheds, siteId==samples[s,"siteId"])
 
             # Data needs to be in json format
-              if( nrow(def_watersheds_sample)>0) {
+            if( nrow(def_watersheds_sample)>0) {
               polygon2process = def_watersheds_sample
-              } else {polygon2process = NA{ #else poly
-              if(modelId %in% watershed_models){#if modelID
-             print(paste0("siteId=",samples[s,"siteId"]," sampleId=",samples$sampleId[s]," watershed needs delineation"))
-             #now we fill in nosheds
-             #with each siteID that does not have a corresponding shed
-             #in mastersheds.shp
-             no_sheds[[s]]<-samples$siteId[s]
-             print(str(polygon2process))
-             print(nrow(def_watersheds_sample))
-              } #if modelID
-               }#else poly
-            # uses eval() to call each predictor function by name
-              predictor_value[[s]] = eval(parse(text=paste0(samples$calculationScript[s])))(
-                                polygon2process = polygon2process ,
-                                point2process =  geojsonsf::geojson_sf(def_sites_sample$location) ,
-                                predictor_name = samples$abbreviation[s],
-                                predictor_geometry = pred_geometries[[paste0(samples$abbreviation[s])]],
-                                COMIDs=def_sites_sample$waterbodyCode,
-                                geometry_input_path <-
-                                  paste0(pred_geometry_base_path, samples$geometryFilePath[s]),
-                                CurrentYear = lubridate::year(samples$sampleDate[s]),
-                                JulianDate = lubridate::yday(samples$sampleDate[s]),
-                                USGS_NED=USGS_NED,
-                                SQLite_file_path=SQLite_file_path
-                                )
-            calculatedPredictorslist[[paste0(samples$abbreviation[s])]][[paste0(samples$sampleId[s])]]<-unlist(predictor_value[[s]])
-              }, error = function(e) {
-              cat(paste0("\n\tERROR calculating: ",samples$abbreviation[s]," ",samples$sampleId[s],"\n"))
-              str(e,indent.str = "   "); cat("\n")
-            })
+            } else {polygon2process = NA
+
+            #now we fill in nosheds
+            #with each siteID that does not have a corresponding shed
+            #in mastersheds.shp
+            if(modelId %in% watershed_models & exists("fresh_COMIDs")){
+              print(paste0("siteId=",samples[s,"siteId"]," sampleId=",samples$sampleId[s]," watershed needs delineated"))
+            no_sheds[[s]]<-samples$siteId[s]
             }
+           }
+            # uses eval() to call each predictor function by name
+            predictor_value[[s]] = eval(parse(text=paste0(samples$calculationScript[s])))(
+              polygon2process = polygon2process ,
+              point2process =  geojsonsf::geojson_sf(def_sites_sample$location) ,
+              predictor_name = samples$abbreviation[s],
+              predictor_geometry = pred_geometries[[paste0(samples$abbreviation[s])]],
+              COMIDs=def_sites_sample$waterbodyCode,
+              geometry_input_path <-
+                paste0(pred_geometry_base_path, samples$geometryFilePath[s]),
+              CurrentYear = lubridate::year(samples$sampleDate[s]),
+              JulianDate = lubridate::yday(samples$sampleDate[s]),
+              USGS_NED=USGS_NED,
+              SQLite_file_path=SQLite_file_path
+            )
+            calculatedPredictorslist[[paste0(samples$abbreviation[s])]][[paste0(samples$sampleId[s])]]<-unlist(predictor_value[[s]])
+          }, error = function(e) {
+            cat(paste0("\n\tERROR calculating: ",samples$abbreviation[s]," ",samples$sampleId[s],"\n"))
+            str(e,indent.str = "   "); cat("\n")
+          })
+        }
       }, error = function(e) {
         cat(paste0("\n\tERROR calculating: ",predictors$abbreviation[p],"\n"))
         str(e,indent.str = "   "); cat("\n")
       })
-      }
+    }
     #force the list into a dataframe that you can use later
     #for shed delineation
     no_sheds<-do.call(rbind,no_sheds)
