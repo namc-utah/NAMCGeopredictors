@@ -73,10 +73,15 @@ watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
     #don't even want an index score. Proceed as you see fit.
 
     #Step 1) checking for sites without COMIDs
-
+if(exists("boxId")){
     comid_check = query(
       api_endpoint = "sites",
       args = list(boxIds=boxId))
+}else{
+    comid_check = query(
+      api_endpoint = "sites",
+      args = list(projectIds=projectId))
+}
     #subset out the empties
     #to use as a condition in Step 2
     comid_check<-comid_check[is.na(comid_check$waterbodyCode)==T,]
@@ -144,7 +149,7 @@ watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
     #if we are missing sheds and sheds need to be computed,
     #no point running the sites and getting errors.
    # if(modelId %in% watershed_models){
-    samples<-samples[samples$siteId %in% COMID_blanks$siteId==F,]
+    samples<-def_samples[def_samples$siteId %in% COMID_blanks$siteId==F,]
     def_predictors<-def_predictors[def_predictors$siteId %in% COMID_blanks$siteID==F,]
     #}
     print(fresh_COMIDs[,c(1:3)])
@@ -187,6 +192,7 @@ watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
      #based on hte def_watersheds file
      if(modelId %in% watershed_models & exists("fresh_COMIDs")){
      no_sheds<-fresh_COMIDS$siteId[fresh_COMIDS$siteId %in% def_watersheds$siteId==F]
+     print(paste(no_sheds, " need watersheds delineated and COMIDs",sep=''))
      }else{
        print("All sites have COMIDs and sheds!")
      }
@@ -298,7 +304,7 @@ watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
     }
     #force the list into a dataframe that you can use later
     #for shed delineation
-    no_sheds<-do.call(rbind,no_sheds)
+    #no_sheds<-do.call(rbind,no_sheds)
 
     calculatedPredictors<-as.data.frame(data.table::rbindlist(calculatedPredictorslist,idcol=TRUE,fill=TRUE))
     row=colnames(calculatedPredictors)[-1]
@@ -341,6 +347,7 @@ watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
     if(overwrite=='N'){
     predsfinal=subset(predsfinal,status!="Valid")
     } else{}
+    if(nrow(predsfinal)>0){
     #save each row in the database
     for (i in 1:nrow(predsfinal)){
       tryCatch({
@@ -363,9 +370,11 @@ watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
         cat(paste0("\n\tERROR saving: ",predsfinal$sampleId[i]," ",predsfinal$predictorId[i],"\n"))
         str(e,indent.str = "   "); cat("\n")
 
-      })
-    }
-
+       })
+}
+    }else{
+  print('predictors are already saved!')
+}
 
     # ---------------------------------------------------------------
     # QC results
