@@ -22,10 +22,14 @@ x<-NAMCr::query(
 
 #for loop 1) download only necessary DEMs
 #and make an empty list for storing the results
+temp_RASTER_path<-tempdir()
 df<-st_read(paste0(genpath,'AIM_2023_leftovers_issuepoints_needsheds','.shp'))
 shed_list<-st_sfc(crs=4269)
 adjs=seq(0.1,0.3,by=0.1)
-for(i in 1:nrow(df)){
+for(i in 1:3){#nrow(df)){
+if(i >1){
+  unlink(paste0(temp_RASTER_path,'/*'))
+}
   if(exists("r")){
     rm(r)
   }
@@ -39,12 +43,11 @@ for(i in 1:nrow(df)){
   #R_temps<-temp_files[grepl("Rtmp",temp_files)]
   #unlink(R_temps,recursive = T)
 
-
-
-  old <- Sys.time() # get start time
+old <- Sys.time() # get start time
 Lat<-df$OrgLAT[i]
 Lon<-df$OrgLONG[i]
 
+#temp_RASTER_path<-gsub('.{7}$','',temp_RASTER_path)
 print('attempting shed extraction')
 for(j in 1:length(adjs)){
   print(paste0('extraction try ',j))
@@ -74,10 +77,10 @@ error=function(e){
 #but it is stored in a wieird list format
 #so we will unlist it, then take the raw coords and make them
 #into an sf object
+
 if(j==3){
   next
 }
-
 o<-unlist(r$CM)
 #this is synonymous with the LIKE
 #operator in SQL. We want only values
@@ -95,10 +98,22 @@ sf_shed <- raw_shed_coords %>%
   st_cast("POLYGON")
 #fill the list
 shed_list<-rbind(shed_list,sf_shed)
-print(paste('finished iteration',i,'of', nrow(dfcoords)))
+print(paste('finished iteration',i,'of', nrow(df)))
 # print elapsed time
 new <- Sys.time() - old # calculate difference
 print(new)
 }
 
 mapview(shed_list)
+
+
+Lon<-df$OrgLONG[1]
+Lat=df$OrgLAT[1]
+r <- extract_river(outlet = c(Lon,Lat),
+                   ext=c(Lon-adjs[1],Lon+adjs[1],
+                         Lat-adjs[1],Lat+adjs[1]),
+                   EPSG = 4269,
+                   n_processes = 8,z=13)
+
+tempdir()
+unlink("C://Users//ANDREW~1.CAU//AppData//Local//Temp//RtmpMl1ma7/*")
