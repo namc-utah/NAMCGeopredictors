@@ -19,9 +19,9 @@
     # ---------------------------------------------------------------
     # get existing predictor values and which predictor values need calculated based on which models are associated with each sample
     # ---------------------------------------------------------------
-    # getting sample info including date
-
-
+# getting sample info including date
+Rver<-R.Version()$version.string
+Rver<-substr(Rver,11,15)
     #create an object that is just the list of sites with no sheds in MS
     #allows us to quickly look for sites without sheds, despite the error messages
 #no_sheds<-list()
@@ -41,14 +41,28 @@ watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
       def_samples=NAMCr::query("samples",include = c("sampleId", "siteId", "sampleDate"),boxId=boxId)
     }else {def_samples=NAMCr::query("samples",include = c("sampleId", "siteId", "sampleDate"),projectId=projectId)
     }
-
+#def_samples<-def_samples[def_samples$sampleId < 210554,]
     # getting a list of samples and predictor values from the database
-    def_predictors = NAMCr::query(
+if(Rver=='4.3.2'){
+  p_list<-list()
+for(jj in 1:nrow(def_samples)){
+def_predictors = NAMCr::query(
       api_endpoint = "samplePredictorValues",
-      sampleIds = def_samples$sampleId
+      sampleIds = def_samples$sampleId[jj]
       #modelIds = modelId
     )
+p_list[[jj]]<-def_predictors
+}
+def_predictors<- do.call(rbind,p_list)
+}else{
+  def_predictors = NAMCr::query(
+    api_endpoint = "samplePredictorValues",
+    sampleIds = def_samples$sampleId
+  )
+}
+
     #subset this list to only samples/predictors that need calculated
+
     modelpred=NAMCr::query("predictors",modelId=modelId)
 
     def_predictors=subset(def_predictors,predictorId %in% modelpred$predictorId)
@@ -154,7 +168,7 @@ if(exists("boxId")){
     #}
     print(fresh_COMIDs[,c(1:3)])
 
-}else{print('All sites have a COMID. Lucky you!')}
+}else{message('All sites have a COMID. Lucky you!')}
 
 
     # ---------------------------------------------------------------
@@ -162,7 +176,7 @@ if(exists("boxId")){
     # Get watersheds for each sample by pulling in watersheds by siteId from the mastersheds file on box
     # ---------------------------------------------------------------
     # get list of sites to loop over
-    siteIds=unlist(unique(def_predictors$siteId))
+    siteIds=unlist(unique(def_samples$siteId))
     def_sites=list()
     # for each site in def_predictors get site coordinates and comid from database
     # store as a list of lists referenced by "x" plus the siteId
@@ -194,7 +208,7 @@ if(exists("boxId")){
      no_sheds<-fresh_COMIDS$siteId[fresh_COMIDS$siteId %in% def_watersheds$siteId==F]
      print(paste(no_sheds, " need watersheds delineated and COMIDs",sep=''))
      }else{
-       print("All sites have COMIDs and sheds!")
+       message("All sites have COMIDs and sheds!")
      }
 
     # ---------------------------------------------------------------
@@ -253,6 +267,7 @@ if(exists("boxId")){
     #subset the predictor values to be calculated to only one predictor at a time
     calculatedPredictorslist=list()
     for (p in 1:length(predlist)){
+      message(p)
       tryCatch({
         samples=subset(def_predictors,abbreviation==predictors$abbreviation[p])
         predictor_value=list()
@@ -264,9 +279,9 @@ if(exists("boxId")){
             def_watersheds_sample=subset(def_watersheds, siteId==samples[s,"siteId"])
 
             # Data needs to be in json format
-            if( nrow(def_watersheds_sample)>0) {
+            #if( nrow(def_watersheds_sample)>0) {
               polygon2process = def_watersheds_sample
-            } else {polygon2process = NA
+            #} else {polygon2process = NA
 
             #now we fill in nosheds
             #with each siteID that does not have a corresponding shed
@@ -276,7 +291,7 @@ if(exists("boxId")){
             #  print(paste0("siteId=",samples[s,"siteId"]," sampleId=",samples$sampleId[s]," watershed needs delineated"))
             #no_sheds[[s]]<-samples$siteId[s]
             #}
-           }
+           #}
             # uses eval() to call each predictor function by name
             predictor_value[[s]] = eval(parse(text=paste0(samples$calculationScript[s])))(
               polygon2process = polygon2process ,
@@ -292,14 +307,17 @@ if(exists("boxId")){
               SQLite_file_path=SQLite_file_path
             )
             calculatedPredictorslist[[paste0(samples$abbreviation[s])]][[paste0(samples$sampleId[s])]]<-unlist(predictor_value[[s]])
-          }, error = function(e) {
+            }, error = function(e) {
             cat(paste0("\n\tERROR calculating: ",samples$abbreviation[s]," ",samples$sampleId[s],"\n"))
             str(e,indent.str = "   "); cat("\n")
+            if(nrow(def_sites_sample) < 1)
+              message(paste0(s,' something went wrong with creating the site locations. Check start of loop'))
           })
         }
       }, error = function(e) {
         cat(paste0("\n\tERROR calculating: ",predictors$abbreviation[p],"\n"))
         str(e,indent.str = "   "); cat("\n")
+
       })
     }
     #force the list into a dataframe that you can use later
@@ -313,7 +331,7 @@ if(exists("boxId")){
     write.csv(calculatedPredictors2,paste0("modelId_",modelId,"_preds_",Sys.Date(),'.csv'))
 
 
-
+calculatedPredictors2
     # ---------------------------------------------------------------
     # Save predictors
     # ---------------------------------------------------------------
@@ -326,6 +344,9 @@ if(exists("boxId")){
     predp=subset(predp,is.na(predp$value)==FALSE)
 
     #get predictorIds from the database
+    #save this as a static file and update periodically?
+    #r 4.3.2 does not work with this query
+    predictorlist<-read.csv(paste0(predictor_list_path,'generalpredictors.csv'))
     predictorlist=NAMCr::query("predictors")
     #join predictor ids to the predictor values
     predp=dplyr::left_join(predp,predictorlist,by="abbreviation")
@@ -340,13 +361,31 @@ if(exists("boxId")){
     predsfinal=subset(predp,is.na(siteId)==FALSE,select=c("sampleId","siteId","predictorId","abbreviation","value","isTemporal"))
 
     #compare these values to values already in the database
+    if(Rver=='4.3.2'){
+      predictorValueList<-list()
+      for(y in 1:nrow(predsfinal)){
+        pv<-NAMCr::query('samplePredictorValues',
+                         sampleIds=predsfinal$sampleId[y])
+        predictorValueList[[y]]<-pv
+      }
+      predictorValues=do.call(rbind,predictorValueList)
+    }else{
     predictorValues=NAMCr::query("samplePredictorValues",sampleIds=unique(predsfinal$sampleId))
+    }
+
     predictorValues=predictorValues[,c("sampleId","predictorId","predictorValue","qaqcDate","predictorValueUpdatedDate","status")]
     predsfinal=dplyr::left_join(predsfinal,predictorValues,by=c("sampleId","predictorId"))
     #subset to only include samples/predictors not already in the database
     if(overwrite=='N'){
     predsfinal=subset(predsfinal,status!="Valid")
     } else{}
+    #duplicated predictor values?? Every site gets many of the same predictor
+    #will follow up with this later, but for now, we just need preds to get calculated and saved.
+    #worst case, this code will do nothing.
+
+    predsfinal$burn<-paste(predsfinal$sampleId,predsfinal$abbreviation)
+    predsfinal<-predsfinal[!duplicated(predsfinal$burn),]
+
     if(nrow(predsfinal)>0){
     #save each row in the database
     for (i in 1:nrow(predsfinal)){
@@ -373,7 +412,7 @@ if(exists("boxId")){
        })
 }
     }else{
-  print('predictors are already saved!')
+  message('predictors are already saved in the database.')
 }
 
     # ---------------------------------------------------------------
