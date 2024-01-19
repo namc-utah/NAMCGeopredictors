@@ -27,9 +27,7 @@ df<-st_read(paste0(genpath,'AIM_2023_leftovers_issuepoints_needsheds','.shp'))
 shed_list<-st_sfc(crs=4269)
 adjs=seq(0.1,0.3,by=0.1)
 for(i in 1:3){#nrow(df)){
-if(i >1){
-  unlink(paste0(temp_RASTER_path,'/*'))
-}
+
   if(exists("r")){
     rm(r)
   }
@@ -47,26 +45,30 @@ old <- Sys.time() # get start time
 Lat<-df$OrgLAT[i]
 Lon<-df$OrgLONG[i]
 
-#temp_RASTER_path<-gsub('.{7}$','',temp_RASTER_path)
-print('attempting shed extraction')
+temp_RASTER_path<-gsub('.{7}$','',temp_RASTER_path)
+message('attempting shed extraction')
 for(j in 1:length(adjs)){
-  print(paste0('extraction try ',j))
+
+  message(paste0('extraction try ',j))
   withRestarts(
 tryCatch({
+  if(i >1){
+    unlink(paste0(temp_RASTER_path,'/*'))
+  }
 r <- extract_river(outlet = c(Lon,Lat),
                    ext=c(Lon-adjs[j],Lon+adjs[j],
                          Lat-adjs[j],Lat+adjs[j]),
                    EPSG = 4269,
                    n_processes = 8,z=13)
 if(exists("r")){
-  print('extraction done! Processing shed')
+  message('extraction done! Processing shed')
   break}
 },
 error=function(e){
   invokeRestart("retry")}
 ),
   retry=function(){
-    message("issue with DEM extent, trying another DEM")
+    warning("issue with DEM extent, trying another DEM")
   } #retry
 ) #with restarts
 
@@ -98,13 +100,13 @@ sf_shed <- raw_shed_coords %>%
   st_cast("POLYGON")
 #fill the list
 shed_list<-rbind(shed_list,sf_shed)
-print(paste('finished iteration',i,'of', nrow(df)))
+message(paste('finished iteration',i,'of', nrow(df)))
 # print elapsed time
 new <- Sys.time() - old # calculate difference
 print(new)
 }
 
-mapview(shed_list)
+mapview(shed_list,col.regions='red')
 
 
 Lon<-df$OrgLONG[1]

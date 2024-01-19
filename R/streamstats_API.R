@@ -162,9 +162,9 @@ for(i in 1:nrow(snapt)){
     #1) curl timeout. No way around that.
     #2) the API breaks
     #so the error will jump to the next iteration, if that is the case.
-    writeLines('the site is taking too long\nor is is an error with the API\nthis siteId is saved in "issue_points"')
-    cat(out_xy$siteId[i])
-    cat('Moving onto the next iteration')
+    writeLines('the site is taking too long\nor there is an error with the API\nthis siteId is saved in "issue_points"')
+    message(paste('site ID ',out_xy$siteId[i]))
+    message('Moving onto the next iteration')
   }
   )
 
@@ -197,7 +197,7 @@ for(i in 1:nrow(snapt)){
   sf_shed$siteId<-out_xy$siteId[i]
   STshed_list = rbind(STshed_list,sf_shed)
 
-  print(paste('watershed number ', i, ' of ',nrow(out_xy),' delineated and saved!'))
+  message(paste('watershed number ', i, ' of ',nrow(out_xy),' delineated and saved!'))
   }else{
     #if not, then jump to the next iteration.
     #FYI- "next" cannot go into trycatch because it is technically not
@@ -215,8 +215,8 @@ mapview(STshed_list,col.regions='red')
 #manually inspect for really weird sheds, like a triangle or a square
 #and omit them from the big list.
 #use another method to delineate, like rivnet.
-ops<-STshed_list[STshed_list$siteId %in% c(45177,45292,45097),]
-p<-STshed_list[which(STshed_list$siteId%in%c(45177,45292,45097)==F),]
+ops<-STshed_list[STshed_list$siteId %in% c(45177,45292,45097,45104,45095),]
+p<-STshed_list[which(STshed_list$siteId%in%c(45177,45292,45097,45104,45095)==F),]
 mapview(p,col.regions='yellow')
 STshed_list<-p
 mapview(STissue_points)
