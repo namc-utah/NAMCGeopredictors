@@ -2,9 +2,6 @@
 
 #   Elevation      #
 
-####################
-
-
 #' Mean elevation across the watershed
 #' The function requires that a Google Earth Engine GEE object be created
 #' USGS_NED National Elevation Dataset. It uses rgee rgee::ee_extract function to conduct
@@ -19,12 +16,12 @@
 #' @export
 #'
 #' @examples
-ELVmean_WS<-function(polygon2process,USGS_NED,...){
-  #comment to test branch.
-  media<-rgee::ee_extract(USGS_NED, polygon2process[["_ogr_geometry_"]], fun = ee$Reducer$mean(), scale=90)
-  return(media[1,2])
+ELVmean_WS<-function(polygon2process,...){
+  elev_rast<-elevatr::get_elev_raster(polygon2process,z=12)
+  media<-terra::extract(x=elev_rast,y=polygon2process,fun=mean)
+  return(c(polygon2process$siteId,media))
 }
-
+ELVmean_WS(polygon2process=polygon2process)
 #' #' Watershed mean elevation divided by 100
 #' #' old CO model but not even used in that
 #' #' @param polygon2process
@@ -52,8 +49,9 @@ ELVmean_WS<-function(polygon2process,USGS_NED,...){
 #'
 #' @examples
 ELVmax_WS<-function(polygon2process,USGS_NED,...){
-   media<-rgee::ee_extract(USGS_NED, polygon2process[["_ogr_geometry_"]], fun = ee$Reducer$max(), scale=90)
-  return(media[1,2])
+  elev_rast<-elevatr::get_elev_raster(polygon2process,z=12)
+  media<-terra::extract(x=elev_rast,y=polygon2process,fun=max)
+  return(c(polygon2process$siteId,media))
 }
 
 #' Average of min elevation in the watershed
@@ -71,8 +69,9 @@ ELVmax_WS<-function(polygon2process,USGS_NED,...){
 #'
 #' @examples
 ELVmin_WS<-function(polygon2process,USGS_NED,...){
-   media<-rgee::ee_extract(USGS_NED, polygon2process[["_ogr_geometry_"]], fun = ee$Reducer$min(), scale=90)
-  return(media[1,2])
+  elev_rast<-elevatr::get_elev_raster(polygon2process,z=12)
+  media<-terra::extract(x=elev_rast,y=polygon2process,fun=min)
+  return(c(polygon2process$siteId,media))
 }
 
 
@@ -93,10 +92,11 @@ ELVmin_WS<-function(polygon2process,USGS_NED,...){
 #'
 #' @examples
 ELEV_RANGE<-function(polygon2process,USGS_NED,...){
-   max<-rgee::ee_extract(USGS_NED, polygon2process[["_ogr_geometry_"]], fun = ee$Reducer$max(), scale=90)
-  min<-rgee::ee_extract(USGS_NED, polygon2process[["_ogr_geometry_"]], fun = ee$Reducer$min(), scale=90)
+  elev_rast<-elevatr::get_elev_raster(polygon2process,z=12)
+  max<-terra::extract(x=elev_rast,y=polygon2process,fun=max)
+  min<-terra::extract(x=elev_rast,y=polygon2process,fun=min)
   media<-max-min
-  return(media[1,2])
+  return(c(polygon2process$siteId,media))
 }
 
 #' Elevation of the point
@@ -116,8 +116,9 @@ ELEV_RANGE<-function(polygon2process,USGS_NED,...){
 #'
 #' @examples
 ELEV_SITE<-function(point2process,USGS_NED,...){
-  media<-rgee::ee_extract(USGS_NED, point2process, scale=90) # neither CO MMI nor CSCI use /10 transformation
-  return(media[1,1])
+  media<-get_elev_point(point2process, z=12)$elevation
+   # neither CO MMI nor CSCI use /10 transformation
+  return(c(def_sites_sample$siteId,media))
 }
 
 #' Square root of elevation at the point
@@ -137,9 +138,9 @@ ELEV_SITE<-function(point2process,USGS_NED,...){
 #'
 #' @examples
 ELEV_SITE_SQRT<-function(point2process,USGS_NED,...){
-   elevation<-rgee::ee_extract(USGS_NED, point2process, scale=90)
-  media<-sqrt((elevation))
-  return(media[1,1])
+   elevpt<-get_elev_point(point2process, z=12)$elevation
+  media<-sqrt((elevpt))
+  return(c(def_sites_sample$siteId,media))
 }
 
 
@@ -164,10 +165,11 @@ ELEV_SITE_SQRT<-function(point2process,USGS_NED,...){
 #' @examples
 ELEV_SITE_CV<-function(point2process,USGS_NED,...){
   AOI<-sf::st_buffer(st_transform(point2process, 6703),150)
-  elev.mean<-rgee::ee_extract(USGS_NED, AOI, fun = ee$Reducer$mean(), scale=90)
-  elev.stdev<-rgee::ee_extract(USGS_NED, AOI, fun = ee$Reducer$stdDev(), scale=90)
+  elev<-get_elev_raster(AOI,z=12)
+  elev.mean<-terra::extract(elev,AOI,fun=mean)
+  elev.stdev<-terra::extract(elev,AOI,fun=stdev)
   media<-elev.stdev/elev.mean
-  return(media[1,1])
+  return(c(def_sites_sample$siteId,media))
 }
 
 
