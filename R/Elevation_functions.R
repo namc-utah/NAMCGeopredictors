@@ -19,6 +19,7 @@
 ELVmean_WS<-function(polygon2process){
   #elev_rast<-elevatr::get_elev_raster(polygon2process,z=12)
   media<-terra::extract(x=poly_rast,y=polygon2process,fun=mean)
+  return(media[1,1])
 }
 
 #' #' Watershed mean elevation divided by 100
@@ -50,6 +51,7 @@ ELVmean_WS<-function(polygon2process){
 ELVmax_WS<-function(polygon2process,...){
   #elev_rast<-elevatr::get_elev_raster(location=polygon2process,z=12)
   media<-terra::extract(x=poly_rast,y=polygon2process,fun=max)
+  return(media[1,1])
 }
 
 #' Average of min elevation in the watershed
@@ -70,6 +72,7 @@ ELVmin_WS<-function(polygon2process,...){
   #elev_rast<-elevatr::get_elev_raster(polygon2process,z=12)
   media<-terra::extract(x=poly_rast,y=polygon2process,fun=min)
   #return(c(polygon2process$siteId,media))
+  return(media[1,1])
 }
 
 
@@ -95,6 +98,7 @@ ELEV_RANGE<-function(polygon2process,...){
   min<-terra::extract(x=poly_rast,y=polygon2process,fun=min)
   media<-max-min
   #return(c(polygon2process$siteId,media))
+  return(media[1,1])
 }
 
 #' Elevation of the point
@@ -113,12 +117,13 @@ ELEV_RANGE<-function(polygon2process,...){
 #' @export
 #'
 #' @examples
-ELEV_SITE<-function(point2process,...){
+ELEV_SITE<-function(point_rast,...){
   #media<-get_elev_point(point2process, z=12)$elevation
-  media<-point_rast
+  point_rast=point_rast
   # neither CO MMI nor CSCI use /10 transformation
   #return(c(def_sites_sample$siteId,media))
-}
+return(point_rast)
+  }
 
 #' Square root of elevation at the point
 #' The function requires that a Google Earth Engine GEE object be created
@@ -136,10 +141,12 @@ ELEV_SITE<-function(point2process,...){
 #' @export
 #'
 #' @examples
-ELEV_SITE_SQRT<-function(point2process,...){
+ELEV_SITE_SQRT<-function(point_rast,...){
+  point_rast=point_rast
    #elevpt<-get_elev_point(point2process, z=12)$elevation
   media<-sqrt(point_rast)
   #return(c(def_sites_sample$siteId,media))
+  return(media)
 }
 
 
@@ -162,14 +169,16 @@ ELEV_SITE_SQRT<-function(point2process,...){
 #' @export
 #'
 #' @examples
-ELEV_SITE_CV<-function(point2process,...){
+ELEV_SITE_CV<-function(AOI,...){
+  AOI=AOI
   #AOI<-sf::st_buffer(st_transform(point2process, 6703),150)
   #elev<-get_elev_raster(AOI,z=12)
   elev.mean<-terra::extract(elev,AOI,fun=mean)
-  elev.stdev<-terra::extract(elev,AOI,fun=stdev)
+  elev.stdev<-terra::extract(elev,AOI,fun=sd)
   media<-elev.stdev/elev.mean
   #return(c(def_sites_sample$siteId,media))
-}
+  return(media[1,1])
+  }
 
 
 
