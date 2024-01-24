@@ -20,6 +20,7 @@
 #'
 #' @examples
 ELVmean_WS<-function(polygon2process,USGS_NED,...){
+  #comment to test branch.
   media<-rgee::ee_extract(USGS_NED, polygon2process[["_ogr_geometry_"]], fun = ee$Reducer$mean(), scale=90)
   return(media[1,2])
 }
