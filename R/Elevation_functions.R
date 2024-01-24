@@ -16,12 +16,11 @@
 #' @export
 #'
 #' @examples
-ELVmean_WS<-function(polygon2process,...){
-  elev_rast<-elevatr::get_elev_raster(polygon2process,z=12)
-  media<-terra::extract(x=elev_rast,y=polygon2process,fun=mean)
-  return(c(polygon2process$siteId,media))
+ELVmean_WS<-function(polygon2process){
+  #elev_rast<-elevatr::get_elev_raster(polygon2process,z=12)
+  media<-terra::extract(x=poly_rast,y=polygon2process,fun=mean)
 }
-ELVmean_WS(polygon2process=polygon2process)
+
 #' #' Watershed mean elevation divided by 100
 #' #' old CO model but not even used in that
 #' #' @param polygon2process
@@ -48,10 +47,9 @@ ELVmean_WS(polygon2process=polygon2process)
 #' @export
 #'
 #' @examples
-ELVmax_WS<-function(polygon2process,USGS_NED,...){
-  elev_rast<-elevatr::get_elev_raster(polygon2process,z=12)
-  media<-terra::extract(x=elev_rast,y=polygon2process,fun=max)
-  return(c(polygon2process$siteId,media))
+ELVmax_WS<-function(polygon2process,...){
+  #elev_rast<-elevatr::get_elev_raster(location=polygon2process,z=12)
+  media<-terra::extract(x=poly_rast,y=polygon2process,fun=max)
 }
 
 #' Average of min elevation in the watershed
@@ -68,10 +66,10 @@ ELVmax_WS<-function(polygon2process,USGS_NED,...){
 #' @export
 #'
 #' @examples
-ELVmin_WS<-function(polygon2process,USGS_NED,...){
-  elev_rast<-elevatr::get_elev_raster(polygon2process,z=12)
-  media<-terra::extract(x=elev_rast,y=polygon2process,fun=min)
-  return(c(polygon2process$siteId,media))
+ELVmin_WS<-function(polygon2process,...){
+  #elev_rast<-elevatr::get_elev_raster(polygon2process,z=12)
+  media<-terra::extract(x=poly_rast,y=polygon2process,fun=min)
+  #return(c(polygon2process$siteId,media))
 }
 
 
@@ -91,12 +89,12 @@ ELVmin_WS<-function(polygon2process,USGS_NED,...){
 #' @export
 #'
 #' @examples
-ELEV_RANGE<-function(polygon2process,USGS_NED,...){
-  elev_rast<-elevatr::get_elev_raster(polygon2process,z=12)
-  max<-terra::extract(x=elev_rast,y=polygon2process,fun=max)
-  min<-terra::extract(x=elev_rast,y=polygon2process,fun=min)
+ELEV_RANGE<-function(polygon2process,...){
+  #elev_rast<-elevatr::get_elev_raster(polygon2process,z=12)
+  max<-terra::extract(x=poly_rast,y=polygon2process,fun=max)
+  min<-terra::extract(x=poly_rast,y=polygon2process,fun=min)
   media<-max-min
-  return(c(polygon2process$siteId,media))
+  #return(c(polygon2process$siteId,media))
 }
 
 #' Elevation of the point
@@ -115,10 +113,11 @@ ELEV_RANGE<-function(polygon2process,USGS_NED,...){
 #' @export
 #'
 #' @examples
-ELEV_SITE<-function(point2process,USGS_NED,...){
-  media<-get_elev_point(point2process, z=12)$elevation
-   # neither CO MMI nor CSCI use /10 transformation
-  return(c(def_sites_sample$siteId,media))
+ELEV_SITE<-function(point2process,...){
+  #media<-get_elev_point(point2process, z=12)$elevation
+  media<-point_rast
+  # neither CO MMI nor CSCI use /10 transformation
+  #return(c(def_sites_sample$siteId,media))
 }
 
 #' Square root of elevation at the point
@@ -137,10 +136,10 @@ ELEV_SITE<-function(point2process,USGS_NED,...){
 #' @export
 #'
 #' @examples
-ELEV_SITE_SQRT<-function(point2process,USGS_NED,...){
-   elevpt<-get_elev_point(point2process, z=12)$elevation
-  media<-sqrt((elevpt))
-  return(c(def_sites_sample$siteId,media))
+ELEV_SITE_SQRT<-function(point2process,...){
+   #elevpt<-get_elev_point(point2process, z=12)$elevation
+  media<-sqrt(point_rast)
+  #return(c(def_sites_sample$siteId,media))
 }
 
 
@@ -163,13 +162,13 @@ ELEV_SITE_SQRT<-function(point2process,USGS_NED,...){
 #' @export
 #'
 #' @examples
-ELEV_SITE_CV<-function(point2process,USGS_NED,...){
-  AOI<-sf::st_buffer(st_transform(point2process, 6703),150)
-  elev<-get_elev_raster(AOI,z=12)
+ELEV_SITE_CV<-function(point2process,...){
+  #AOI<-sf::st_buffer(st_transform(point2process, 6703),150)
+  #elev<-get_elev_raster(AOI,z=12)
   elev.mean<-terra::extract(elev,AOI,fun=mean)
   elev.stdev<-terra::extract(elev,AOI,fun=stdev)
   media<-elev.stdev/elev.mean
-  return(c(def_sites_sample$siteId,media))
+  #return(c(def_sites_sample$siteId,media))
 }
 
 
