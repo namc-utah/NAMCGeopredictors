@@ -251,7 +251,7 @@ if(exists("boxId")){
     for (p in 1:length(predlist)) {
       tryCatch({
         # change "" to is.na once end points are fixed to have this included
-        if (predictors$abbreviation[p]=="SUMMER"|predictors$abbreviation[p]=="NHDSLOPE"|predictors$abbreviation[p]=="Slope_WS"|predictors$abbreviation[p]=="WINTER"|predictors$abbreviation[p]=="pct_46003"|predictors$abbreviation[p]=="A1_3"|predictors$abbreviation[p]=="A2_5"){
+        if (predictors$abbreviation[p]=="SUMMER"|predictors$abbreviation[p]=="NHDSLOPE"|predictors$abbreviation[p]=="Slope_WS"|predictors$abbreviation[p]=="NHDStreamOrder"|predictors$abbreviation[p]=="WINTER"|predictors$abbreviation[p]=="length_46006"|predictors$abbreviation[p]=="pct_46003"|predictors$abbreviation[p]=="A1_3"|predictors$abbreviation[p]=="A2_5"){
           pred_geometries[[predictors$abbreviation[p]]] = NA
         } else if (is.na(predictors$geometryFilePath[p]) == TRUE|predictors$geometryFilePath[p]=="") {
           pred_geometries[[predictors$abbreviation[p]]] = NA
