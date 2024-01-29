@@ -20,8 +20,6 @@
     # get existing predictor values and which predictor values need calculated based on which models are associated with each sample
     # ---------------------------------------------------------------
 # getting sample info including date
-Rver<-R.Version()$version.string
-Rver<-substr(Rver,11,15)
     #create an object that is just the list of sites with no sheds in MS
     #allows us to quickly look for sites without sheds, despite the error messages
 #no_sheds<-list()
@@ -44,23 +42,11 @@ watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
 
 #def_samples<-def_samples[def_samples$sampleId < 210554,]
     # getting a list of samples and predictor values from the database
-if(Rver=='4.3.2'){
-  p_list<-list()
-for(jj in 1:nrow(def_samples)){
-def_predictors = NAMCr::query(
-      api_endpoint = "samplePredictorValues",
-      sampleIds = def_samples$sampleId[jj]
-      #modelIds = modelId
-    )
-p_list[[jj]]<-def_predictors
-}
-def_predictors<- do.call(rbind,p_list)
-}else{
   def_predictors = NAMCr::query(
     api_endpoint = "samplePredictorValues",
     sampleIds = def_samples$sampleId
   )
-}
+
 
     #subset this list to only samples/predictors that need calculated
 
