@@ -278,9 +278,6 @@ if(exists("boxId")){
     calculatedPredictorslist=list()
     for (p in 1:length(predlist)){
       message(p)
-      if(p>1){
-        unlink(paste0(DEM_trashbin,'/*'))
-      }
       tryCatch({
         samples=subset(def_predictors,abbreviation==predictors$abbreviation[p])
         predictor_value=list()
