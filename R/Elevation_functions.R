@@ -117,7 +117,7 @@ ELEV_RANGE<-function(polygon2process,...){
 #'
 #' @examples
 ELEV_SITE<-function(x,...){
-  media<-get_elev_point(point2process, z=11)$elevation
+  media<-get_elev_point(point2process)$elevation
   # neither CO MMI nor CSCI use /10 transformation
   #return(c(def_sites_sample$siteId,media))
   return(media)
@@ -140,7 +140,7 @@ ELEV_SITE<-function(x,...){
 #'
 #' @examples
 ELEV_SITE_SQRT<-function(x,...){
-  point_rast<-get_elev_point(point2process, z=11)$elevation
+  point_rast<-get_elev_point(point2process)$elevation
   media<-sqrt(point_rast)
   #return(c(def_sites_sample$siteId,media))
   return(media)
