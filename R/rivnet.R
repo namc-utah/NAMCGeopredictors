@@ -13,76 +13,76 @@ library(traudem)
 
 library(terra)
 
-boxnum<-7852
+boxnum<-8809
 #query the box in question
 x<-NAMCr::query(
-  api_endpoint = "samples",
-  args = list(boxId = boxnum))
+  api_endpoint = "sites",
+  args = list(boxIds = boxnum))
 
-
+#df<-out_xy[out_xy$siteId %in% c(45552,45556)==F,]
 #for loop 1) download only necessary DEMs
 #and make an empty list for storing the results
 temp_RASTER_path<-tempdir()
-df<-st_read(paste0(genpath,'AIM_2023_leftovers_issuepoints_needsheds','.shp'))
-shed_list<-st_sfc(crs=4269)
-adjs=seq(0.1,0.3,by=0.1)
-for(i in 1:3){#nrow(df)){
+#df<-st_read(paste0(genpath,'AIM_2023_leftovers_issuepoints_needsheds','.shp'))
 
+shed_list<-st_sfc(crs=4269)
+adjs=seq(0.1,1,by=0.1)
+for(i in 1:nrow(x)){#nrow(df)){
+  #this line removes an existing shed, if it exists
   if(exists("r")){
     rm(r)
+  }else{
+    message('No sheds exist yet or the first shed was unable to run')
   }
 
   print(i)
 
-  #remove any temp folder that R creates
-  #to not let elevatr build up a lot of junk
-  #tempdir()
-  #temp_files<-list.files("C://Users//ANDREW~1.CAU//AppData//Local//Temp",full.names = T)
-  #R_temps<-temp_files[grepl("Rtmp",temp_files)]
-  #unlink(R_temps,recursive = T)
 
 old <- Sys.time() # get start time
-Lat<-df$OrgLAT[i]
-Lon<-df$OrgLONG[i]
-
+Lat<-x$latitude[i]
+Lon<-x$longitude[i]
+#force R to save the files from elevatr here
 temp_RASTER_path<-gsub('.{7}$','',temp_RASTER_path)
 message('attempting shed extraction')
 for(j in 1:length(adjs)){
 
   message(paste0('extraction try ',j))
   withRestarts(
+    #clear the temp path of any elevatr tiles
 tryCatch({
   if(i >1){
     unlink(paste0(temp_RASTER_path,'/*'))
   }
+  #extract the river/shed (you get both)
 r <- extract_river(outlet = c(Lon,Lat),
                    ext=c(Lon-adjs[j],Lon+adjs[j],
                          Lat-adjs[j],Lat+adjs[j]),
                    EPSG = 4269,
                    n_processes = 8,z=13)
+#if r was successfully created, then let the user know
 if(exists("r")){
   message('extraction done! Processing shed')
   break}
 },
+#else, jump back up to the outer loop and try the next DEM size
 error=function(e){
   invokeRestart("retry")}
 ),
+#let the user know why you had to restart
   retry=function(){
-    warning("issue with DEM extent, trying another DEM")
+    message("issue with DEM extent, trying another DEM")
   } #retry
 ) #with restarts
 
 } #i
+
 #the river object stores a lot of neat stuff
 #some that we don't need for watershed delineation
 #what we do want is "catchment" or CM
-#but it is stored in a wieird list format
+#but it is stored in a weird list format
 #so we will unlist it, then take the raw coords and make them
 #into an sf object
 
-if(j==3){
-  next
-}
 o<-unlist(r$CM)
 #this is synonymous with the LIKE
 #operator in SQL. We want only values
@@ -106,9 +106,9 @@ new <- Sys.time() - old # calculate difference
 print(new)
 }
 
-mapview(shed_list,col.regions='red')
+mapview(shed_list,col.regions='red',col='red')
 
-
+if(0){
 Lon<-df$OrgLONG[1]
 Lat=df$OrgLAT[1]
 r <- extract_river(outlet = c(Lon,Lat),
@@ -116,6 +116,4 @@ r <- extract_river(outlet = c(Lon,Lat),
                          Lat-adjs[1],Lat+adjs[1]),
                    EPSG = 4269,
                    n_processes = 8,z=13)
-
-tempdir()
-unlink("C://Users//ANDREW~1.CAU//AppData//Local//Temp//RtmpMl1ma7/*")
+}

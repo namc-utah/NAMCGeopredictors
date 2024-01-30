@@ -46,8 +46,17 @@ watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
     api_endpoint = "samplePredictorValues",
     sampleIds = def_samples$sampleId
   )
-
-
+#if using newer R, change 0 to 1 to get predictors
+if(0){
+SPV<-list()
+for(pp in 1:length(def_samples$sampleId)){
+  xx<-NAMCr::query(
+    api_endpoint = "samplePredictorValues",
+    sampleIds = def_samples$sampleId[pp])
+  SPV[[pp]]<-xx
+}
+  def_predictors<-do.call(rbind,SPV)
+}
     #subset this list to only samples/predictors that need calculated
 
     modelpred=NAMCr::query("predictors",modelId=modelId)
