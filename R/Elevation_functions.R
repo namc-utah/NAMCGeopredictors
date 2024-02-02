@@ -2,9 +2,6 @@
 
 #   Elevation      #
 
-####################
-
-
 #' Mean elevation across the watershed
 #' The function requires that a Google Earth Engine GEE object be created
 #' USGS_NED National Elevation Dataset. It uses rgee rgee::ee_extract function to conduct
@@ -19,9 +16,10 @@
 #' @export
 #'
 #' @examples
-ELVmean_WS<-function(polygon2process,USGS_NED,...){
-  media<-rgee::ee_extract(USGS_NED, polygon2process[["_ogr_geometry_"]], fun = ee$Reducer$mean(), scale=90)
-  return(media[1,2])
+ELVmean_WS<-function(polygon2process){
+  poly_rast<-elevatr::get_elev_raster(polygon2process,z=11)
+  media<-terra::extract(x=poly_rast,y=polygon2process,fun=mean)
+  return(media[1,1])
 }
 
 #' #' Watershed mean elevation divided by 100
@@ -50,9 +48,10 @@ ELVmean_WS<-function(polygon2process,USGS_NED,...){
 #' @export
 #'
 #' @examples
-ELVmax_WS<-function(polygon2process,USGS_NED,...){
-   media<-rgee::ee_extract(USGS_NED, polygon2process[["_ogr_geometry_"]], fun = ee$Reducer$max(), scale=90)
-  return(media[1,2])
+ELVmax_WS<-function(polygon2process,...){
+  poly_rast<-elevatr::get_elev_raster(location=polygon2process,z=11)
+  media<-terra::extract(x=poly_rast,y=polygon2process,fun=max)
+  return(media[1,1])
 }
 
 #' Average of min elevation in the watershed
@@ -69,9 +68,10 @@ ELVmax_WS<-function(polygon2process,USGS_NED,...){
 #' @export
 #'
 #' @examples
-ELVmin_WS<-function(polygon2process,USGS_NED,...){
-   media<-rgee::ee_extract(USGS_NED, polygon2process[["_ogr_geometry_"]], fun = ee$Reducer$min(), scale=90)
-  return(media[1,2])
+ELVmin_WS<-function(polygon2process,...){
+  poly_rast<-elevatr::get_elev_raster(polygon2process,z=11)
+  media<-terra::extract(x=poly_rast,y=polygon2process,fun=min)
+  return(media[1,1])
 }
 
 
@@ -91,11 +91,13 @@ ELVmin_WS<-function(polygon2process,USGS_NED,...){
 #' @export
 #'
 #' @examples
-ELEV_RANGE<-function(polygon2process,USGS_NED,...){
-   max<-rgee::ee_extract(USGS_NED, polygon2process[["_ogr_geometry_"]], fun = ee$Reducer$max(), scale=90)
-  min<-rgee::ee_extract(USGS_NED, polygon2process[["_ogr_geometry_"]], fun = ee$Reducer$min(), scale=90)
+ELEV_RANGE<-function(polygon2process,...){
+  poly_rast<-elevatr::get_elev_raster(polygon2process,z=11)
+  max<-terra::extract(x=poly_rast,y=polygon2process,fun=max)
+  min<-terra::extract(x=poly_rast,y=polygon2process,fun=min)
   media<-max-min
-  return(media[1,2])
+  #return(c(polygon2process$siteId,media))
+  return(media[1,1])
 }
 
 #' Elevation of the point
@@ -114,9 +116,11 @@ ELEV_RANGE<-function(polygon2process,USGS_NED,...){
 #' @export
 #'
 #' @examples
-ELEV_SITE<-function(point2process,USGS_NED,...){
-  media<-rgee::ee_extract(USGS_NED, point2process, scale=90) # neither CO MMI nor CSCI use /10 transformation
-  return(media[1,1])
+ELEV_SITE<-function(x,...){
+  media<-get_elev_point(point2process)$elevation
+  # neither CO MMI nor CSCI use /10 transformation
+  #return(c(def_sites_sample$siteId,media))
+  return(media)
 }
 
 #' Square root of elevation at the point
@@ -135,10 +139,11 @@ ELEV_SITE<-function(point2process,USGS_NED,...){
 #' @export
 #'
 #' @examples
-ELEV_SITE_SQRT<-function(point2process,USGS_NED,...){
-   elevation<-rgee::ee_extract(USGS_NED, point2process, scale=90)
-  media<-sqrt((elevation))
-  return(media[1,1])
+ELEV_SITE_SQRT<-function(x,...){
+  point_rast<-get_elev_point(point2process)$elevation
+  media<-sqrt(point_rast)
+  #return(c(def_sites_sample$siteId,media))
+  return(media)
 }
 
 
@@ -161,11 +166,13 @@ ELEV_SITE_SQRT<-function(point2process,USGS_NED,...){
 #' @export
 #'
 #' @examples
-ELEV_SITE_CV<-function(point2process,USGS_NED,...){
+ELEV_SITE_CV<-function(x,...){
   AOI<-sf::st_buffer(st_transform(point2process, 6703),150)
-  elev.mean<-rgee::ee_extract(USGS_NED, AOI, fun = ee$Reducer$mean(), scale=90)
-  elev.stdev<-rgee::ee_extract(USGS_NED, AOI, fun = ee$Reducer$stdDev(), scale=90)
+  elev<-get_elev_raster(AOI,z=11)
+  elev.mean<-terra::extract(elev,AOI,fun=mean)
+  elev.stdev<-terra::extract(elev,AOI,fun=sd)
   media<-elev.stdev/elev.mean
+  #return(c(def_sites_sample$siteId,media))
   return(media[1,1])
 }
 

@@ -20,8 +20,6 @@
     # get existing predictor values and which predictor values need calculated based on which models are associated with each sample
     # ---------------------------------------------------------------
 # getting sample info including date
-Rver<-R.Version()$version.string
-Rver<-substr(Rver,11,15)
     #create an object that is just the list of sites with no sheds in MS
     #allows us to quickly look for sites without sheds, despite the error messages
 #no_sheds<-list()
@@ -41,26 +39,24 @@ watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
       def_samples=NAMCr::query("samples",include = c("sampleId", "siteId", "sampleDate"),boxId=boxId)
     }else {def_samples=NAMCr::query("samples",include = c("sampleId", "siteId", "sampleDate"),projectId=projectId)
     }
+
 #def_samples<-def_samples[def_samples$sampleId < 210554,]
     # getting a list of samples and predictor values from the database
-if(Rver=='4.3.2'){
-  p_list<-list()
-for(jj in 1:nrow(def_samples)){
-def_predictors = NAMCr::query(
-      api_endpoint = "samplePredictorValues",
-      sampleIds = def_samples$sampleId[jj]
-      #modelIds = modelId
-    )
-p_list[[jj]]<-def_predictors
-}
-def_predictors<- do.call(rbind,p_list)
-}else{
   def_predictors = NAMCr::query(
     api_endpoint = "samplePredictorValues",
     sampleIds = def_samples$sampleId
   )
+#if using newer R, change 0 to 1 to get predictors
+if(0){
+SPV<-list()
+for(pp in 1:length(def_samples$sampleId)){
+  xx<-NAMCr::query(
+    api_endpoint = "samplePredictorValues",
+    sampleIds = def_samples$sampleId[pp])
+  SPV[[pp]]<-xx
 }
-
+  def_predictors<-do.call(rbind,SPV)
+}
     #subset this list to only samples/predictors that need calculated
 
     modelpred=NAMCr::query("predictors",modelId=modelId)
@@ -88,14 +84,16 @@ def_predictors<- do.call(rbind,p_list)
 
     #Step 1) checking for sites without COMIDs
 if(exists("boxId")){
-    comid_check = query(
+    comid_check = NAMCr::query(
       api_endpoint = "sites",
       args = list(boxIds=boxId))
 }else{
-    comid_check = query(
+    comid_check = NAMCr::query(
       api_endpoint = "sites",
       args = list(projectIds=projectId))
 }
+
+
     #subset out the empties
     #to use as a condition in Step 2
     comid_check<-comid_check[is.na(comid_check$waterbodyCode)==T,]
@@ -202,6 +200,8 @@ if(exists("boxId")){
 
     # get watersheds in from the mastersheds shapefile/geodatabase on box
      def_watersheds=sf::st_make_valid(sf::st_read(watershed_file_path, query=sprintf('SELECT * FROM %s WHERE siteId in(%s)',watershed_layer_name, inLOOP(substr(siteIds, 1, 10)))))
+
+
      #assigning a vector of sites that do not have sheds,
      #based on hte def_watersheds file
      if(modelId %in% watershed_models & exists("fresh_COMIDs")){
@@ -225,12 +225,17 @@ if(exists("boxId")){
     # Store predictor geometries (raster, vector, or google earth engine) in a list variable to enable referencing by name
     # ---------------------------------------------------------------
     # load in google earth engine elevation layer for any elevation or slope predictors, really should be using source here instead but not in samplePredictorValues endpoint
+    #no longer loading rgee.
+    #will change this to just print a message instead?
+
     if (any(def_predictors$isGee=="true")) {
-      ee_Initialize()
-      USGS_NED = ee$Image("USGS/NED")$select("elevation")
+      message('at least one predictor requires an elevation function')
+      message('all previous rgee elevation functions are now using elevatr')
+      #ee_Initialize()
+      #USGS_NED = ee$Image("USGS/NED")$select("elevation")
     } else {
-      USGS_NED = NA
-      }
+      message('no elevation functions are used in this set')
+    }
 
     #create empty list to store geometries in
     pred_geometries = list()
@@ -273,6 +278,8 @@ if(exists("boxId")){
         predictor_value=list()
         # for each sample that needs a given predictor calculated
         for (s in 1:nrow(samples)){
+
+          #remove the sample
           tryCatch({
             # subset the site information for only this sample
             def_sites_sample=subset(def_sites,siteId==samples[s,"siteId"])
@@ -281,6 +288,7 @@ if(exists("boxId")){
             # Data needs to be in json format
             #if( nrow(def_watersheds_sample)>0) {
               polygon2process = def_watersheds_sample
+              point2process=geojsonsf::geojson_sf(def_sites_sample$location)
             #} else {polygon2process = NA
 
             #now we fill in nosheds
@@ -295,7 +303,7 @@ if(exists("boxId")){
             # uses eval() to call each predictor function by name
             predictor_value[[s]] = eval(parse(text=paste0(samples$calculationScript[s])))(
               polygon2process = polygon2process ,
-              point2process =  geojsonsf::geojson_sf(def_sites_sample$location) ,
+              point2process =  point2process,#geojsonsf::geojson_sf(def_sites_sample$location) ,
               predictor_name = samples$abbreviation[s],
               predictor_geometry = pred_geometries[[paste0(samples$abbreviation[s])]],
               COMIDs=def_sites_sample$waterbodyCode,
@@ -303,7 +311,7 @@ if(exists("boxId")){
                 paste0(pred_geometry_base_path, samples$geometryFilePath[s]),
               CurrentYear = lubridate::year(samples$sampleDate[s]),
               JulianDate = lubridate::yday(samples$sampleDate[s]),
-              USGS_NED=USGS_NED,
+              USGS_NED='elevatr_tile',
               SQLite_file_path=SQLite_file_path
             )
             calculatedPredictorslist[[paste0(samples$abbreviation[s])]][[paste0(samples$sampleId[s])]]<-unlist(predictor_value[[s]])
@@ -313,6 +321,9 @@ if(exists("boxId")){
             if(nrow(def_sites_sample) < 1)
               message(paste0(s,' something went wrong with creating the site locations. Check start of loop'))
           })
+          #clear that temp path after every site has been processed to avoid
+          #clogging up the disc space.
+          unlink(paste0(DEM_trashbin,'/*'))
         }
       }, error = function(e) {
         cat(paste0("\n\tERROR calculating: ",predictors$abbreviation[p],"\n"))
