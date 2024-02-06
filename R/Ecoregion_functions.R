@@ -79,6 +79,25 @@ ECO4<-function(point2process,predictor_geometry, ...){
 }
 
 
+#' Hybrid level 3 ecoregion of the point
+#'
+#' @param point2process
+#' @param predictor_geometry
+#' @param ...
+#'
+#' @return a single value: the hybrid level 3 ecoregion text for the point
+#'
+#'
+#' @examples
+Hybrid3Ecoregion<-function(point2process,predictor_geometry, ...){
+  myvars <- "EPA_hybird"
+  predictor_geometry <- predictor_geometry[myvars]
+  point2process<-sf::st_transform(point2process, crs = 5070)
+  media<-sf::st_intersection(point2process, predictor_geometry)%>% dplyr::pull(EPA_hybird)
+  return(media)
+}
+
+
 #' The level 3 ecoregion number 23
 #' databased used GIS_Stats/Ecoregion/Data/Eco_Level_III_US.shp
 #' The point is first transformed to a CRS in meters
