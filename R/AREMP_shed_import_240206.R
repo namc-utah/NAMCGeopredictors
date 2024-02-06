@@ -2,6 +2,11 @@
 rm(list=ls())
 #read in AREMP data, pulled from SQL.
 
+#SQL code
+#--------
+#select site_id,customer_site_code from samples
+#where box_id in (select box_id from boxes where customer_id is 808)
+#--------
 AREMP_historic<-read.csv('C://Users//andrew.caudillo//Box//NAMC//GIS//Watersheds//AREMP_to_NAMC.gdb//AREMP_sitenums.csv',stringsAsFactors = F)
 #rename
 names(AREMP_historic)[1]<-'siteId'
