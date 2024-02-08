@@ -188,3 +188,24 @@ A2_5<-function(point2process,geometry_input_path,...){
   media=units::drop_units(sum(length)/1000)
   return(media)
 }
+
+#' Drainage density of intermittent streams in NHD Plus (km per 25 km radius buffer)
+#' @param SQLite_file_path
+#' @param COMIDs (should only be one and NHD plus v2)
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+drainage_density<-function(SQLite_file_path,COMIDs,...){
+  nhdplusTools::nldi_feature <- list(featureSource = "comid",
+                       featureID = as.integer(COMID))
+  AOI<-sf::st_geometry(flowline_nldi$UT_flowlines)
+  AOItrans<-sf::st_transform(s,crs = 5070)
+  length=sf::st_length(salbers)
+  lengthkm=units::drop_units(sum(length)/1000)
+  WsAreaSqKm =StreamCat_single_pred(SQLite_file_path,WsAreaSqKm,COMIDs)
+   media=lengthkm/WsAreaSqKm
+   return(media)
+  }
