@@ -48,6 +48,7 @@ east<-function(point2process,predictor_geometry, ...){
 ECO3<-function(point2process,predictor_geometry, ...){
   myvars <- "US_L3CODE"
   predictor_geometry <- predictor_geometry[myvars]
+  predictor_geometry<-predictor_geometry[sf::st_is_valid(predictor_geometry),]
   point2process<-sf::st_transform(point2process, crs = 5070)
   media<-sf::st_intersection(point2process, predictor_geometry)%>% dplyr::pull(US_L3CODE)
   return(media)
