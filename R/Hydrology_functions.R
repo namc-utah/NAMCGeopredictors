@@ -199,13 +199,46 @@ A2_5<-function(point2process,geometry_input_path,...){
 #'
 #' @examples
 drainage_density<-function(SQLite_file_path,COMIDs,...){
-  nhdplusTools::nldi_feature <- list(featureSource = "comid",
-                       featureID = as.integer(COMID))
+  nldi_feature <- list(featureSource = "comid",
+                       featureID = as.integer(COMIDs))
+  flowline_nldi <- nhdplusTools::navigate_nldi(nldi_feature,
+                                 mode = "upstreamTributaries",
+                                 distance_km = 1000)
   AOI<-sf::st_geometry(flowline_nldi$UT_flowlines)
-  AOItrans<-sf::st_transform(s,crs = 5070)
-  length=sf::st_length(salbers)
+  AOItrans<-sf::st_transform(AOI,crs = 5070)
+  length=sf::st_length(AOItrans)
   lengthkm=units::drop_units(sum(length)/1000)
-  WsAreaSqKm =StreamCat_single_pred(SQLite_file_path,WsAreaSqKm,COMIDs)
+  WsAreaSqKm =StreamCat_single_pred(SQLite_file_path,"WsAreaSqKm",COMIDs)
    media=lengthkm/WsAreaSqKm
-   return(media)
-  }
+   return(media[1,1])
+}
+
+
+#' Perennial drainage density of intermittent streams in NHD Plus (km per 25 km radius buffer)
+#' @param SQLite_file_path
+#' @param geometry_input_path
+#' @param geometry_input_name
+#' @param COMIDs (should only be one and NHD plus v2)
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+p_drainage_density<-function(SQLite_file_path,geometry_input_path,geometry_input_name,COMIDs,...){
+  nldi_feature <- list(featureSource = "comid",
+                       featureID = as.integer(COMIDs))
+  flowline_nldi <- nhdplusTools::navigate_nldi(nldi_feature,
+                                               mode = "upstreamTributaries",
+                                               distance_km = 1000)
+  COMIDS<-flowline_nldi$UT_flowlines$nhdplus_comid
+  AOI=sf::st_make_valid(sf::st_read(geometry_input_path, query=sprintf('SELECT * FROM %s WHERE COMID in(%s)',geometry_input_name, inLOOP(substr(COMIDS, 1, 10)))))
+  AOItrans<-sf::st_transform(AOI,crs = 5070)
+  AOItransperennial=subset(AOItrans,FCODE==46006)
+  length=sf::st_length(AOItransperennial)
+  lengthkm=units::drop_units(sum(length)/1000)
+  WsAreaSqKm =StreamCat_single_pred(SQLite_file_path,"WsAreaSqKm",COMIDs)
+  media=lengthkm/WsAreaSqKm
+  return(media[1,1])
+}
+
