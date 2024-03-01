@@ -102,19 +102,39 @@ NHDStreamOrder<-function(point2process,geometry_input_path,...){
 
 
 
-#' Average Watershed slope
-#' @description slope of each cell in a DEM and then averaged across the watershed
-#' @param polygon2process
-#' @param USGS_NED
-#' @param ...
+#' #' Average Watershed slope
+#' #' @description slope of each cell in a DEM and then averaged across the watershed
+#' #' @param polygon2process
+#' #' @param USGS_NED
+#' #' @param ...
+#' #'
+#' #' @return
+#' #' @export
+#' #'
+#' #' @examples
+#'  slpavg <- function(polygon2process,USGS_NED,...) {
+#'   slopegee<-ee$Terrain$slope(USGS_NED) # slope
+#'   slopegee.perc<- slopegee$divide(180)$multiply(3.14159)$tan()$multiply(1)$rename("percent")#Slope percent
+#'   media<-rgee::ee_extract(slopegee.perc,polygon2process[["_ogr_geometry_"]],fun = ee$Reducer$mean(),scale = 30)
+#'   return(media[1,2])
+#'  }
 #'
-#' @return
-#' @export
-#'
-#' @examples
- slpavg <- function(polygon2process,USGS_NED,...) {
-  slopegee<-ee$Terrain$slope(USGS_NED) # slope
-  slopegee.perc<- slopegee$divide(180)$multiply(3.14159)$tan()$multiply(1)$rename("percent")#Slope percent
-  media<-rgee::ee_extract(slopegee.perc,polygon2process[["_ogr_geometry_"]],fun = ee$Reducer$mean(),scale = 30)
-  return(media[1,2])
+ #' Average Watershed slope
+ #' @description slope of each cell in a DEM and then averaged across the watershed
+ #' @param polygon2process
+ #' @param USGS_NED
+ #' @param ...
+ #'
+ #' @return
+ #' @export
+ #'
+ #' @examples
+ slpavg <- function(polygon2process,...) {
+   poly_rast<-elevatr::get_elev_raster(location=polygon2process,z=11)
+   slope_poly_rast<-terra::terrain(poly_rast,v="slope",neighbors=8,unit="degrees")
+    percentslope_poly_rast<-tan(slope_poly_rast$slope/180*pi)*100
+   media<-terra::extract(x=percentslope_poly_rast,y=polygon2process,fun=mean)
+  return(media[1,1])
  }
+
+plot(percentslope_poly_rast)
