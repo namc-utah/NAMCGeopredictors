@@ -136,5 +136,3 @@ NHDStreamOrder<-function(point2process,geometry_input_path,...){
    media<-terra::extract(x=percentslope_poly_rast,y=polygon2process,fun=mean)
   return(media[1,1])
  }
-
-plot(percentslope_poly_rast)

@@ -189,7 +189,7 @@ A2_5<-function(point2process,geometry_input_path,...){
   return(media)
 }
 
-#' Drainage density of intermittent streams in NHD Plus (km per 25 km radius buffer)
+#' Drainage density of all streams in the watershed in NHD Plus
 #' @param SQLite_file_path
 #' @param COMIDs (should only be one and NHD plus v2)
 #' @param ...
@@ -214,7 +214,7 @@ drainage_density<-function(SQLite_file_path,COMIDs,...){
 }
 
 
-#' Perennial drainage density of intermittent streams in NHD Plus (km per 25 km radius buffer)
+#' Drainage density of only perennial streams in the watershed in NHD Plus
 #' @param SQLite_file_path
 #' @param geometry_input_path
 #' @param geometry_input_name
