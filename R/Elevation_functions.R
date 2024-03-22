@@ -16,7 +16,7 @@
 #' @export
 #'
 #' @examples
-ELVmean_WS<-function(polygon2process){
+ELVmean_WS<-function(polygon2process,...){
   poly_rast<-elevatr::get_elev_raster(polygon2process,z=11)
   media<-terra::extract(x=poly_rast,y=polygon2process,fun=mean)
   return(media[1,1])

@@ -36,27 +36,17 @@ watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
 
 
     if (exists("boxId")){
-      def_samples=NAMCr::query("samples",include = c("sampleId", "siteId", "sampleDate"),boxId=boxId)
+      def_samples=NAMCr::query("samples",include = c("sampleId", "usState","siteId", "sampleDate"),boxId=boxId)
     }else {def_samples=NAMCr::query("samples",include = c("sampleId", "siteId", "sampleDate"),projectId=projectId)
     }
 
-#def_samples<-def_samples[def_samples$sampleId < 210554,]
+def_samples<-def_samples[def_samples$usState=='Nevada',]
     # getting a list of samples and predictor values from the database
   def_predictors = NAMCr::query(
     api_endpoint = "samplePredictorValues",
     sampleIds = def_samples$sampleId
   )
-#if using newer R, change 0 to 1 to get predictors
-if(0){
-SPV<-list()
-for(pp in 1:length(def_samples$sampleId)){
-  xx<-NAMCr::query(
-    api_endpoint = "samplePredictorValues",
-    sampleIds = def_samples$sampleId[pp])
-  SPV[[pp]]<-xx
-}
-  def_predictors<-do.call(rbind,SPV)
-}
+
     #subset this list to only samples/predictors that need calculated
 
     modelpred=NAMCr::query("predictors",modelId=modelId)
@@ -199,8 +189,13 @@ if(exists("boxId")){
     }
 
     # get watersheds in from the mastersheds shapefile/geodatabase on box
-     def_watersheds=sf::st_make_valid(sf::st_read(watershed_file_path, query=sprintf('SELECT * FROM %s WHERE siteId in(%s)',watershed_layer_name, inLOOP(substr(siteIds, 1, 10)))))
 
+     def_watersheds=sf::st_make_valid(sf::st_read(watershed_file_path, query=sprintf('SELECT * FROM %s WHERE siteId in(%s)',watershed_layer_name, inLOOP(substr(siteIds, 1, 10)))))
+      if(nrow(def_watersheds)==nrow(def_sites)){
+        message('all sites have sheds!')
+      }else{
+        message(paste(def_sites$siteId[def_sites$siteId %in% def_watersheds$siteId==F],' need/s delineation'))
+      }
 
      #assigning a vector of sites that do not have sheds,
      #based on hte def_watersheds file
@@ -251,8 +246,8 @@ if(exists("boxId")){
         } else if (is.na(predictors$geometryFilePath[p]) == TRUE|predictors$geometryFilePath[p]=="") {
           pred_geometries[[predictors$abbreviation[p]]] = NA
         } else if (!grepl(".shp", predictors$geometryFilePath[p])) {
-          pred_geometries[[predictors$abbreviation[p]]] = raster::raster(paste0(pred_geometry_base_path,
-                                                                                predictors$geometryFilePath[p]))
+          pred_geometries[[predictors$abbreviation[p]]] = raster::raster(terra::rast(paste0(pred_geometry_base_path,
+                                                                                predictors$geometryFilePath[p])))
         } else {
           pred_geometries[[predictors$abbreviation[p]]] = sf::st_read(paste0(pred_geometry_base_path,
                                                                              predictors$geometryFilePath[p]))
@@ -331,9 +326,8 @@ if(exists("boxId")){
 
       })
     }
+
     #force the list into a dataframe that you can use later
-    #for shed delineation
-    #no_sheds<-do.call(rbind,no_sheds)
 
     calculatedPredictors<-as.data.frame(data.table::rbindlist(calculatedPredictorslist,idcol=TRUE,fill=TRUE))
     row=colnames(calculatedPredictors)[-1]
@@ -357,7 +351,7 @@ calculatedPredictors2
     #get predictorIds from the database
     #save this as a static file and update periodically?
     #r 4.3.2 does not work with this query
-    predictorlist<-read.csv(paste0(predictor_list_path,'generalpredictors.csv'))
+    #predictorlist<-read.csv(paste0(predictor_list_path,'generalpredictors.csv'))
     predictorlist=NAMCr::query("predictors")
     #join predictor ids to the predictor values
     predp=dplyr::left_join(predp,predictorlist,by="abbreviation")
@@ -372,17 +366,9 @@ calculatedPredictors2
     predsfinal=subset(predp,is.na(siteId)==FALSE,select=c("sampleId","siteId","predictorId","abbreviation","value","isTemporal"))
 
     #compare these values to values already in the database
-    if(Rver=='4.3.2'){
-      predictorValueList<-list()
-      for(y in 1:nrow(predsfinal)){
-        pv<-NAMCr::query('samplePredictorValues',
-                         sampleIds=predsfinal$sampleId[y])
-        predictorValueList[[y]]<-pv
-      }
-      predictorValues=do.call(rbind,predictorValueList)
-    }else{
+
     predictorValues=NAMCr::query("samplePredictorValues",sampleIds=unique(predsfinal$sampleId))
-    }
+
 
     predictorValues=predictorValues[,c("sampleId","predictorId","predictorValue","qaqcDate","predictorValueUpdatedDate","status")]
     predsfinal=dplyr::left_join(predsfinal,predictorValues,by=c("sampleId","predictorId"))
@@ -408,6 +394,7 @@ calculatedPredictors2
             predictorId = predsfinal$predictorId[i],
             value = predsfinal$value[i]
           )
+          message ('saved temporal predictor!')
         } else{
           NAMCr::save(
             api_endpoint = "setSitePredictorValue",
@@ -415,6 +402,7 @@ calculatedPredictors2
             predictorId = predsfinal$predictorId[i],
             value = predsfinal$value[i]
           )
+          message ('saved predictor!')
         }
       }, error = function(e) {
         cat(paste0("\n\tERROR saving: ",predsfinal$sampleId[i]," ",predsfinal$predictorId[i],"\n"))

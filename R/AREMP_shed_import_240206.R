@@ -103,3 +103,60 @@ temp <- sf::st_as_sf(newest_msheds)
 sf::st_write(temp, "C://Users//andrew.caudillo//Box//NAMC//GIS/Watersheds//Mastersheds//mastersheds.shp")
 #copy and paste siteIds from shedsRoAdd shapefie to excel file
 clipr::write_clip(AREMP_to_import$siteId)
+
+
+
+
+#QCing sheds against pts in our database.
+#do we have sheds for all points?
+#do the points fall into their sheds?
+#other weirdness?
+
+MS<-sf::st_read('C://Users//andrew.caudillo//Box//NAMC//GIS/Watersheds//Mastersheds//mastersheds.shp')
+
+AREMP_historic<-read.csv('C://Users//andrew.caudillo//Box//NAMC//GIS//Watersheds//AREMP_to_NAMC.gdb//AREMP_sitenums.csv',stringsAsFactors = F)
+length(unique(AREMP_historic$site_id))
+
+AREMP_shed<-MS[MS$siteId %in% AREMP_historic$site_id,]
+
+#strange site names that do not have sheds
+#some are really old, while some do not even look
+#like AREMP. Perhaps old USFS?
+nomatches<-AREMP_historic[AREMP_historic$site_id %in% AREMP_shed$siteId==F,]
+
+aremp_sites<-NAMCr::query(
+  api_endpoint = "sites",
+  args = list(siteIds = AREMP_historic$site_id[is.na(AREMP_historic$site_id)==F]))
+
+AOI_Ar<-sf::st_transform(sf::st_as_sf(aremp_sites,coords=c('longitude','latitude'),crs=terra::crs(AREMP_shed)),5070) # must use the same EPSG as in the shapefile
+AREMP_shed<-sf::st_transform(AREMP_shed,5070)
+library(tidyverse)
+AOItrans_wkt <- AOI_Ar %>%
+  #sf::st_geometry() %>% # convert to sfc
+  sf::st_buffer(5000) #%>%
+  #sf::st_as_text()
+library(sf)
+AREMPjoin<-sf::st_join(AOItrans_wkt,AREMP_shed,join=st_contains)
+
+AREMPjoin[is.na(AREMPjoin$geometry),]
+
+mapview::mapview(AREMPjoin)
+mapview::mapview(AREMPjoin$geometry[1])
+AREMPjoin$geometry[1]
+
+mapview::mapview(arempSF)+mapview::mapview(AREMP_shed)
+
+
+set.seed(958)
+ok<-AREMPjoin[sample(1:nrow(AREMPjoin),10),]
+oksheds<-AREMP_shed[AREMP_shed$siteId %in% ok$siteId.x,]
+
+mapview::mapview(arempSF[arempSF$siteId==44419,])+mapview::mapview(AREMP_shed[AREMP_shed$siteId==44419,])
+library(ggplot2)
+
+ggplot() +
+  geom_sf(data =oksheds) + # plot the polygons first
+  geom_sf(data=ok, aes(color = as.factor(siteId.x))) +
+  scale_color_brewer("polygon ID", palette = "Dark2") +
+  theme_minimal()
+mapview::mapview(ok$geometry)
