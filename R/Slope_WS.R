@@ -6,14 +6,12 @@
 sa=reticulate::import("arcpy.sa")
 clippedFlowRaster=sa$ExtractByMask('C:/Users/jenni/OneDrive - USU/Documents/geospatial data/elevation/NVFLD8.tif','C:/Users/jenni/OneDrive - USU/Desktop/NAMCGeopredictors/polygon2processtrans.shp')
 
-ee_Initialize()
-USGS_NED = ee$Image("USGS/NED")$select("elevation")
 
 ######## get watersheds ###################
 def_samples = NAMCr::query(
   api_endpoint = "samples",
   include = c("sampleId", "siteId", "sampleDate"),
-  boxId=2195,
+  projectId=4545,
 
 )
 # getting watershed
@@ -46,8 +44,8 @@ def_watersheds=sf::st_make_valid(sf::st_read(watershed_file_path, query=sprintf(
 
 ########### calculate slope #####################
 slopes=list()
-for (s in 17:25){
-  polygon2process=def_watersheds[s,3]
+for (s in 1:15){
+  polygon2process=def_watersheds[s,2]
   polygon2processtrans<-sf::st_transform(polygon2process, 5072)# transforming to CRS of NV D8 point Flow Direction
   #write buffer of watershed out as a shapefile
   sf::write_sf(polygon2processtrans,"polygon2processtrans.shp")#write it out to your project working directory!
@@ -59,8 +57,8 @@ for (s in 17:25){
 
   FlowLength=raster::raster(paste0(ShedFlowL))
   max_flow_length=raster::maxValue(FlowLength) # code previously multiplied by 10 and then divided by 100. make sure this output number is in proper units (m)
-  max_watershed_elevation=ELVmax_WS(polygon2process,USGS_NED)
-  min_watershed_elevation=ELVmin_WS(polygon2process,USGS_NED)
+  max_watershed_elevation=ELVmax_WS(polygon2process)
+  min_watershed_elevation=ELVmin_WS(polygon2process)
   slopes[[s]]=(max_watershed_elevation-min_watershed_elevation)/max_flow_length
   print(paste0("processed_",s))
   print(slopes[[s]])
@@ -69,12 +67,12 @@ slopesdf=as.data.frame(cbind(slopes))
 ###########################################
 
 ##### join to siteID and sampleID
-def_sites=cbind(def_sites[1:12,],slopesdf)
+def_sites=cbind(def_sites[1:15,],slopesdf)
 def_sites$siteId=as.numeric(def_sites$siteId)
 join=left_join(def_samples,def_sites,by='siteId')
 join$Slope_WS=unlist(join$slopes)
 #create dataframe named for saving into database then run save code in calculate predictors
-calculatedPredictors2=join[,c(1,9)]
+calculatedPredictors2=join[,c(2,9)]
 
 sldf=as.data.frame(sl)
 
