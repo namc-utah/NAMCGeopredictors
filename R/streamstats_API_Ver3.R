@@ -6,6 +6,13 @@
 #but the streamstats package, which USGS apparently had no affiliation with.
 
 rm(list=ls())
+#this function will handle the json formats that streamstats returns.
+#it can either be the "expected" format, or a weird format
+#with a single record that has all the Xs and Ys.
+#just a try catch within a function.
+#using trycatch outside of a function can lead to issues
+#with variables not carrying over from outside the block
+#the result is an sf object.
 convert_to_sf <- function(jsonio) {
   tryCatch({
     # Attempt to convert data to sf object
@@ -204,6 +211,50 @@ snapt<-as.data.frame(st_coordinates(out_xy))
 listy<-list()
 #assign temp directory for the jsons.
 shed_trashbin<-tempdir()
+
+####
+for(i in 1:nrow(out_xy)){
+  #remove any past sheds from previous iterations to avoid confusion
+  if(exists('pp')){
+    message('removing previous sheds...')
+    rm(pp)
+  }
+  #subset out the ith
+  y<-snapt[i,]
+  site<-out_xy$siteId[i]
+  X<-y$X
+  Y<-y$Y
+  message('accessing URL...')
+  #creating the url. We are just pasting together the skeleton of the url
+  #plus the dynamic pieces from y-- not too difficult.
+  url<-paste0('https://streamstats.usgs.gov/streamstatsservices/watershed.geojson?',
+              'rcode=',out_xy$STATE_ABBR[i],'&xlocation=',X,'&ylocation=',Y,'&crs=4269&includeparameters=false&includeflowtypes=false&includefeatures=true&simplify=false')
+  download.file(url,'jsontest.geojson')
+  message('geoJSON downloaded')
+  #read in the json
+  pp<-jsonlite::fromJSON('jsontest.geojson')
+  message('geoJSON imported')
+  #run this function. #see the function at the top of the script for details
+  jj<-convert_to_sf(jsonio = pp)
+  #coerce to polygon because the sheds come back as points for some reason.
+  polygon <- jj %>%
+    summarize(do_union = FALSE) %>%
+    st_cast("POLYGON")
+  message('the shed is now a polygon')
+  #assign siteId
+  polygon$siteId<-out_xy$siteId[i]
+  #assign to the list element
+  listy[[i]]<-polygon
+  #take out the gahbage
+  unlink(paste0(shed_trashbin,'/*'))
+  #tell us that it is done
+  message('end of iteration\n')
+  message(paste('processed shed ', i,' of ',nrow(out_xy)))
+}
+
+mapview::mapview(listy)
+
+#old attempts, do not worry about this.
 if(0){
 for(i in 1:nrow(snapt)){
   #subset out the ith row
@@ -296,46 +347,3 @@ message('end of iteration\n')
 mapview::mapview(STshed_list[2])
 }
 
-
-
-####
-for(i in 1:nrow(out_xy)){
-  #remove any past sheds from previous iterations to avoid confusion
-if(exists('pp')){
-  message('removing previous sheds...')
-  rm(pp)
-}
-  #subset out the ith
-y<-snapt[i,]
-site<-out_xy$siteId[i]
-X<-y$X
-Y<-y$Y
-message('accessing URL...')
-#creating the url. We are just pasting together the skeleton of the url
-#plus the dynamic pieces from y-- not too difficult.
-url<-paste0('https://streamstats.usgs.gov/streamstatsservices/watershed.geojson?',
-            'rcode=',out_xy$STATE_ABBR[i],'&xlocation=',X,'&ylocation=',Y,'&crs=4269&includeparameters=false&includeflowtypes=false&includefeatures=true&simplify=false')
-download.file(url,'jsontest.geojson')
-message('geoJSON downloaded')
-#read in the json
-pp<-jsonlite::fromJSON('jsontest.geojson')
-message('geoJSON imported')
-#run this function. #see the function at the top of the script for details
-jj<-convert_to_sf(jsonio = pp)
-#coerce to polygon because the sheds come back as points for some reason.
-polygon <- jj %>%
-  summarize(do_union = FALSE) %>%
-  st_cast("POLYGON")
-message('the shed is now a polygon')
-#assign siteId
-polygon$siteId<-out_xy$siteId[i]
-#assign to the list element
-listy[[i]]<-polygon
-#take out the gahbage
-unlink(paste0(shed_trashbin,'/*'))
-#tell us that it is done
-message('end of iteration\n')
-message(paste('processed shed ', i,' of ',nrow(out_xy)))
-}
-
-mapview::mapview(listy,col.regions='green',border='blue',lwd=3)
