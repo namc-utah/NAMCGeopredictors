@@ -37,64 +37,7 @@ convert_to_sf <- function(jsonio) {
 }
 #load some necessary libraries, if not already loaded.
 library(dplyr);library(sf)
-boxId=9337
-x<-NAMCr::query('sites',
-                boxIds=boxId)
-#making a little data frame that will act as a lookup table
-#for when we need to build the StreamStats URL.
-state_lookup<-data.frame(usState=c('California','Washinton','Orgeon',
-                                 'Idaho','Utah','New Mexico','Arizona',
-                                 'Colorado','Wyoming','Montana','Nevada',
-                                 'Alaska'),
-                         Abbrv=c('CA','WA','OR',
-                                 'ID','UT','NM',
-                                 'AZ','CO','WY','MT','NV','AK'))
-#join the two so we get state abbreviations
-x<-plyr::join(x,state_lookup,by='usState')
-#subset out only states where StreamStats has coverage
-x<-x[x$Abbrv %in% c('NV','WY','AK')==F,]
-sheds<-list()
-for(i in 1:nrow(x)){
-  #subset out the ith row
-  y<-x[i,]
-  message('accessing URL...')
-  #creating the url. We are just pasting together the skeleton of the url
-  #plus the dynamic pieces from y-- not too difficult.
-  url<-paste0('https://streamstats.usgs.gov/streamstatsservices/watershed.geojson?',
-              'rcode=',y$Abbrv,'&xlocation=',y$longitude,'&ylocation=',y$latitude,'&crs=4326&includeparameters=false&includeflowtypes=false&includefeatures=true&simplify=false')
-  #now we just read the url using the jsonlite package
-  jsonURL<-jsonlite::fromJSON(url)
-  message('URL accessed. Processing into an object.')
-  #now coerce that json's geometry to a dataframe.
-  jsonDF<-as.data.frame(jsonURL[["featurecollection"]][["feature"]][["features"]][[2]][["geometry"]][["coordinates"]][[1]][[2]])
-  #convert that data frame to an sf object with a coordinate system
-  jsonSF<-sf::st_as_sf(jsonDF,coords=c('V1','V2'),crs=4326)
-  #it is going to be points, for some reason, so we are just going
-  #to coerce the points to a polygon in these two steps:
-  if(st_geometry_type(jsonSF)[1]=='MULTIPOINT'){
-    jsonSF<-st_cast(jsonSF,"POINT")
-  }
-  message('coercing to polygon...')
-  polygon <- jsonSF %>%
-    summarize(do_union = FALSE) %>%
-    st_cast("POLYGON")
-  message('watershed saved!')
-  polygon$siteId=y$siteId
-#save that polygon to our list
-  sheds[[i]]<-polygon
-  message('iteration done!')
-  message(paste('Extracted shed ',i, ' of ',nrow(x)))
-}
-#plot to see the results
-graphics.off()
-mapview::mapview(sheds,col.regions='red',border='black',lwd=3)
-sheds
-
-mapview::mapview(polygon)
-j<-as.data.frame(jsonURL[["featurecollection"]][["feature"]][["features"]][[2]][["geometry"]][["coordinates"]])
-st_read(url)
-
-
+boxId=8908
 
 #####
 
@@ -212,12 +155,16 @@ listy<-list()
 #assign temp directory for the jsons.
 shed_trashbin<-tempdir()
 
-####
+#this is the code that does the heavy lifting of watershed processing.
+#keep closed unless you need to edit some stuff.
 for(i in 1:nrow(out_xy)){
   #remove any past sheds from previous iterations to avoid confusion
   if(exists('pp')){
     message('removing previous sheds...')
     rm(pp)
+  }
+  if(exists('jj')){
+    rm(jj)
   }
   #subset out the ith
   y<-snapt[i,]
@@ -232,10 +179,19 @@ for(i in 1:nrow(out_xy)){
   download.file(url,'jsontest.geojson')
   message('geoJSON downloaded')
   #read in the json
+  tryCatch({
   pp<-jsonlite::fromJSON('jsontest.geojson')
   message('geoJSON imported')
   #run this function. #see the function at the top of the script for details
   jj<-convert_to_sf(jsonio = pp)
+  },
+  error=function(e){
+    message('geoJSON failed to import. NEXT!')
+  }
+  )
+    if(!exists('jj')){
+      next
+    }
   #coerce to polygon because the sheds come back as points for some reason.
   polygon <- jj %>%
     summarize(do_union = FALSE) %>%
@@ -252,7 +208,7 @@ for(i in 1:nrow(out_xy)){
   message(paste('processed shed ', i,' of ',nrow(out_xy)))
 }
 
-mapview::mapview(listy)
+mapview::mapview(listy)+mapview(out_xy)
 
 #old attempts, do not worry about this.
 if(0){
