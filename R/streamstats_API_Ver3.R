@@ -82,7 +82,7 @@ points2process= sf::st_as_sf(points2process,coords=c("siteLongitude","siteLatitu
 #use this for rivnet or another delineation process
 nonStStats<-points2process[points2process$STATE_ABBR %in% c('NV','WY','AZ','NM'),]
 #these don't need sheds and we don't have stream stats grids for them anyway
-points2process<-points2process[points2process$siteId %in% c(nonStStats$siteId, no_sheds_needed$siteId)==F,]
+points2process<-points2process[points2process$siteId %in% c(nonStStats$siteId)==F,]
 #set buffer distance for snapping etc.
 if (inherits(points2process, "sf")) n = nrow(points2process)
 if (inherits(points2process, "sfc")) n = length(x)
@@ -149,8 +149,10 @@ listy<-list()
 #assign temp directory for the jsons.
 shed_trashbin<-tempdir()
 
-#start the for loop with the number of unique
-#siteIds for a box
+#This is the for loop that will download jsons via URL
+#convert them to an sf object
+#and save the outputs to list elements.
+#it will automatically retry up to 5 times is a site fails.
 for (i in 1:nrow(out_xy)) {
   # Remove any past sheds from previous iterations to avoid confusion
   if (exists('pp')) {
@@ -257,14 +259,15 @@ if(nrow(listy)< nrow(out_xy)){
   message('All watersheds were delineated! Lucky you!')
   allsheds<-listy
 }
-
+#view to check sheds against topographic map. do they make sense? Are there bugaboos?
+#if yes, subset them manually into a new object!
 mapview::mapview(allsheds,map.types='OpenTopoMap')+mapview::mapview(out_xy[out_xy$siteId %in% allsheds$siteId,])
 if(length(nonStStats)>0){
-  message(nonStStats)
+  message(paste(nonStStats$siteId, 'need(s) watershed(s) delineated via rivnet or NHDplus'))
 }
 
 
-#old attempts, do not worry about this.
+#old attempts, do not worry about these.
 
 if(0){
   #this is the code that does the heavy lifting of watershed processing.
