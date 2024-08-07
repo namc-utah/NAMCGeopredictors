@@ -1,5 +1,5 @@
 ####################
-
+elev_trashbin<-tempdir()
 #   Elevation      #
 
 #' Mean elevation across the watershed
@@ -20,6 +20,7 @@ ELVmean_WS<-function(polygon2process,...){
   poly_rast<-elevatr::get_elev_raster(polygon2process,z=11)
   media<-terra::extract(x=poly_rast,y=polygon2process,fun=mean)
   return(media[1,1])
+  unlink(paste0(elev_trashbin,'/*'))
 }
 
 #' #' Watershed mean elevation divided by 100
@@ -52,6 +53,7 @@ ELVmax_WS<-function(polygon2process,...){
   poly_rast<-elevatr::get_elev_raster(location=polygon2process,z=11)
   media<-terra::extract(x=poly_rast,y=polygon2process,fun=max)
   return(media[1,1])
+  unlink(paste0(elev_trashbin,'/*'))
 }
 
 #' Average of min elevation in the watershed
@@ -72,6 +74,7 @@ ELVmin_WS<-function(polygon2process,...){
   poly_rast<-elevatr::get_elev_raster(polygon2process,z=11)
   media<-terra::extract(x=poly_rast,y=polygon2process,fun=min)
   return(media[1,1])
+  unlink(paste0(elev_trashbin,'/*'))
 }
 
 
@@ -98,6 +101,7 @@ ELEV_RANGE<-function(polygon2process,...){
   media<-max-min
   #return(c(polygon2process$siteId,media))
   return(media[1,1])
+  unlink(paste0(elev_trashbin,'/*'))
 }
 
 #' Elevation of the point
@@ -120,7 +124,9 @@ ELEV_SITE<-function(x,...){
   media<-get_elev_point(point2process)$elevation
   # neither CO MMI nor CSCI use /10 transformation
   #return(c(def_sites_sample$siteId,media))
+
   return(media)
+  unlink(paste0(elev_trashbin,'/*'))
 }
 
 #' Square root of elevation at the point

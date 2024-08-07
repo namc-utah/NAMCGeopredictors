@@ -1,5 +1,5 @@
 ####################
-
+slope_bin<-tempdir()
 #   Slope          #
 
 ####################
@@ -30,6 +30,7 @@ NHDSLOPE<-function(point2process,geometry_input_path,...){
   AOI_Buffer<-sf::st_join(AOItrans, NHDSLOPE.vec, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
   media<-AOI_Buffer$SLOPE
   return(media)
+  unlink(paste0(slope_bin,'/*'))
 }
 
 #' NHD Plus stream order and slope value taken from the nearest stream segment
@@ -58,6 +59,7 @@ NHDStreamOrder<-function(point2process,geometry_input_path,...){
   AOI_Buffer<-sf::st_join(AOItrans, NHDSLOPE.vec, join = nngeo::st_nn, maxdist = 500, k = 1, progress = FALSE)
   media<-AOI_Buffer[,c("SLOPE","StreamOr_1")]
   return(media)
+  unlink(paste0(slope_bin,'/*'))
 }
 
 
@@ -135,4 +137,5 @@ NHDStreamOrder<-function(point2process,geometry_input_path,...){
     percentslope_poly_rast<-tan(slope_poly_rast$slope/180*pi)*100
    media<-terra::extract(x=percentslope_poly_rast,y=polygon2process,fun=mean)
   return(media[1,1])
+   unlink(paste0(slope_bin,'/*'))
  }
