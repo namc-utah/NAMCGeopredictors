@@ -81,29 +81,7 @@ if(exists("boxId")){
 }
 
 site_info<-NAMCr::query('sites',
-                        siteIds=c(4246,
-                                  15633,
-                                  12721,
-                                  42966,
-                                  34085,
-                                  42993,
-                                  43234,
-                                  42843,
-                                  19295,
-                                  42871,
-                                  43121,
-                                  11778,
-                                  33480,
-                                  45071,
-                                  43245,
-                                  44897,
-                                  43251,
-                                  37001,
-                                  37003,
-                                  13670,
-                                  12744,
-                                  4247,
-                                  28461))
+                        projectIds=projectId)
 MS<-st_read(watershed_file_path)
 Area_info<-as.data.frame(StreamCatTools::sc_get_data(metric='Kffact',aoi='watershed',comid=site_info$waterbodyCode,showAreaSqKm = T))
 
@@ -125,14 +103,17 @@ points2process$STATE_ABBR<-ifelse(points2process$usState=='California','CA',
                                                                                                  ifelse(points2process$usState=='Wyoming','WY','MT')))))))))))
 #remove duplicate siteIds from a box (which does happen)
 points2process<-points2process[!duplicated(points2process$siteId),]
+
 points2process<-points2process[points2process$usState!='Alaska',]
 #making the above oject an sf object
 points2process= sf::st_as_sf(points2process,coords=c("siteLongitude","siteLatitude"),crs=4269)
 
 #use this for rivnet or another delineation process
-nonStStats<-points2process[points2process$STATE_ABBR %in% c('NV','WY','AZ','NM'),]
+nonStStats<-points2process[points2process$STATE_ABBR %in% c('NV','WY'),]
 #these don't need sheds and we don't have stream stats grids for them anyway
 points2process<-points2process[points2process$siteId %in% c(nonStStats$siteId)==F,]
+
+table(points2process$STATE_ABBR)
 
 #here we can move the points to ensure they are on the streamstats grids.
 #then, we can run the rest as normal.
@@ -145,26 +126,28 @@ library(htmlwidgets)
 
 # Create example data frame with ID, lat, and lon for the point
 sf_data <- points2process
-sf_data<-st_transform(sf_data,crs=4326)
-buffered_pts <- st_buffer(sf_data,400) #1km
-sf_data<- st_transform(sf_data, crs=5070)#convert to the streamstats CRS
-sf_data_wkt <- st_as_text(st_geometry(sf_data))
-buffered_pts_2<-st_transform(buffered_pts,5070)
+#sf_data<-st_transform(sf_data,crs=4326)
+sf_data<- st_transform(sf_data, crs=5070)#convert to the streamstats CRS, projected for linear measurements
+buffered_pts <- st_buffer(sf_data,400) #400m
+buffered_pts_2<-st_transform(buffered_pts,4326) #convert back to 4326, since shiny/leaflet requires it.
 # Create polyline data (example coordinates for the line)
-sf_polyline<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//CA_stream_stats_polyline.shp")# this will be whatever state you want to look at.
+#a<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//CA_stream_stats_polyline_prj.shp")# this will be whatever state you want to look at.
+b<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//CO_stream_stats_polyline_prj.shp")
+#c<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//MT_stream_stats_polyline_prj.shp")
+d<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//ID_stream_stats_polyline_prj.shp")
+#e<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//UT_stream_stats_polyline_prj.shp")
+#f<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//OR_stream_stats_polyline_prj.shp")
+#g<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//WA_stream_stats_polyline_prj.shp")
+#h<-st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//NM_streamstats_prj.shp")
+i<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//AZ_streamstats_prj.shp")
+bigboi <- rbind(b,d,i)
+sf_polyline <-bigboi
 #sf_polyline<-st_transform(sf_polyline,crs=4326)
+#intermed_intersect <- st_intersects(buffered_pts_2,sf_polyline,sparse=F)
+intermed_intersect <- st_intersects(sf_polyline,buffered_pts_2)
+isolated_segments <- sf_polyline[sapply(intermed_intersect, length) > 0, ]
 
-isolated_segments <- sf_polyline[st_intersects(sf_polyline,buffered_pts_2,sparse=F),]
-isolated_seg_list<-list()
-for(line in st_geometry(isolated_segments)){
-  xx<-st_coordinates(line)
 
-  isolated_seg_list[[line]]<-data.frame(lon=xx[,1],lat=xx[,2])
-}
-
-sf_polyline[rowSums(isolated_segments)>0,]
-isolated_segments <- st_transform(isolated_segments,4326)
-sf_data<-st_transform(sf_data,4326)
 # Define the Shiny UI
 library(shiny)
 library(leaflet)
@@ -172,36 +155,39 @@ library(sf)
 library(dplyr)
 
 
-
-coords_data <- data.frame(id = sf_data$siteId, lng = st_coordinates(sf_data)[,1], lat = st_coordinates(sf_data)[,2])
+#load coordinate data
+coords_data <- data.frame(id = points2process$siteId, lng = st_coordinates(points2process)[,1], lat = st_coordinates(points2process)[,2])
+#and the isolated lines
 lines_sf<-isolated_segments
+#set up the UI
 ui <- fluidPage(
   leafletOutput('map'),
   tableOutput('coordsTable')
 )
-
+#set up the server
 server <- function(input, output, session) {
-
+#reactive values let the server know these are what will change (coords)
   coords_rv <- reactiveValues(data = coords_data)
-
+#render the leaflet map
   output$map <- renderLeaflet({
     leaflet() %>%
-      addTiles() %>%
+      #be sure you have ESRI imagery so you can actually see where the stream is through the polyline
+      addProviderTiles('Esri.WorldImagery') %>%
       addMarkers(data = coords_data,
                  lng = ~lng, lat = ~lat,
                  layerId = ~id,
                  options = markerOptions(draggable = TRUE)) %>%
       addPolylines(data = lines_sf, color = "blue")  # Add polylines to the map
   })
-
+#making the points draggable
   observeEvent(input$map_marker_dragend, {
 
     markerId <- input$map_marker_dragend$id
     lat <- input$map_marker_dragend$lat
     lng <- input$map_marker_dragend$lng
-
+#updated coords based on dragging
     coords_rv$data[coords_rv$data$id == markerId, c("lat", "lng")] <- c(lat, lng)
-
+#reset the marker location after the points are moved
     leafletProxy('map') %>%
       clearMarkers() %>%
       addMarkers(data = coords_rv$data,
@@ -210,19 +196,20 @@ server <- function(input, output, session) {
                  options = markerOptions(draggable = TRUE)) %>%
       addPolylines(data = lines_sf, color = "blue")  # Re-add polylines to maintain display
   })
-
+#show the little coords table at the bottom of the window
   output$coordsTable <- renderTable({
     coords_rv$data
     updated_coords <<- coords_rv$data
   })
-
+#what to do when the session ends
   session$onSessionEnded(function() {
     # Use <<- to assign to the global variable
     cat("Updated coordinates are now in 'updated_coords'.\nConvert this to an sf object and use in StreamStats delineation")
   })
 }
-
+#run the server and UI!
 shinyApp(ui, server)
+#closed previous streamstats code to avoid confusion
 if(0){
 #set buffer distance for snapping etc.
 if (inherits(points2process, "sf")) n = nrow(points2process)
@@ -288,6 +275,17 @@ snapt<-as.data.frame(st_coordinates(out_xy))
 #make an empty list with a crs so we can
 #add sheds to it.
 
+
+#make the updated coords object the new data from which we will
+#delineate sheds
+snapt<-st_as_sf(updated_coords,coords=c('lng','lat'),crs=4326)
+snapt<-as.data.frame(st_coordinates(snapt))
+names(snapt)<-c('lng','lat')
+#add necessary columns
+snapt$siteId<-points2process$siteId
+snapt$STATE_ABBR<-points2process$STATE_ABBR
+
+#empty list to save sheds to
 listy<-list()
 #assign temp directory for the jsons.
 shed_trashbin<-tempdir()
@@ -296,7 +294,8 @@ shed_trashbin<-tempdir()
 #convert them to an sf object
 #and save the outputs to list elements.
 #it will automatically retry up to 5 times is a site fails.
-for (i in 1:nrow(out_xy)) {
+for (i in 1:nrow(snapt)) {
+  message(paste(i, ' of ', nrow(snapt)))
   # Remove any past sheds from previous iterations to avoid confusion
   if (exists('pp')) {
     message('Removing previous sheds...')
@@ -331,14 +330,14 @@ for (i in 1:nrow(out_xy)) {
         # Subset out the ith
         #and define some variables
         y <- snapt[i,]
-        site <- out_xy$siteId[i]
-        X <- y$X
-        Y <- y$Y
+        site <- y$siteId
+        X <- y$lng
+        Y <- y$lat
         message('Accessing URL...')
 
         # Creating the URL
         url <- paste0('https://streamstats.usgs.gov/streamstatsservices/watershed.geojson?',
-                      'rcode=', out_xy$STATE_ABBR[i], '&xlocation=', X, '&ylocation=', Y,
+                      'rcode=', snapt$STATE_ABBR[i], '&xlocation=', X, '&ylocation=', Y,
                       '&crs=4269&includeparameters=false&includeflowtypes=false&includefeatures=true&simplify=false')
         #download the file to a temp directory
         download.file(url, 'jsontest.geojson')
@@ -359,11 +358,11 @@ for (i in 1:nrow(out_xy)) {
         message('The shed is now a polygon')
 
         # Assign siteId
-        polygon$siteId <- out_xy$siteId[i]
-        polygon$COMID <- site_info$waterbodyCode[site_info$siteId==out_xy$siteId[i]]
-        polygon$SCArea<-Area_info$WSAREASQKM[Area_info$COMID==polygon$COMID]
-        polygon$Area<-st_area(polygon)
-        set_units(st_area(polygon), 'km2')
+        polygon$siteId <- site
+        polygon$COMID <- site_info$waterbodyCode[site_info$siteId==snapt$siteId[i]]
+        #polygon$SCArea<-Area_info$WSAREASQKM[Area_info$COMID==polygon$COMID]
+        #polygon$Area<-st_area(polygon)
+        #set_units(st_area(polygon), 'km2')
 
         # Assign to the list element
         listy[[i]] <- polygon
@@ -373,7 +372,7 @@ for (i in 1:nrow(out_xy)) {
 
         # Tell us that it is done
         message('End of iteration\n')
-        message(paste('Processed shed ', i, ' of ', nrow(out_xy)))
+        message(paste('Processed shed ', i, ' of ', nrow(snapt)))
         success <- TRUE
       }, #here is the error handler
       error = function(e) {
@@ -393,12 +392,12 @@ for (i in 1:nrow(out_xy)) {
 #convert the list to a dataframe
 listy<-do.call(rbind,listy)
 #if we are missing sheds because of NEXT
-if(nrow(listy)< nrow(out_xy)){
+if(nrow(listy)< nrow(snapt)){
   warning('some of your sheds failed...')
   #create a vector of sites that failed and use rivnet or nhd for them
   #you can even call issue sheds from this script if you have the other
   #scripts open in this environment.
-  issue_sheds<-out_xy$siteId[out_xy$siteId %in% listy$siteId==F]
+  issue_sheds<-snapt$siteId[snapt$siteId %in% listy$siteId==F]
   message('some sites still require watersheds. Try another method.')
   message('issue_sheds contains all sites that failed.')
   allsheds<-listy[!is.null(listy),]
@@ -413,14 +412,17 @@ if(length(nonStStats)>0){
 #allsheds$Area<-set_units(allsheds$Area,'km2')
 #view to check sheds against topographic map. do they make sense? Are there bugaboos?
 #if yes, subset them manually into a new object!
+mapview(listy)+mapview(isolated_segments)
+mapview(listy2)
+listy2<-listy[listy$siteId%in% c(46388,46380)==F,]
 mapview::mapview(allsheds,map.types='OpenTopoMap')+mapview::mapview(out_xy[out_xy$siteId %in% allsheds$siteId,])
 
 #allsheds$check<-ifelse(allsheds$Area > 1.7*allsheds$SCArea,'Check StreamCat',ifelse(allsheds$Area < allsheds$SCArea*0.02,"Hillslope",'all good'))
-mapview(allsheds)+mapview(out_xy[out_xy$siteId %in% allsheds$siteId,])
 
-st_write(allsheds,'C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//Watersheds//streamstats_R//9733_AIMUT.shp')
+
+st_write(listy2,'C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//Watersheds//streamstats_R//AIM_2024_CO_ID_AZ.shp')
 
 allsheds<-allsheds[allsheds$siteId %in% issue_sheds==F,]
 st_write(allsheds,'C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC//GIS//Watersheds//5238pt1.shp')
 
-
+clipr::write_clip(nonStStats$siteId)
