@@ -34,7 +34,7 @@ where samples.sample_id not in (select project_samples.sample_id from project_sa
 
 #organisms
   conn <- DBI::dbConnect(RSQLite::SQLite(), SQLite_file_path)
-  media = DBI::dbGetQuery(conn,sprintf("select organisms.sample_id,
+  organisms = DBI::dbGetQuery(conn,sprintf("select organisms.sample_id,
 taxonomy.scientific_name, parent_id,level_name,life_stage_name, split_count, big_rare_count
 from organisms
 left join  taxonomy on organisms.taxonomy_id=taxonomy.taxonomy_id
@@ -45,7 +45,7 @@ where organisms.sample_id not in (select project_samples.sample_id from project_
 
   #samples
   conn <- DBI::dbConnect(RSQLite::SQLite(), SQLite_file_path)
-  media = DBI::dbGetQuery(conn,sprintf("select samples.sample_id,visit_id,sample_date,
+  samples = DBI::dbGetQuery(conn,sprintf("select samples.sample_id,visit_id,sample_date,
 sites.site_id,samples.customer_site_code,sites.latitude,sites.longitude,sites.site_name,sites.waterbody_name,
 ecosystem_name,habitat_name,
 sample_method_name,
@@ -62,6 +62,8 @@ left join  sample_methods on samples.method_id=sample_methods.sample_method_id
 where samples.sample_id not in (select project_samples.sample_id from project_samples where project_id=354) and sites.latitude is not null"
   ))
 
+  arc.check_product()
+  library(arcgisbinding)
 
 
 library(sf)
