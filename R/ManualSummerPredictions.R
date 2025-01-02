@@ -38,3 +38,13 @@ message(paste(c(i,' of ',nrow(all_dat))))
 lildf
 
 plot(summer)
+
+
+for(i in 1:nrow(lildf)){
+NAMCr::save(
+  api_endpoint = "setSitePredictorValue",
+  siteId = lildf$siteId[i],
+  predictorId = lildf$predictorId[i],
+  value = lildf$summer[i]
+)
+}
