@@ -103,7 +103,31 @@ ELEV_RANGE<-function(polygon2process,...){
   return(media[1,1])
   unlink(paste0(elev_trashbin,'/*'))
 }
-
+#' Range between max and min elevations
+#' The function requires that a Google Earth Engine GEE object be created
+#' USGS_NED National Elevation Dataset. It uses rgee rgee::ee_extract function to conduct
+#' zonal statistics. The resolution (pixel size to use) can be changed if desired by
+#' modifying scale=. Now it is using a 90x90 m pixel size.
+#' The function first obtains the max elevation in the watershed, and then the minimum and finally
+#' it obtains the difference between the two values
+#'
+#' @param polygon2process
+#' @param USGS_NED
+#' @param ...
+#'
+#' @return a single value, the elevation range in the watershed
+#' @export
+#'
+#' @examples
+VALLEY_ELEV_RANGE<-function(polygon2process,...){
+  poly_rast<-elevatr::get_elev_raster(polygon2process,z=11)
+  max<-terra::extract(x=poly_rast,y=polygon2process,fun=max)
+  min<-terra::extract(x=poly_rast,y=polygon2process,fun=min)
+  media<-max-min
+  #return(c(polygon2process$siteId,media))
+  return(media[1,1])
+  unlink(paste0(elev_trashbin,'/*'))
+}
 #' Elevation of the point
 #' The function requires that a Google Earth Engine GEE object be created
 #' USGS_NED National Elevation Dataset. It uses rgee rgee::ee_extract function to conduct
