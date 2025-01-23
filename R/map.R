@@ -1,11 +1,11 @@
-genpath<-'C:/Users/jenni/Box/NAMC WATS Department Files/GIS/Watersheds'
-pred_geometry_base_path="C:/Users/jenni/Box/NAMC WATS Department Files/"
-SQLite_file_path="C:/NAMC_S3/LegacyDatabases/instar.sqlite"
-watershed_file_path=paste0(pred_geometry_base_path,"GIS/Watersheds/Mastersheds/mastersheds.shp")
-predictor_list_path<-'C:/Users/jenni/Box/NAMC WATS Department Files/GIS/General_Layers/'
-geometry_input_path="C:/Users/jenni/Box/NAMC WATS Department Files/GIS/GIS_Stats/CONUS/streams/NHD_West_str_ord.shp"
+genpath<-'C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//Watersheds'
+pred_geometry_base_path="C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//"
+SQLite_file_path="C://NAMC_S3//LegacyDatabases//instar.sqlite"
+watershed_file_path=paste0(pred_geometry_base_path,"GIS//Watersheds//Mastersheds//mastersheds.shp")
+predictor_list_path<-'C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//General_Layers//'
+geometry_input_path="C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//GIS_Stats//CONUS//streams//NHD_West_str_ord.shp"
 geometry_input_name="NHD_West_str_ord"
-
+file_to_gdb<-'C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC//Database//map2.gdb'
 
 conn <- DBI::dbConnect(RSQLite::SQLite(), SQLite_file_path)
   media = DBI::dbGetQuery(conn,sprintf("select samples.sample_id,visit_id,sample_date,
@@ -62,10 +62,12 @@ left join  sample_methods on samples.method_id=sample_methods.sample_method_id
 where samples.sample_id not in (select project_samples.sample_id from project_samples where project_id=354) and sites.latitude is not null"
   ))
 
-  arc.check_product()
-  library(arcgisbinding)
+arc.check_product()
+library(arcgisbinding)
 
 
 library(sf)
-  points=sf::st_as_sf(media,coords=c('longitude','latitude'),crs=4269)
-  write_sf(points,"C:/Users/jenni/Box/NAMC (Trip Armstrong)/Database/map.shp")
+  points=sf::st_as_sf(samples,coords=c('longitude','latitude'),crs=4269)
+  #write_sf(points,"C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC//Database//map.shp")
+arc.write(path=file.path(file_to_gdb,"SampleInfo"),data=points)
+arc.write(path=file.path(file_to_gdb,"OrganismInfo"),data=organisms)
