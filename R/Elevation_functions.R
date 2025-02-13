@@ -3,13 +3,8 @@ elev_trashbin<-tempdir()
 #   Elevation      #
 
 #' Mean elevation across the watershed
-#' The function requires that a Google Earth Engine GEE object be created
-#' USGS_NED National Elevation Dataset. It uses rgee rgee::ee_extract function to conduct
-#' zonal statistics. The resolution (pixel size to use) can be changed if desired by
-#' modifying scale=. Now it is using a 90x90 m pixel size
-#'
+#' z value of 11 equates to a raster cell size of 30 m
 #' @param polygon2process
-#' @param USGS_NED
 #' @param ...
 #'
 #' @return a single value the mean elevation value for the watershed
@@ -40,9 +35,8 @@ ELVmean_WS<-function(polygon2process,...){
 
 
 #' Watershed max elevation
-#'
+#' z value of 11 equates to a raster cell size of 30 m#'
 #' @param polygon2process
-#' @param USGS_NED
 #' @param ...
 #'
 #' @return
@@ -57,13 +51,8 @@ ELVmax_WS<-function(polygon2process,...){
 }
 
 #' Average of min elevation in the watershed
-#' The function requires that a Google Earth Engine GEE object be created
-#' USGS_NED National Elevation Dataset. It uses rgee rgee::ee_extract function to conduct
-#' zonal statistics. The resolution (pixel size to use) can be changed if desired by
-#' modifying scale=. Now it is using a 90x90 m pixel size
-#'
+#' z value of 11 equates to a raster cell size of 30 m
 #' @param polygon2process
-#' @param USGS_NED
 #' @param ...
 #'
 #' @return a single value the minimum elevation value for the watershed
@@ -79,15 +68,11 @@ ELVmin_WS<-function(polygon2process,...){
 
 
 #' Range between max and min elevations
-#' The function requires that a Google Earth Engine GEE object be created
-#' USGS_NED National Elevation Dataset. It uses rgee rgee::ee_extract function to conduct
-#' zonal statistics. The resolution (pixel size to use) can be changed if desired by
-#' modifying scale=. Now it is using a 90x90 m pixel size.
 #' The function first obtains the max elevation in the watershed, and then the minimum and finally
 #' it obtains the difference between the two values
+#' z value of 11 equates to a raster cell size of 30 m
 #'
 #' @param polygon2process
-#' @param USGS_NED
 #' @param ...
 #'
 #' @return a single value, the elevation range in the watershed
@@ -104,15 +89,11 @@ ELEV_RANGE<-function(polygon2process,...){
   unlink(paste0(elev_trashbin,'/*'))
 }
 #' Range between max and min elevations
-#' The function requires that a Google Earth Engine GEE object be created
-#' USGS_NED National Elevation Dataset. It uses rgee rgee::ee_extract function to conduct
-#' zonal statistics. The resolution (pixel size to use) can be changed if desired by
-#' modifying scale=. Now it is using a 90x90 m pixel size.
 #' The function first obtains the max elevation in the watershed, and then the minimum and finally
 #' it obtains the difference between the two values
+#' z value of 11 equates to a raster cell size of 30 m
 #'
 #' @param polygon2process
-#' @param USGS_NED
 #' @param ...
 #'
 #' @return a single value, the elevation range in the watershed
@@ -128,16 +109,35 @@ VALLEY_ELEV_RANGE<-function(polygon2process,...){
   return(media[1,1])
   unlink(paste0(elev_trashbin,'/*'))
 }
-#' Elevation of the point
-#' The function requires that a Google Earth Engine GEE object be created
-#' USGS_NED National Elevation Dataset. It uses rgee rgee::ee_extract function to conduct
-#' zonal statistics. The resolution (pixel size to use) can be changed if desired by
-#' modifying scale=. Now it is using a 90x90 m pixel size.
-#' The rgee function rgee::ee_extract is used here without fun = ee$Reducer$min,mean,max()
-#' argument since it only needs the information at the point
+
+#' Range between max and min elevations
+#' The function first obtains the max elevation in the watershed, and then the minimum and finally
+#' it obtains the difference between the two values
+#' z value of 11 equates to a raster cell size of 30 m
 #'
 #' @param point2process
-#' @param USGS_NED
+#' @param
+#' @param ...
+#'
+#' @return a single value, the elevation range in the watershed
+#' @export
+#'
+#' @examples
+Buffer1250ElevRange<-function(point2process,...){
+  point2process=sf::st_transform(point2process,crs=5070)
+  polygon2process=sf::st_buffer(point2process,1250)
+  poly_rast<-elevatr::get_elev_raster(polygon2process,z=11)
+  max<-terra::extract(x=poly_rast,y=polygon2process,fun=max)
+  min<-terra::extract(x=poly_rast,y=polygon2process,fun=min)
+  media<-max-min
+  #return(c(polygon2process$siteId,media))
+  return(media[1,1])
+  unlink(paste0(elev_trashbin,'/*'))
+}
+#' Elevation of the point
+#' z value of 11 equates to a raster cell size of 30 m
+#'
+#' @param point2process
 #' @param ...
 #'
 #' @return a single value which is the elevation at the point
@@ -154,15 +154,11 @@ ELEV_SITE<-function(x,...){
 }
 
 #' Square root of elevation at the point
-#' The function requires that a Google Earth Engine GEE object be created
-#' USGS_NED National Elevation Dataset. It uses rgee rgee::ee_extract function to conduct
-#' zonal statistics. The resolution (pixel size to use) can be changed if desired by
-#' modifying scale=. Now it is using a 90x90 m pixel size.
+#' z value of 11 equates to a raster cell size of 30 m
 #' the function first extracts the elevation at the point. This elevation is then divided by
 #' 10 and then the square root is extracted
 #'
 #' @param point2process
-#' @param USGS_NED
 #' @param ...
 #'
 #' @return a single value which is the square root of the elevation at the point
@@ -178,18 +174,14 @@ ELEV_SITE_SQRT<-function(x,...){
 
 
 #' Elevation coefficient of variation at the point
-#' The function requires that a Google Earth Engine GEE object be created
-#' USGS_NED National Elevation Dataset. It uses rgee rgee::ee_extract function to conduct
-#' zonal statistics. The resolution (pixel size to use) can be changed if desired by
-#' modifying scale=. Now it is using a 90x90 m pixel size.
 #' The function first makes sure that the point has a CRS information in meters
 #' because the st_buffer function does not work well with decimal degrees
 #' it then creates a area of influence AOI around the point of 150 meters (buffer).
 #' Extracts the mean and the standard deviation of the elevation within this AOI, and then
 #' it calculates the coefficient of variation
+#' z value of 11 equates to a raster cell size of 30 m
 #'
 #' @param point2process
-#' @param USGS_NED
 #' @param ...
 #'
 #' @return a single value, the coefficient of variation of elevation in an 150 m buffer around the point

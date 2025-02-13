@@ -124,7 +124,6 @@ NHDStreamOrder<-function(point2process,geometry_input_path,...){
  #' Average Watershed slope
  #' @description slope of each cell in a DEM and then averaged across the watershed
  #' @param polygon2process
- #' @param USGS_NED
  #' @param ...
  #'
  #' @return
@@ -137,5 +136,25 @@ NHDStreamOrder<-function(point2process,geometry_input_path,...){
     percentslope_poly_rast<-tan(slope_poly_rast$slope/180*pi)*100
    media<-terra::extract(x=percentslope_poly_rast,y=polygon2process,fun=mean)
   return(media[1,1])
+   unlink(paste0(slope_bin,'/*'))
+ }
+
+ #' Average Watershed slope
+ #' @description slope of each cell in a DEM and then averaged across the watershed
+ #' @param polygon2process
+ #' @param ...
+ #'
+ #' @return
+ #' @export
+ #'
+ #' @examples
+Buffer250Slope <- function(point2process,...) {
+  point2process=sf::st_transform(point2process,crs=5070)
+  polygon2process=sf::st_buffer(point2process,250)
+   poly_rast<-elevatr::get_elev_raster(location=polygon2process,z=11)
+   slope_poly_rast<-terra::terrain(poly_rast,v="slope",neighbors=8,unit="degrees")
+   percentslope_poly_rast<-tan(slope_poly_rast$slope/180*pi)*100
+   media<-terra::extract(x=percentslope_poly_rast,y=polygon2process,fun=mean)
+   return(media[1,1])
    unlink(paste0(slope_bin,'/*'))
  }
