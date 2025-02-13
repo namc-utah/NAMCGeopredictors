@@ -264,3 +264,37 @@ p_drainage_density<-function(SQLite_file_path,geometry_input_path,geometry_input
   return(media[1,1])
 }
 
+##### discharge ####
+#' Get predictor from SQLite McManamay2019 database on S3
+#'
+#' @param SQLite_discharge_file_path
+#' @param predictor_name predictor abbreviation as it is in the database
+#' @param COMIDs
+#'
+#' @return
+#' @export
+#'
+#' @examples
+McManamay2019 <-function(SQLite_McManamay_file_path, predictor_name,COMIDs,...) {
+  conn <- DBI::dbConnect(RSQLite::SQLite(), SQLite_McManamay_file_path)
+  media = DBI::dbGetQuery(conn,sprintf("SELECT %s FROM discharge WHERE COMID in (%s)",paste0(predictor_name),inLOOP(substr(COMIDs, 1, 10))))
+  return(media)
+}
+
+#' StreamPower
+#'
+#' @param SQLite_discharge_file_path
+#' @param predictor_name predictor abbreviation as it is in the database
+#' @param COMIDs
+#'
+#' @return
+#' @export
+#'
+#' @examples
+StreamPower<-function(SQLite_McManamay_file_path, predictor_name,COMIDs,...) {
+  conn <- DBI::dbConnect(RSQLite::SQLite(), SQLite_McManamay_file_path)
+  Flow_cfs = DBI::dbGetQuery(conn,sprintf("SELECT %s FROM discharge WHERE COMID in (%s)",paste0(predictor_name),inLOOP(substr(COMIDs, 1, 10))))
+
+  return(media)
+}
+
