@@ -298,3 +298,26 @@ StreamPower<-function(SQLite_McManamay_file_path, predictor_name,COMIDs,...) {
   return(media)
 }
 
+#' Buffer250WetlandAreaKm
+#'
+#' @param point2process
+#' @param geometry_input_path
+#' @return
+#' @export
+#'
+#' @examples
+Buffer250WetlandAreaKm<-function(point2process,geometry_input_path,...){
+  AOItrans<-sf::st_transform(point2process, 5070) # must use the same EPSG as in the shapefile
+  AOItranssub=AOItrans[1,]
+  AOItrans_wkt <- AOItranssub %>%
+    sf::st_geometry() %>% # convert to sfc
+    sf::st_buffer(250) %>% # buffer 250 meters
+    sf::st_as_text() # convert to well known text
+  NWI<-sf::st_read(geometry_input_path, layer='NWI_no_riverine', wkt_filter = AOItrans_wkt)
+   AOI_Buffer_subset<-subset(NWI,WETLAND_TYPE=='Freshwater Forested/Shrub Wetland')
+    area=sf::st_area(AOI_Buffer_subset)
+  media=units::drop_units(sum(area)/1000000)
+  return(media)
+  unlink(paste0(slope_bin,'/*'))
+}
+geometry_input_path="C:/Users/jenni/Box/NAMC WATS Department Files/GIS/GIS_Stats/CONUS/hydrology/NWI.gdb"
