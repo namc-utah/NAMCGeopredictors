@@ -44,7 +44,8 @@ if (exists("boxId")){
 # getting a list of samples and predictor values from the database
 def_predictors = NAMCr::query(
   api_endpoint = "samplePredictorValues",
-  sampleIds = def_samples$sampleId
+  sampleIds = def_samples$sampleId,
+  modelIds=modelIds
 )
 
 #subset this list to only samples/predictors that need calculated
