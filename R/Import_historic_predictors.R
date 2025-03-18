@@ -14,7 +14,7 @@ samples=NAMCr::query("samples",sampleIds=sampleIds)
 predp=dplyr::left_join(predp,samples, by="sampleId")
 
 #subset to only needed columns
-predsfinal=subset(predp,is.na(siteId)==FALSE,select=c("sampleId","siteId","predictorId","abbreviation","value","isTemporal"))
+predsfinal=subset(predp,is.na(siteId)==FALSE,select=c("sampleId","siteId","predictorId","value"))
 
 #compare these values to values already in the database
 predictorValues=NAMCr::query("samplePredictorValues",sampleIds=unique(predsfinal$sampleId))
@@ -26,21 +26,21 @@ predsfinal=subset(predsfinal,status!="Valid")
 #save each row in the database
 for (i in 1:nrow(predsfinal)){
 tryCatch({
-  if (predsfinal$isTemporal[i]==TRUE) {
-    NAMCr::save(
-      api_endpoint = "setSamplePredictorValue",
-      sampleId = predsfinal$sampleId[i],
-      predictorId = predsfinal$predictorId[i],
-      value = predsfinal$value[i]
-    )
-  } else{
+  #if (predsfinal$isTemporal[i]==TRUE) {
+    # NAMCr::save(
+    #   api_endpoint = "setSamplePredictorValue",
+    #   sampleId = predsfinal$sampleId[i],
+    #   predictorId = predsfinal$predictorId[i],
+    #   value = predsfinal$value[i]
+    # )
+  # } else{
     NAMCr::save(
       api_endpoint = "setSitePredictorValue",
       siteId = predsfinal$siteId[i],
       predictorId = predsfinal$predictorId[i],
       value = predsfinal$value[i]
     )
-  }
+  # }
 }, error = function(e) {
   cat(paste0("\n\tERROR saving: ",predsfinal$sampleId[i]," ",predsfinal$predictorId[i],"\n"))
   str(e,indent.str = "   "); cat("\n")
