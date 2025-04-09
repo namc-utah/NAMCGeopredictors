@@ -45,7 +45,7 @@ samps_For_sheds<-samps
 
 #Load state shape
 #it is imperative to change the state abbreviation!
-bama <-'C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//Watersheds//nhdPlusTools//NHDShedPath//NHD_state_info//cb_2023_us_state_20m.shp'
+bama <-paste0(NHD_config,'cb_2023_us_state_20m.shp')
 
 bama<-sf::st_read(bama)
 bama<- bama %>% dplyr::filter((STUSPS %in% c('NV')))
