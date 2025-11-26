@@ -23,7 +23,7 @@ x<-x[!duplicated(x$siteId),]
 #the function will download tiles from a bounding box (defined
 #from buffer_distance_m)
 #and then return the DEM.
-#adjust the z as needed, but know that the larger z is, the slower the process
+#adjust the z (1-14) as needed, but know that the larger z is, the slower the process
 #will take the slower the machine running this script will be.
 big_download_dem_tiles <- function(outlet_coords, buffer_distance_m) {
   # Create bounding box around the outlet with a buffer
@@ -34,12 +34,13 @@ big_download_dem_tiles <- function(outlet_coords, buffer_distance_m) {
   #convert the buffered point/polygon into a straight vector
   buff_unlisted <- unlist(buff_pt[[1]])
   #get some important information on how the vector is stored
+  #then convert to lat/long chunks
   len <- length(buff_unlisted)
   len2 <- len / 2
   len3 <- len2 + 1
   #create a new df that is just the vector info (lon/lat)
   buff_df <- data.frame(lon = buff_unlisted[1:len2], lat = buff_unlisted[len3:len])
-  #create the resulting polygon as an sf object that elevatr can use.
+  #create the resulting polygon (bounding box) as an sf object that elevatr can use.
   buff_poly <- sf::st_as_sf(buff_df, coords = c('lon', 'lat'), crs = 3338)
 
   # Download DEM tiles covering the bounding box
@@ -62,7 +63,7 @@ buffer_distance_m<-30000
 #crs 3338 is a good projection **for Alaska**
 shed_list<-sf::st_sfc(crs=3338)
 #this should be for (i in 1:nrow(x))
-for(i in 1:5){
+for(i in 1:nrow(x)){
   #print the current iteration
   message(i)
   #get just the lat/long out of x, but convert it to an sf object
@@ -120,16 +121,16 @@ for(i in 1:5){
 
 
   #the river object stores a lot of neat stuff
-  #but most of it is unncessary for delineation purposes.
-  #what we do want is "catchment" or CM
+  #but most of it is unncessary for just watershed delineation.
+  #what we do want is "catchment" or CM.  *some regions of the world call watersheds catchments
   #but it is stored in a weird list format
-  #so we will unlist it, then take the raw coords and make them
-  #into an sf object
+  #so we will unlist it, then take the raw coords and make them into an sf object
 
   o<-unlist(r$CM)
   #this is synonymous with the LIKE
   #operator in SQL. We want only values
   #whose columns contain X or Y countour
+  #these are the lines that make up the watershed
   xs<-o[ grepl( "XContour" , names( o ) ) ]
   ys<-o[ grepl( "YContour" , names( o ) ) ]
   #make a little data frame from the variables above
