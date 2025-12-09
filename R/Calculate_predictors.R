@@ -37,13 +37,11 @@ if(0){
 
 if (exists("boxId")){
   def_samples=NAMCr::query("samples",include = c("sampleId", "usState","siteId", "sampleDate"),
-                           sampleIds=c(220094))
+                           sampleIds=c(def_samples$sampleId))
 }else {def_samples=NAMCr::query("samples",include = c("sampleId", "siteId", "sampleDate"),
                                 projectId=projectId)
 }
-#def_samples=def_samples[def_samples$sampleId %in% c(212710, 212711, 212712, 213089, 213090),]
 # getting a list of samples and predictor values from the database
-def_samples=def_samples[def_samples$sampleId %in% c(220094),]
 
 def_predictors = NAMCr::query(
   api_endpoint = "samplePredictorValues",
