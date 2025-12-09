@@ -213,6 +213,28 @@ drainage_density<-function(SQLite_file_path,COMIDs,...){
    return(media[1,1])
 }
 
+#' distance downstream along the mainstem in NHD Plus
+#' @param SQLite_file_path
+#' @param COMIDs (should only be one and NHD plus v2)
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+distance_mainstem<-function(SQLite_file_path,COMIDs,...){
+  nldi_feature <- list(featureSource = "comid",
+                       featureID = as.integer(COMIDs))
+  flowline_nldi <- nhdplusTools::navigate_nldi(nldi_feature,
+                                               mode = "upstreamMain",
+                                               distance_km = 1000)
+  AOI<-sf::st_geometry(flowline_nldi$UT_flowlines)
+  AOItrans<-sf::st_transform(AOI,crs = 5070)
+  length=sf::st_length(AOItrans)
+  lengthkm=units::drop_units(sum(length)/1000)
+    media=lengthkm
+  return(media[1,1])
+}
 
 #' Drainage density of only perennial streams in the watershed in NHD Plus
 #' @param SQLite_file_path
