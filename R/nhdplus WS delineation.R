@@ -16,14 +16,34 @@ library(sf)
 library(tigris)
 library(nhdplusTools) #this was not loaded originally
 library(NAMCr)
-pred_geometry_base_path="C://Users//andrew.caudillo//Box//NAMC//"
-watershed_file_path=paste0(pred_geometry_base_path,"GIS//Watersheds//Mastersheds//mastersheds.shp")
+#pred_geometry_base_path="C://Users//andrew.caudillo//Box//NAMC//"
+
 mastershed<-st_read(watershed_file_path)
 
 #nv<-st_read('C://Users//andrew.caudillo//Box//NAMC//GIS//Watersheds//SnappedPointsSentStreamStats//CA_2023-11-01.shp')
 samps<-NAMCr::query(
   api_endpoint = "samples",
-  args=list(boxId=boxId))
+  args=list(siteIds=c(46316,46317,46318,46319,
+                      46320,46321,46322,46323,
+                      46324,46325,46326,46327,
+                      46328,46329,46330,46331,
+                      46332,46333,46334,46335,
+                      46336,46337,46338,11888,
+                      46339,46340,46341,46342,
+                      46343,46344,46345,46346,
+                      46347,46383,46384,46385,
+                      46386,46397,46398,46399,
+                      46400,46401,46402,46403,
+                      46404,46405,46406,46407,
+                      46408,46409,46410,46411,
+                      46412,46413,46414,46415,
+                      46416,46417,46418,46419,
+                      46420,46421,46422,46423,
+                      46424,46425,46426,46427,
+                      46428,46429,46430,46431,
+                      46432,46433,46434,46435,
+                      46436,46437,46438,46388,
+                      46380)))
 #samps<-samps[samps$sampleId==213513,]
 #for input from WS Delineation script...
 samps_For_sheds<-samps
@@ -42,15 +62,17 @@ samps_For_sheds<-samps[samps$siteId %in% missings_sheds$siteId,]
 
 #Load state shape
 #it is imperative to change the state abbreviation!
-bama <- states() %>% dplyr::filter((STUSPS %in% c('CA')))
+bama <- states() %>% dplyr::filter((STUSPS %in% c('NV,WY')))
 
 #making df of just the site points
 #remember that NAMC uses sites, not samples, for model application and predictors
+samps_For_sheds<-samps_For_sheds[!duplicated(samps_For_sheds$siteId),]
 samps_For_sheds_Coords<-samps_For_sheds[,c("siteLatitude","siteLongitude")]
+
 
 #this is the "pour point" essentially
 outlet<-sf::st_as_sf(samps_For_sheds_Coords, coords = c("siteLongitude","siteLatitude"),crs=4269)
-
+outlet$siteId<-samps_For_sheds$siteId
 
 #Rerpoject and clip to continental US
 bama <- st_transform(bama, 5070)
@@ -104,18 +126,21 @@ ouch<-st_transform(ouch,5070)
 NHDshed_list = rbind(NHDshed_list, st_as_sf(ouch))
 
 }
+samps_For_sheds$siteId[samps_For_sheds$siteId %in% shed_list$siteId==F]
 #plot just to see everything looks alright
 #if a shed looks incorrect, use a different method like whitebox.
 #could also use global watersheds for a quick look.
 mapview(list(outlet,NHDshed_list))
+NHDshed_list$siteId<-outlet$siteId
 mapview(list(NHDshed_list,shed_list))
+mapview(NHDshed_list[10,])
 mapview(shed_list)
-shed_list$siteid<-missings_sheds$siteId
 pal=mapviewPalette("mapviewTopoColors")
 mapview(shed_list,col.regions=pal(11))
 
 st_write(shed_list,dsn='C://Users//andrew.caudillo//Box//NAMC//GIS//Watersheds//nhdPlusTools//nv_sheds_231101.shp',append = F)
 st_write(ouch, dsn='C://Users//andrew.caudillo//Box//NAMC//GIS//Watersheds//NHD_streamstats_Compare_231102//ORID_shedtocomp.shp',append = F)
 
-st_write(NHDshed_list,dsn='C://Users//andrew.caudillo//Box//NAMC//GIS//Watersheds//nhdPlusTools//StanTec_8809.shp',append=F)
+st_write(NHDshed_list,dsn='C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//Watersheds//nhdPlusTools//problem_sheds3_241008.shp',append=F)
 NHDshed_list$x
+st_geometry(NHDshed_list)<-'geometry'
