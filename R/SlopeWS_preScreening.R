@@ -1,6 +1,6 @@
-#read in the mastersheds file
 MS<-sf::st_read(paste0(watershed_file_path))
 
+<<<<<<< HEAD
 siteIds=c(23180,
           23189,
           23175,
@@ -10,23 +10,30 @@ siteIds=c(23180,
           46583,
           23185)
 ok<-NAMCr::query('sites',siteIds=siteIds)
+=======
+MS<-MS[,c(1,3)]
+lilMS<-MS[MS$siteId %in% siteIds,]
+
+#test<-terra::rast(elevatr::get_elev_raster(lilMS,z=13))
+
+#ok<-terra::crop(test,terra::vect(lilMS),mask=T)
+#terra::plot(ok)
+
+#range(ok)
+#mapview::mapview(ok)
+>>>>>>> de02ea3f588565d67e305cb1bf4d13493cb96bbc
 
 
-#subset the MS file to just the siteIds in question (box or project)
-lilMS<-MS[MS$siteId %in% ok$siteId,]
-#read in the flow direction raster for Nevada
 flowdir<- 'C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//GIS_Stats//Nevada//elevation//NVFLD8.tif'
 FL<-terra::rast(flowdir)
-#create an empty list
 sheddy_list<-list()
-lilMS<-sf::st_transform(lilMS,terra::crs(FL))
-#fill that list with the clipped rasters.
 for(i in 1:nrow(lilMS)){
   xx<-lilMS[i,]
-  C<-terra::crop(FL,xx,mask=T)
+  C<-terra::crop(FL,terra::vect(xx),mask=T)
   #C$siteId<-lilMS$siteId[i]
   sheddy_list[[i]]<-C
 }
+<<<<<<< HEAD
 
 #plot each watershed iteratively to inspect how it looks
 #if the raster is largely one color, or contains a lot of
@@ -46,3 +53,9 @@ bad_sites<-c(43242,43261,43260,43262)
 #then, save the results for all sites to the database.
 
 good_sites<-siteIds[siteIds %in% bad_sites==F]
+=======
+do.call(rbind,sheddy_list)
+terra::plot(sheddy_list[[31]])
+lilMS$siteId[c(11,14,21,23,26,27,28,31)]
+mapview::mapview(C,map.type)
+>>>>>>> de02ea3f588565d67e305cb1bf4d13493cb96bbc
