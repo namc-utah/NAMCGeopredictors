@@ -40,7 +40,6 @@ if (exists("boxId")){
 }else {def_samples=NAMCr::query("samples",include = c("sampleId", "siteId", "sampleDate"),projectId=projectId)
 }
 
-
 # getting a list of samples and predictor values from the database
 def_predictors = NAMCr::query(
   api_endpoint = "samplePredictorValues",
@@ -84,7 +83,7 @@ if(exists("boxId")){
     api_endpoint = "sites",
     args = list(projectIds=projectId))
 }
-
+#comid_check<-comid_check[comid_check$siteId!=46564,]
 
 #subset out the empties
 #to use as a condition in Step 2
@@ -254,7 +253,17 @@ for (p in 1:length(predlist)) {
     cat("\n")
   })
 }
-
+if(modelId %in%
+   c(4,5,6,11,27,31,32,33,136,302,334,335)){
+  if(exists("boxId")){
+  sample_info<-NAMCr::query('samples',
+                            boxId=boxId)}
+  else{sample_info<-NAMCr::query('samples',
+                                 projectId=projectId)}
+  sample_info<-sample_info[,c('sampleId','sampleDate')]
+def_predictors<-plyr::join(def_predictors,sample_info,by='sampleId')
+names(def_predictors)[2]<-'absurd'
+}
 # ---------------------------------------------------------------
 # Calculate predictors
 # ---------------------------------------------------------------
@@ -332,6 +341,7 @@ write.csv(calculatedPredictors2,paste0("modelId_",modelId,"_preds_",Sys.Date(),'
 
 
 calculatedPredictors2
+
 # ---------------------------------------------------------------
 # Save predictors
 # ---------------------------------------------------------------
@@ -362,9 +372,10 @@ predsfinal=subset(predp,is.na(siteId)==FALSE,select=c("sampleId","siteId","predi
 
 #compare these values to values already in the database
 
-predictorValues=NAMCr::query("samplePredictorValues",sampleIds=unique(predsfinal$sampleId))
+predictorValues=NAMCr::query("samplePredictorValues",sampleIds=unique(predsfinal$sampleId),
+                             modelIds=modelId)
 
-
+#UCS<-predsfinal[predsfinal$abbreviation=='UCS_Mean',]
 predictorValues=predictorValues[,c("sampleId","predictorId","predictorValue","qaqcDate","predictorValueUpdatedDate","status")]
 predsfinal=dplyr::left_join(predsfinal,predictorValues,by=c("sampleId","predictorId"))
 #subset to only include samples/predictors not already in the database
@@ -377,6 +388,7 @@ if(overwrite=='N'){
 
 predsfinal$burn<-paste(predsfinal$sampleId,predsfinal$abbreviation)
 predsfinal<-predsfinal[!duplicated(predsfinal$burn),]
+
 
 if(nrow(predsfinal)>0){
   #save each row in the database
@@ -397,7 +409,7 @@ if(nrow(predsfinal)>0){
           predictorId = predsfinal$predictorId[i],
           value = predsfinal$value[i]
         )
-        message ('saved predictor!')
+        message(paste(c('saved predictor ', i, ' of ', nrow(predsfinal),'!')))
       }
     }, error = function(e) {
       cat(paste0("\n\tERROR saving: ",predsfinal$sampleId[i]," ",predsfinal$predictorId[i],"\n"))
@@ -413,7 +425,7 @@ if(nrow(predsfinal)>0){
 # QC results
 # ---------------------------------------------------------------
 #load in predictors that were just saved
-testpredictorValues=NAMCr::query("samplePredictorValues",sampleIds=unique(def_samples$sampleId))
+testpredictorValues=NAMCr::query("samplePredictorValues",sampleIds=unique(def_samples$sampleId),modelIds=modelId)
 testpredictorValues=subset(testpredictorValues,status=="Valid")
 testpredictorValues$Type="Test"
 

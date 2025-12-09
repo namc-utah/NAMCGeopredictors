@@ -166,7 +166,7 @@ ELEV_SITE<-function(x,...){
 #'
 #' @examples
 ELEV_SITE_SQRT<-function(x,...){
-  point_rast<-get_elev_point(point2process)$elevation
+  point_rast<-get_elev_point(point2process,src='aws')$elevation
   media<-sqrt(point_rast)
   #return(c(def_sites_sample$siteId,media))
   return(media)

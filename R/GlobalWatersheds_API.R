@@ -7,7 +7,9 @@ NSS_df<-read.csv(paste0(genpath,'AIM_2023_leftovers_nonStreamStats.csv')) #NV or
 #this is for pulling coordinates via NAMCr
 library(NAMCr)
 NSS_Sites<-NAMCr::query(api_endpoint = 'sites',
-                 args=list(siteIds=NSS_df$measurements))
+                 args=list(siteIds=c(
+                           43257)
+                 ))
 #we can change this to be multiple boxIDs for a bulk job
 boxes<-c(5744)
 flag=0
@@ -70,4 +72,4 @@ for(i in 1:nrow(coords)){
 newsheds<-sf::st_as_sf(data.table::rbindlist(shed_list))
 newsheds$siteId<-as.character(NSS_Sites$siteId)
 windows(10,8)
-mapview::mapview(newsheds[10,])
+mapview::mapview(newsheds)
