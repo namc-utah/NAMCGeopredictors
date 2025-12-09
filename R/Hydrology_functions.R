@@ -264,3 +264,65 @@ p_drainage_density<-function(SQLite_file_path,geometry_input_path,geometry_input
   return(media[1,1])
 }
 
+##### discharge ####
+#' Get predictor from SQLite McManamay2019 database on S3
+#'
+#' @param SQLite_McManamay_file_path
+#' @param predictor_name predictor abbreviation as it is in the database
+#' @param COMIDs
+#'
+#' @return
+#' @export
+#'
+#' @examples
+McManamay2019 <-function(SQLite_McManamay_file_path, predictor_name,COMIDs,...) {
+  conn <- DBI::dbConnect(RSQLite::SQLite(), SQLite_McManamay_file_path)
+  media = DBI::dbGetQuery(conn,sprintf("SELECT %s FROM discharge WHERE COMID in (%s)",paste0(predictor_name),inLOOP(substr(COMIDs, 1, 10))))
+  return(media)
+}
+
+#' StreamPower
+#'
+#' @param SQLite_discharge_file_path
+#' @param predictor_name predictor abbreviation as it is in the database
+#' @param COMIDs
+#' @param modelId
+#'
+#' @return
+#' @export
+#'
+#' @examples
+StreamPower<-function(SQLite_McManamay_file_path, predictor_name,COMIDs,modelId...) {
+  conn <- DBI::dbConnect(RSQLite::SQLite(), SQLite_McManamay_file_path)
+  Flow_cfs = DBI::dbGetQuery(conn,sprintf("SELECT %s FROM discharge WHERE COMID in (%s)",paste0(predictor_name),inLOOP(substr(COMIDs, 1, 10))))
+  def_predictors = NAMCr::query(
+    api_endpoint = "samplePredictorValues",
+    sampleIds = def_samples$sampleId,
+    modelIds=modelId
+  )
+  def_predictorssub=subset(def_predictors,predictorId=582)
+  media=
+  return(media)
+}
+
+#' Buffer250WetlandAreaKm
+#'
+#' @param point2process
+#' @param geometry_input_path
+#' @return
+#' @export
+#'
+#' @examples
+Buffer250WetlandAreaKm<-function(point2process,geometry_input_path,...){
+  AOItrans<-sf::st_transform(point2process, 5070) # must use the same EPSG as in the shapefile
+  AOItrans_wkt <- AOItrans %>%
+    sf::st_geometry() %>% # convert to sfc
+    sf::st_buffer(250) %>% # buffer 250 meters
+    sf::st_as_text() # convert to well known text
+  NWI<-sf::st_read(geometry_input_path, layer='NWI', wkt_filter = AOItrans_wkt)
+    area=sf::st_area(AOI_Buffer_subset)
+  media=units::drop_units(sum(area)/1000000)
+  return(media)
+  unlink(paste0(slope_bin,'/*'))
+}
+geometry_input_path="C:/Users/jenni/Box/NAMC WATS Department Files/GIS/GIS_Stats/CONUS/hydrology/NWI.gdb"
