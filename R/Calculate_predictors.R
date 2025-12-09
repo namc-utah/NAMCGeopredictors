@@ -44,14 +44,16 @@ if (exists("boxId")){
 # getting a list of samples and predictor values from the database
 def_predictors = NAMCr::query(
   api_endpoint = "samplePredictorValues",
-  sampleIds = def_samples$sampleId
+  sampleIds = def_samples$sampleId,
+  modelIds=modelId
 )
 
+####not needed any more now that a list of modelIds is required####
 #subset this list to only samples/predictors that need calculated
 
-modelpred=NAMCr::query("predictors",modelId=modelId)
+#modelpred=NAMCr::query("predictors",modelId=modelId)
 
-def_predictors=subset(def_predictors,predictorId %in% modelpred$predictorId)
+#def_predictors=subset(def_predictors,predictorId %in% modelpred$predictorId)
 
 #def_predictors = def_predictors[def_predictors$status != "Valid",]
 
@@ -224,19 +226,6 @@ predictors=dplyr::distinct(predictors)
 # ---------------------------------------------------------------
 # Store predictor geometries (raster, vector, or google earth engine) in a list variable to enable referencing by name
 # ---------------------------------------------------------------
-# load in google earth engine elevation layer for any elevation or slope predictors, really should be using source here instead but not in samplePredictorValues endpoint
-#no longer loading rgee.
-#will change this to just print a message instead?
-
-if (any(def_predictors$isGee=="true")) {
-  message('at least one predictor requires an elevation function')
-  message('all previous rgee elevation functions are now using elevatr')
-  #ee_Initialize()
-  #USGS_NED = ee$Image("USGS/NED")$select("elevation")
-} else {
-  message('no elevation functions are used in this set')
-}
-
 #create empty list to store geometries in
 pred_geometries = list()
 #create list of predictors to loop through
@@ -312,7 +301,8 @@ for (p in 1:length(predlist)){
           CurrentYear = lubridate::year(samples$sampleDate[s]),
           JulianDate = lubridate::yday(samples$sampleDate[s]),
           USGS_NED='elevatr_tile',
-          SQLite_file_path=SQLite_file_path
+          SQLite_file_path=SQLite_file_path,
+          SQLite_McManamay_file_path=SQLite_McManamay_file_path
         )
         calculatedPredictorslist[[paste0(samples$abbreviation[s])]][[paste0(samples$sampleId[s])]]<-unlist(predictor_value[[s]])
       }, error = function(e) {
