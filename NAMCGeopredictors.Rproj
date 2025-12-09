@@ -1,4 +1,5 @@
 Version: 1.0
+ProjectId: ad1730c7-c771-4438-8c37-2e25d6b95dd5
 
 RestoreWorkspace: No
 SaveWorkspace: No
@@ -20,7 +21,3 @@ BuildType: Package
 PackageUseDevtools: Yes
 PackageInstallArgs: --no-multiarch --with-keep.source
 PackageRoxygenize: rd,collate,namespace
-
-PythonType: conda
-PythonVersion: 3.10.10
-PythonPath: C:/Program Files/Conda/python.exe

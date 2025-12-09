@@ -8,10 +8,25 @@ library(leaflet)
 library(dplyr)
 library(ggplot2)
 library(plotly)
-#read in data
-#be sure that data have headers, as SQL does not export them default
-#export all westwide O/E scores for all AIM sites through time
-data<-read.csv("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC//Database//OE_results_shiny_data.csv")
+#read in data straight from database
+#adjust model ID if you want to see specific model results
+#just change title of map accordingly.
+query<-paste0("select m.model_result,
+si.longitude as Lon,
+si.latitude as Lat,
+s.sample_id as sampleId,
+strftime('%Y',s.sample_date) as Year,
+s.customer_site_code as siteName
+from model_results m
+join samples s on s.sample_id = m.sample_id
+join sites si on si.site_id = s.site_id
+where s.box_id in (select box_id from boxes
+where customer_id = 4396)
+and m.model_result is not null
+and m.model_id = 25;")
+mydb=DBI::dbConnect(RSQLite::SQLite(),'C://NAMC_S3//LegacyDatabases//instar.sqlite')
+data=DBI::dbGetQuery(mydb,query)
+#read.csv("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC//Database//OE_results_shiny_data.csv")
 #ensure the data types will play nicely
 data <- data %>%
   mutate(
@@ -56,7 +71,7 @@ server <- function(input, output, session) {
     #creating a subset of the filtered data
     df <- data %>% filter(Year == input$year)
     #just a check that will not show up on the map
-    print(paste("Data points for Year", input$year, ":", nrow(df)))  # Debugging
+    print(paste("Data points for Year", input$year, ":", nrow(df)))
     return(df)
   })
 

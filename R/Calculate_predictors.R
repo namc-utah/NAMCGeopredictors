@@ -36,11 +36,15 @@ if(0){
 
 
 if (exists("boxId")){
-  def_samples=NAMCr::query("samples",include = c("sampleId", "usState","siteId", "sampleDate"),boxId=boxId)
-}else {def_samples=NAMCr::query("samples",include = c("sampleId", "siteId", "sampleDate"),projectId=projectId)
+  def_samples=NAMCr::query("samples",include = c("sampleId", "usState","siteId", "sampleDate"),
+                           sampleIds=c(220094))
+}else {def_samples=NAMCr::query("samples",include = c("sampleId", "siteId", "sampleDate"),
+                                projectId=projectId)
 }
-
+#def_samples=def_samples[def_samples$sampleId %in% c(212710, 212711, 212712, 213089, 213090),]
 # getting a list of samples and predictor values from the database
+def_samples=def_samples[def_samples$sampleId %in% c(220094),]
+
 def_predictors = NAMCr::query(
   api_endpoint = "samplePredictorValues",
   sampleIds = def_samples$sampleId,
@@ -77,7 +81,8 @@ def_predictors = NAMCr::query(
 if(exists("boxId")){
   comid_check = NAMCr::query(
     api_endpoint = "sites",
-    args = list(boxIds=boxId))
+    args = list(boxIds=boxId)
+    )
 }else{
   comid_check = NAMCr::query(
     api_endpoint = "sites",
@@ -158,14 +163,20 @@ if(nrow(comid_check>=1)){
   print(fresh_COMIDs[,c(1:3)])
 
 }else{message('All sites have a COMID. Lucky you!')}
-
-
+#this will update COMIDs as needed
+ # for(i in 1:nrow(fresh_COMIDs)){
+ #    message(paste(i, 'of ',nrow(fresh_COMIDs)))
+ #    NAMCr::save('updateSiteWaterbodyCode',id=fresh_COMIDs$siteId[i],waterbodyCode=fresh_COMIDs$COMID[i])
+ #    message('iteration ',i,' complete!')
+ #       }
 # ---------------------------------------------------------------
 # Get the coordinates and COMID for each sample by looping over the siteInfo end point.
 # Get watersheds for each sample by pulling in watersheds by siteId from the mastersheds file on box
 # ---------------------------------------------------------------
 # get list of sites to loop over
+
 siteIds=unlist(unique(def_samples$siteId))
+
 def_sites=list()
 # for each site in def_predictors get site coordinates and comid from database
 # store as a list of lists referenced by "x" plus the siteId
@@ -232,6 +243,7 @@ predlist=unlist(unique(predictors$abbreviation))
 
 # loop through each predictor in the predictors data frame to load in all needed predictor geometries
 for (p in 1:length(predlist)) {
+  print(p)
   tryCatch({
     # change "" to is.na once end points are fixed to have this included
     if (predictors$abbreviation[p]=="SUMMER"|predictors$abbreviation[p]=="NHDSLOPE"|predictors$abbreviation[p]=="Slope_WS"|predictors$abbreviation[p]=="NHDStreamOrder"|predictors$abbreviation[p]=="WINTER"|predictors$abbreviation[p]=="length_46006"|predictors$abbreviation[p]=="pct_46003"|predictors$abbreviation[p]=="A1_3"|predictors$abbreviation[p]=="A2_5"){
@@ -254,7 +266,7 @@ for (p in 1:length(predlist)) {
   })
 }
 if(modelId %in%
-   c(4,5,6,11,27,31,32,33,136,302,334,335)){
+   c(4,5,6,11,27,31,32,33,136,302,334,335,565,566,567)){
   if(exists("boxId")){
   sample_info<-NAMCr::query('samples',
                             boxId=boxId)}
@@ -269,6 +281,7 @@ names(def_predictors)[2]<-'absurd'
 # ---------------------------------------------------------------
 #subset the predictor values to be calculated to only one predictor at a time
 calculatedPredictorslist=list()
+def_predictors=def_predictors[def_predictors$sampleId!=213089,]
 for (p in 1:length(predlist)){
   message(p)
   tryCatch({
@@ -337,20 +350,32 @@ calculatedPredictors<-as.data.frame(data.table::rbindlist(calculatedPredictorsli
 row=colnames(calculatedPredictors)[-1]
 calculatedPredictors2=data.table::transpose(calculatedPredictors,make.names=".id")
 calculatedPredictors2$sampleId<-as.numeric(row)
+# if(modelId %in%
+#    c(4,5,6,11,27,31,32,33,136,302,334,335,565,566,567)){
+#   DOY_df=def_predictors[,c('sampleId','sampleDate')]
+#   DOY_df$DOY=lubridate::yday(DOY_df$sampleDate)
+#   DOY_df<-DOY_df[!duplicated(DOY_df),]
+#   calculatedPredictors2<-plyr::join(calculatedPredictors2,DOY_df,by='sampleId')
+# }
+
 write.csv(calculatedPredictors2,paste0("modelId_",modelId,"_preds_",Sys.Date(),'.csv'))
 
 
 calculatedPredictors2
+#calculatedPredictors3<-na.omit(calculatedPredictors2)
 
+calculatedPredictors2$sampleId[calculatedPredictors2$sampleId %in% calculatedPredictors2$sampleId==F]
+#calculatedPredictors2$NHDSLOPE[is.na(calculatedPredictors2$NHDSLOPE)]<-0.00163
+#calculatedPredictors2$SUMMER[is.na(calculatedPredictors2$SUMMER)]<-12.07
+#calculatedPredictors2=calculatedPredictors2[calculatedPredictors2$sampleId !=219740,]
 # ---------------------------------------------------------------
 # Save predictors
 # ---------------------------------------------------------------
 
 
-#read in csv with just sampleId and predictors, sampleId should be the first column
 #pivot the data
 predp=reshape2::melt(calculatedPredictors2,id.vars=c("sampleId"),variable.name="abbreviation")
-#removeNAs
+#remove NAs
 predp=subset(predp,is.na(predp$value)==FALSE)
 
 #get predictorIds from the database
@@ -388,6 +413,7 @@ if(overwrite=='N'){
 
 predsfinal$burn<-paste(predsfinal$sampleId,predsfinal$abbreviation)
 predsfinal<-predsfinal[!duplicated(predsfinal$burn),]
+predsfinal<-predsfinal[,names(predsfinal) %in% 'burn' ==F]
 
 
 if(nrow(predsfinal)>0){

@@ -19,22 +19,12 @@ flow_length_with_progress <- function(in_raster, direction) {
 ######## get watersheds ###################
 def_samples = NAMCr::query(
   api_endpoint = "samples",
-  boxId=
-
+  boxId=12544
   )
+
 # getting watershed
 siteIds=unlist(unique(def_samples$siteId))
-siteIds<-siteIds[siteIds %in% c(5245,14432,30640,14433,42677,42695,
-                                42889,42903,42904,42909,43205,43206,
-                                22799,43212,43233,43235,43236,43237,
-                                43241,43243,43263,43254,43245,43239,
-                                43234,43216,43258,43252,43250,43249,
-                                43248,43247,43244,43215,43209,43262,
-                                30661,30651,5242,10743,14437,20817,
-                                42911,43260,43242,14266,43197,43207,
-                                43210,43227,43238,11083,42686,42887,
-                                43202,43213,43214,43226,43228,43229,
-                                43230,43240,43246,43251,43256,43261)==F]#14521)==F]
+#siteIds<-siteIds[siteIds %in% c(43242,43261,43260,43262,43232)==F]
 def_sites=list()
 # for each site in def_predictors get site coordinates and comid from database
 # store as a list of lists referenced by "x" plus the siteId
@@ -103,38 +93,38 @@ for (s in 1:nrow(def_watersheds)){
 
 
 slopesdf=as.data.frame(cbind(slopes))
+#slopesdf<-unlist(slopes) #if only 1 site
 ###########################################
-
+#def_sites<-def_sites[,-ncol(def_sites)]
 ##### join to siteID and sampleID
 def_sites=cbind(def_sites,slopesdf)
 def_sites$siteId=as.numeric(def_sites$siteId)
+#add back "bad sites", which will receive a NULL
+#we will change that to 0 soon
 join=dplyr::left_join(def_samples,def_sites,by='siteId')
+#join<-join[join$boxId==10162,]
+#replace NULL with 0
 join[join=='NULL']<-0
 join$Slope_WS=unlist(join$slopes)
 #create dataframe named for saving into database then run save code in calculate predictors
 
-join<-data.frame(siteId=siteIds,
+df<-data.frame(siteId=siteIds,
                  predictorId=128,
-                 value=0)
+               value=join$Slope_WS[is.na(join$Slope_WS)==F])
+               #if only 1 site, just make it slopesdf
+                 #value=slopesdf)#
 
-if(0){
-calculatedPredictors2<-data.frame(
-  siteId=join$siteId,
-  predictorId=128,
-  value = join$Slope_WS
-)
 
-for(i in 1:nrow(join)){
+for(i in 1:nrow(df)){
 NAMCr::save(
   api_endpoint = "setSitePredictorValue",
-  siteId = join$siteId[i],
-  predictorId = 128 ,
-  value = join$Slope_WS[i]
+  siteId =as.numeric(df$siteId[i]),
+  predictorId = df$predictorId[i] ,
+  value = df$value[i]
 )
   message('saved slope!')
   }
-}
-sldf=as.data.frame(sl)
+
 
 
 #doesnt work for some reason!!!

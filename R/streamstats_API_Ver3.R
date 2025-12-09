@@ -50,7 +50,11 @@ library(sf)
 if(exists("boxId")){
   points2process<-NAMCr::query(
     api_endpoint = "samples",
-    args=list(boxId=boxId))
+    args=list(sampleIds=c(219722,
+                          220094,
+                          220096,
+                          220116,
+                          220490)))
 }else{
   points2process<-NAMCr::query(
     api_endpoint = "samples",
@@ -58,6 +62,7 @@ if(exists("boxId")){
 
 }
 #read in master sheds
+
 MS<-st_read(watershed_file_path)
 site_info<-NAMCr::query('sites',
                         siteIds=points2process$siteId)
@@ -127,7 +132,7 @@ f<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Fil
 g<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//WA_stream_stats_polyline_prj.shp")
 h<-st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//NM_streamstats_prj.shp")
 i<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//AZ_streamstats_prj.shp")
-sf_polyline <- rbind(b,e,f,g)
+sf_polyline <- rbind(b,d,e)
 
 #intersect the buffered points and lines
 intermed_intersect <- st_intersects(sf_polyline,buffered_pts_2)
@@ -363,7 +368,7 @@ for (i in 1:nrow(snapt)) {
         polygon$siteId <- site
         polygon$COMID <- y$COMID
         polygon<-st_transform(polygon,5070)
-        polygon$SCArea<-Area_info$WSAREASQKM[Area_info$COMID==polygon$COMID]
+        #polygon$SCArea<-Area_info$WSAREASQKM[Area_info$COMID==polygon$COMID]
         polygon$Area<-st_area(polygon)
         polygon$Area<-polygon$Area / 1000000
         polygon<-st_transform(polygon,4326)
@@ -418,11 +423,7 @@ if(length(nonStStats)>0){
 #view to check sheds against topographic map. do they make sense? Are there bugaboos?
 #if yes, subset them manually into a new object!
 mapview(listy)+mapview(isolated_segments)+mapview(points2process)
-listy<-listy[listy$siteId %in% c(6852, 12216, 46590, 46624)==F,]
-mapview(listy2)
-listy2<-listy[listy$siteId%in% c(46455)==F,]
-mapview::mapview(allsheds,map.types='OpenTopoMap')+mapview::mapview(out_xy[out_xy$siteId %in% allsheds$siteId,])
-listy<-listy[listy$siteId %in% c(46664,46667)==F,]
+
 #allsheds$check<-ifelse(allsheds$Area > 1.7*allsheds$SCArea,'Check StreamCat',ifelse(allsheds$Area < allsheds$SCArea*0.02,"Hillslope",'all good'))
 
 st_write(listy,'C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//Watersheds//streamstats_R//10558_sheds.shp')

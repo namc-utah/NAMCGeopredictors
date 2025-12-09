@@ -1,17 +1,20 @@
 
 library(sf)
-library(maptools)
-df<-st_read(paste0(genpath,'AIM_2023_leftovers_issuepoints_needsheds','.shp')) #issus with streamstats
-NSS_df<-read.csv(paste0(genpath,'AIM_2023_leftovers_nonStreamStats.csv')) #NV or WY
+#install.packages('maptools')
+#library(maptools)
+#df<-st_read(paste0(genpath,'AIM_2023_leftovers_issuepoints_needsheds','.shp')) #issus with streamstats
+#NSS_df<-read.csv(paste0(genpath,'AIM_2023_leftovers_nonStreamStats.csv')) #NV or WY
 #}
 #this is for pulling coordinates via NAMCr
 library(NAMCr)
 NSS_Sites<-NAMCr::query(api_endpoint = 'sites',
                  args=list(siteIds=c(
-                           43257)
+                   34066,42765
+                 )
                  ))
 #we can change this to be multiple boxIDs for a bulk job
-boxes<-c(5744)
+boxes<-c(10162)
+projectId=6098
 flag=0
 
 if( length(boxes) > 1){
@@ -26,7 +29,7 @@ if( length(boxes) > 1){
 }else{
   #or just read in the one box
   result<-query(api_endpoint = 'samples',
-                args=list(boxId=boxes))
+                args=list(projectId=projectId))
 }
 #Global watersheds offers an API of sorts
 #all that it needs is a lat/long with the below url (with some other pieces, see for loop below)
@@ -38,14 +41,14 @@ if( length(boxes) > 1){
 myhydro<-'https://mghydro.com/app/watershed_api?'
 
 #make a dataframe of the coordinates that we want watersheds for
-coords<-data.frame(Lat=df$OrgLAT,Lon=df$OrgLONG)
-coords<-data.frame(Lat=result$siteLatitude,Lon=result$sampleLongitude)
-coords<-data.frame(Lon=NSS_Sites$longitude,Lat=NSS_Sites$latitude)
+#coords<-data.frame(Lat=df$OrgLAT,Lon=df$OrgLONG)
+coords<-data.frame(Lat=NSS_Sites$latitude,Lon=NSS_Sites$longitude)
+#coords<-data.frame(Lon=NSS_Sites$longitude,Lat=NSS_Sites$latitude)
 sf_coords<- st_as_sf(x=coords,
                   coords=c('Lon','Lat'),
                  crs=4269)
 #set this wherever this needs to go
-setwd()
+
 shed_list<-list()
 for(i in 1:nrow(coords)){
   #create the link by pasting the dynamic parts with the static parts
@@ -68,8 +71,9 @@ for(i in 1:nrow(coords)){
 }
 
 #make them all into one shapefile
-
+shed_list
 newsheds<-sf::st_as_sf(data.table::rbindlist(shed_list))
 newsheds$siteId<-as.character(NSS_Sites$siteId)
+newsheds<-newsheds[!duplicated(newsheds$siteId),]
 windows(10,8)
 mapview::mapview(newsheds)

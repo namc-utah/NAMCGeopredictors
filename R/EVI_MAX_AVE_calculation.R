@@ -1,4 +1,6 @@
 #EVI
+#calculates EVI max ave for the UDEQ index
+#for some reason, the file does not open in the R script for predictor calculation
 
 EVI_rast<-terra::rast('C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS/GIS_Stats/CONUS/vegetation/evi_max_10B.tif')
 sheds<-terra::vect(def_watersheds)
