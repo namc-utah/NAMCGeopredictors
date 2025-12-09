@@ -11,7 +11,7 @@ clippedFlowRaster=sa$ExtractByMask('C:/Users/jenni/OneDrive - USU/Documents/geos
 def_samples = NAMCr::query(
   api_endpoint = "samples",
   include = c("sampleId", "siteId", "sampleDate"),
-  projectId=4545,
+  projectId=4611,
 
 )
 # getting watershed
@@ -44,7 +44,7 @@ def_watersheds=sf::st_make_valid(sf::st_read(watershed_file_path, query=sprintf(
 
 ########### calculate slope #####################
 slopes=list()
-for (s in 1:15){
+for (s in 1:14){
   polygon2process=def_watersheds[s,2]
   polygon2processtrans<-sf::st_transform(polygon2process, 5072)# transforming to CRS of NV D8 point Flow Direction
   #write buffer of watershed out as a shapefile
