@@ -1,7 +1,7 @@
 def_samples = NAMCr::query(
   api_endpoint = "samples",
   include = c("sampleId", "siteId", "sampleDate"),
-  projectId=387
+  projectId=49
 
 )
 
@@ -25,7 +25,33 @@ for (t in 1:length(siteIds)){
   }
 
 }
+point2process=sf::st_read("C:/Users/jenni/Box/NAMC (Trip Armstrong)/Research Projects/AIM/P_Hab Modeling/Final analyses/modeling/allsites.shp")
+point2process=sf::st_transform(point2process,crs=5070)
+polygon2process=sf::st_buffer(point2process,1250)
+polygon2process=subset(polygon2process,fines_scre!='R')
+range=list()
 
+
+
+for (s in 1:nrow(polygon2process)){
+range[[s]]=VALLEY_ELEV_RANGE(polygon2process[s,])
+print(s)
+}
+
+bslope=list()
+for (s in 6221:nrow(polygon2process)){
+  bslope[[s]]=slpavg(polygon2process[s,])
+  print(s)
+}
+
+
+def_sites=read.csv("C:/Users/jenni/Box/NAMC (Trip Armstrong)/Research Projects/AIM/P_Hab Modeling/Final analyses/modeling/Final AIM results for NOC/AIM_2022_2023_PHAB_pred.csv")
+def_sites=sf::st_as_sf(def_sites,coords=c('long','lat'),crs=4269)
+lengths3=list()
+for (s in 1:nrow(def_sites)){
+
+  lengths3[[s]]=sum_lengthKM(point2process=def_sites[s,],geometry_input_path="C:/Users/jenni/Box/NAMC (Trip Armstrong)/GIS/GIS_Stats/CONUS/streams/NHD_West_str_ord.shp")
+}
 
 lengths=list()
 for (s in 1:nrow(def_sites)){
@@ -82,7 +108,39 @@ tryCatch({lengths3[[s]]=NHDSLOPE(point2process=geojsonsf::geojson_sf(def_sites$l
   str(e,indent.str = "   "); cat("\n")
 } )
 }
+DEM_trashbin=tempdir()
+
+polygon2process=sf::st_make_valid(sf::st_read("C:/Users/jenni/Box/NAMC (Trip Armstrong)/Research Projects/AIM/P_Hab Modeling/Final analyses/modeling/watershedsforslope.shp"))
+slopel=list()
+for (s in 1:nrows(polygon2process)){
+
+  tryCatch({slopel[[s]]=slpavg(polygon2process[s,])
+  #unlink(paste0(DEM_trashbin,'/*'))
+
+  }, error = function(e) {
+    cat(paste0("\n\tERROR calculating: ",polygon2process[s,],"\n"))
+    str(e,indent.str = "   "); cat("\n")
+  } )
+
+}
+lengths3df=as.data.frame(unlist(as.data.frame(cbind(slopel))))
+
+slopefinal=as.data.frame(cbind(lengths3df,polygon2process$siteId[c(1331:1333,1656,1723:1724,1777:1792)]))
+write.csv(slopefinal,"slopepart9.csv")
 
 
-lengths=list()
-for (s in 1:nrow(def_sites)){
+polygon2process=def_watersheds
+wsarea=list()
+for (s in 1:nrow(polygon2process)){
+
+  tryCatch({wsarea[[s]]=WSA_SQKM(polygon2process[s,])
+  #unlink(paste0(DEM_trashbin,'/*'))
+
+  }, error = function(e) {
+    cat(paste0("\n\tERROR calculating: ",polygon2process[s,],"\n"))
+    str(e,indent.str = "   "); cat("\n")
+  } )
+
+}
+lengths3df=as.data.frame(unlist(as.data.frame(cbind(wsarea))))
+wsareafinal=as.data.frame(cbind(polygon2process$siteId,wsarea))
