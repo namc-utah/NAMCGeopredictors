@@ -25,30 +25,24 @@ mastershed<-st_read(watershed_file_path)
 #nv<-st_read('C://Users//andrew.caudillo//Box//NAMC//GIS//Watersheds//SnappedPointsSentStreamStats//CA_2023-11-01.shp')
 samps<-NAMCr::query(
   api_endpoint = "samples",
-  args=list(projectId=5767))
-samps<-samps[samps$siteId %in% lilMS$siteId[44:89],]
-#samps<-samps[samps$siteId==46642,]
-#for input from WS Delineation script...
-#samps_For_sheds<-samps[samps$siteId==46455,]
+  projectId=projectId)
 
-#missings_sheds<-st_read('C://Users//andrew.caudillo//Box//NAMC//GIS//Watersheds//ManualDelineations//2023-11-01.shp')
-
-#missings_sheds<-missings_sheds[missings_sheds$siteId %in% mastershed$siteId==F,]
 
 missings_sheds<-samps[samps$siteId %in% mastershed$siteId==F,]
 missings_sheds<-samps
 #missings_sheds<-samps$siteId[samps$siteId %in% missings_sheds]
 samps_For_sheds<-samps[samps$siteId %in% missings_sheds$siteId,]
-samps_For_sheds<-samps_For_sheds[samps_For_sheds$siteId==46642,]
-#samps_For_sheds<-missings_sheds
-samps_For_sheds<-samps
+#samps_For_sheds<-samps_For_sheds[samps_For_sheds$siteId==46642,]
+samps_For_sheds<-missings_sheds
+#samps_For_sheds<-samps
 
 #Load state shape
 #it is imperative to change the state abbreviation!
 bama <-paste0(NHD_config,'cb_2023_us_state_20m.shp')
 
 bama<-sf::st_read(bama)
-bama<- bama %>% dplyr::filter((STUSPS %in% c('NV')))
+bama<- bama %>% dplyr::filter((STUSPS %in% c('WY')))
+
 
 #making df of just the site points
 #remember that NAMC uses sites, not samples, for model application and predictors
@@ -58,19 +52,6 @@ samps_For_sheds_Coords<-samps_For_sheds[,c("siteLatitude","siteLongitude")]
 #this is the "pour point" essentially
 outlet<-sf::st_as_sf(samps_For_sheds_Coords, coords = c("siteLongitude","siteLatitude"),crs=4326)
 outlet$siteId<-samps_For_sheds$siteId
-# outlet<-outlet[outlet$siteId %in% c(46298,
-#                                     46299,
-#                                     46300,
-#                                     46301,
-#                                     46302,
-#                                     46303,
-#                                     46304,
-#                                     46305,
-#                                     46306,
-#                                     46307,
-#                                     46308,
-#                                     46309,
-#                                     46310),]
 
 #Rerpoject and clip to continental US
 bama <- st_transform(bama, 5070)
@@ -94,65 +75,126 @@ outlet <- st_transform(outlet, 5070)
 NHDshed_list<-st_sfc(crs=5070)
 #this is just a check for failed sites
 siteIds<-as.data.frame(matrix(ncol=1,nrow = nrow(outlet)))
-for(i in 1:nrow(outlet)){
+
+for (i in 1:nrow(outlet)) {
   print(i)
-#isolate the geometry
-point_sf<-outlet$geometry[i, , drop=F]
-#make it a point
-point_geo<-st_geometry(point_sf)[[1]]
-#make it an sf object
-point_geo_sfc<-st_sfc(st_point(c(st_coordinates(point_geo)[1,1],st_coordinates(point_geo)[1,2])))
-st_crs(point_geo_sfc)<-5070
-#coerce the coordinate system
-print(point_geo_sfc)
-#determine comid
-start_comid <- discover_nhdplus_id(st_sfc(point_geo_sfc))
-#make sure it worked
-print(start_comid)
 
-#isolating flowlines of interest
-flowlines <- navigate_nldi(list(featureSource = "comid",
-                                featureID = start_comid),
-                           mode = "upstreamTributaries",
-                           distance_km = 1000)
+  # Wrap the whole iteration in tryCatch
+  tryCatch({
+    # isolate the geometry
+    point_sf <- outlet$geometry[i, , drop = FALSE]
 
+    # make it a point
+    point_geo <- st_geometry(point_sf)[[1]]
 
-# Note, the next step pulls NHDplus data from NLNDI server.
+    # make it an sf object
+    point_geo_sfc <- st_sfc(st_point(c(st_coordinates(point_geo)[1, 1],
+                                       st_coordinates(point_geo)[1, 2])))
+    st_crs(point_geo_sfc) <- 5070
+    print(point_geo_sfc)
 
-# https://www.usgs.gov/national-hydrography/access-national-hydrography-products
+    # determine comid
+    start_comid <- discover_nhdplus_id(st_sfc(point_geo_sfc))
+    print(start_comid)
 
-#get nhdplus files
-subset_file <- tempfile(fileext = ".gpkg")
-subset <- subset_nhdplus(comids = as.integer(flowlines$UT$nhdplus_comid),
-                         output_file = subset_file,
-                         nhdplus_data = "download",
-                         flowline_only = FALSE,
-                         return_data = TRUE, overwrite = TRUE)
-#Get the watershed (catchment)
-catchment <- sf::read_sf(subset_file, "CatchmentSP")
+    # isolating flowlines of interest
+    flowlines <- navigate_nldi(list(featureSource = "comid",
+                                    featureID = start_comid),
+                               mode = "upstreamTributaries",
+                               distance_km = 1000)
 
-#Dissovle files to single catchment
-#making all subwatersheds into one
-catchment <- sf::st_union(catchment)
-#fill any holes from the geoprocessing
-catchment<-sfheaders::sf_remove_holes(catchment)
-#transform it to match the other crs
-catchment<-st_transform(catchment,5070)
+    # get NHDplus files
+    subset_file <- tempfile(fileext = ".gpkg")
+    subset <- subset_nhdplus(comids = as.integer(flowlines$UT$nhdplus_comid),
+                             output_file = subset_file,
+                             nhdplus_data = "download",
+                             flowline_only = FALSE,
+                             return_data = TRUE,
+                             overwrite = TRUE)
 
-#make a list of sheds that grows with each iteration
-NHDshed_list = rbind(NHDshed_list, st_as_sf(catchment))
-#keep a list of the sites that made it through
-siteIds$V1[i]<-outlet$siteId[i]
+    # get the watershed (catchment)
+    catchment <- sf::read_sf(subset_file, "CatchmentSP")
+
+    # dissolve files to single catchment
+    catchment <- sf::st_union(catchment)
+
+    # fill any holes from geoprocessing
+    catchment <- sfheaders::sf_remove_holes(catchment)
+
+    # transform CRS to match
+    catchment <- st_transform(catchment, 5070)
+
+    # append to list
+    NHDshed_list <- rbind(NHDshed_list, st_as_sf(catchment))
+
+    # record successful siteId
+    siteIds$siteId[i] <- outlet$siteId[i]
+
+  }, error = function(e) {
+    message(paste("Error at iteration", i, ":", e$message))
+    # Skip to the next iteration
+    next
+  })
 }
 st_geometry(NHDshed_list)<-'geometry'
-NHDshed_list$siteId<-siteIds
+NHDshed_list$siteId=siteIds$siteId
 
 #samps_For_sheds$siteId[samps_For_sheds$siteId %in% shed_list$siteId==F]
 #plot just to see everything looks alright
 #if a shed looks incorrect, use a different method like whitebox.
 #could also use global watersheds for a quick look.
 mapview(list(outlet,NHDshed_list))
-
+mapview(NHDshed_list)
 #st_write(NHDshed_list,dsn='C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//Watersheds//nhdPlusTools//WY_10163.shp',append=F)
 
+if(0){for(i in 1:nrow(outlet)){
+  print(i)
+  #isolate the geometry
+  point_sf<-outlet$geometry[i, , drop=F]
+  #make it a point
+  point_geo<-st_geometry(point_sf)[[1]]
+  #make it an sf object
+  point_geo_sfc<-st_sfc(st_point(c(st_coordinates(point_geo)[1,1],st_coordinates(point_geo)[1,2])))
+  st_crs(point_geo_sfc)<-5070
+  #coerce the coordinate system
+  print(point_geo_sfc)
+  #determine comid
+  start_comid <- discover_nhdplus_id(st_sfc(point_geo_sfc))
+  #make sure it worked
+  print(start_comid)
 
+  #isolating flowlines of interest
+  flowlines <- navigate_nldi(list(featureSource = "comid",
+                                  featureID = start_comid),
+                             mode = "upstreamTributaries",
+                             distance_km = 1000)
+
+
+  # Note, the next step pulls NHDplus data from NLNDI server.
+
+  # https://www.usgs.gov/national-hydrography/access-national-hydrography-products
+
+  #get nhdplus files
+  subset_file <- tempfile(fileext = ".gpkg")
+  subset <- subset_nhdplus(comids = as.integer(flowlines$UT$nhdplus_comid),
+                           output_file = subset_file,
+                           nhdplus_data = "download",
+                           flowline_only = FALSE,
+                           return_data = TRUE, overwrite = TRUE)
+  #Get the watershed (catchment)
+  catchment <- sf::read_sf(subset_file, "CatchmentSP")
+
+  #Dissovle files to single catchment
+  #making all subwatersheds into one
+  catchment <- sf::st_union(catchment)
+  #fill any holes from the geoprocessing
+  catchment<-sfheaders::sf_remove_holes(catchment)
+  #transform it to match the other crs
+  catchment<-st_transform(catchment,5070)
+
+  #make a list of sheds that grows with each iteration
+  NHDshed_list = rbind(NHDshed_list, st_as_sf(catchment))
+  #keep a list of the sites that made it through
+  siteIds$siteId[i]<-outlet$siteId[i]
+}
+}

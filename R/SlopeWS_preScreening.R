@@ -1,6 +1,14 @@
 #read in the mastersheds file
 MS<-sf::st_read(paste0(watershed_file_path))
 
+siteIds=c(23180,
+          23189,
+          23175,
+          23187,
+          46578,
+          46581,
+          46583,
+          23185)
 ok<-NAMCr::query('sites',siteIds=siteIds)
 
 
@@ -26,16 +34,15 @@ for(i in 1:nrow(lilMS)){
 #essentially 0, so we will set those aside and assign them to be 0
 #for the predictor Slope_WS
 graphics.off()
-s<-70
+s<-8
 terra::plot(sheddy_list[[s]],
             main=as.character(lilMS$siteId[s]))
 
-
+bad_sites<-c(43242,43261,43260,43262)
 #subset only the sites that have good flow directions and run those
 #sites in the Slope_Ws script.
 #Once the Slope_WS script calculates the slope for the good sheds,
 #append the rest of the failed sites and assign 0 to those manually
 #then, save the results for all sites to the database.
 
-lilMS$siteId[c(118,115,113,111,101,72,71,70,69,68,67,66,58,56,40,9,21)]
-lilMS[lilMS$siteId==30661,]
+good_sites<-siteIds[siteIds %in% bad_sites==F]
