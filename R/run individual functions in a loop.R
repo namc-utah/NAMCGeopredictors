@@ -25,12 +25,54 @@ for (t in 1:length(siteIds)){
   }
 
 }
+sites=read.csv('phabAIMsites.csv')
+point2process=sf::st_as_sf(sites,coords=c('long','lat'),crs=4326)
 point2process=sf::st_read("C:/Users/jenni/Box/NAMC (Trip Armstrong)/Research Projects/AIM/P_Hab Modeling/Final analyses/modeling/allsites.shp")
 point2process=sf::st_transform(point2process,crs=5070)
 polygon2process=sf::st_buffer(point2process,1250)
 polygon2process=subset(polygon2process,fines_scre!='R')
 range=list()
 
+point2process=sf::st_read("C:/Users/jenni/Box/NAMC (Trip Armstrong)/Research Projects/AIM/P_Hab Modeling/Final analyses/modeling/allsites.shp")
+point2process=sf::st_transform(point2process,crs=5070)
+polygon2process=sf::st_buffer(point2process,250)
+polygon2process=subset(polygon2process,fines_scre!='R')
+range=list()
+
+point2process=sf::st_as_sf(sites,coords=c('long','lat'),crs=4326)
+
+
+
+for (s in 1:nrow(polygon2process)){
+range[[s]]=VALLEY_ELEV_RANGE(polygon2process[s,])
+print(s)
+}
+
+bslope=list()
+for (s in 1:nrow(polygon2process)){
+  bslope[[s]]=slpavg(polygon2process[s,])
+  print(s)
+}
+
+bslopedf=as.data.frame(unlist(cbind(bslope)))
+rangedf=as.data.frame(unlist(cbind(range)))
+w=cbind(lengths2df,bslopedf,rangedf)
+
+lengths3=list()
+for (s in 1:702){
+  lengths3[[s]]=p_drainage_density(SQLite_file_path,geometry_input_path,geometry_input_name,COMIDs = comids[s])
+ }
+
+
+
+
+def_sites=read.csv("C:/Users/jenni/Box/NAMC (Trip Armstrong)/Research Projects/AIM/P_Hab Modeling/Final analyses/modeling/Final AIM results for NOC/AIM_2022_2023_PHAB_pred.csv")
+def_sites=sf::st_as_sf(def_sites,coords=c('long','lat'),crs=4269)
+lengths3=list()
+for (s in 1:nrow(def_sites)){
+
+  lengths3[[s]]=sum_lengthKM(point2process=def_sites[s,],geometry_input_path="C:/Users/jenni/Box/NAMC (Trip Armstrong)/GIS/GIS_Stats/CONUS/streams/NHD_West_str_ord.shp")
+}
 
 
 for (s in 1:nrow(polygon2process)){
@@ -70,14 +112,15 @@ for (s in 1:nrow(def_sites)){
 
 lengthsdf=unlist(as.data.frame(cbind(lengths)))
 
+def_sites=point2process
 
 lengths2=list()
 for (s in 1:nrow(def_sites)){
 
-  lengths2[[s]]=length_46006(point2process=geojsonsf::geojson_sf(def_sites$location[s]),geometry_input_path="C:/Users/jenni/Box/NAMC (Trip Armstrong)/GIS/GIS_Stats/CONUS/streams/NHD_West_str_ord.shp")
+  lengths2[[s]]=length_46006(point2process[s,],geometry_input_path="C:/Users/A01964518/Box/NAMC WATS Department Files/GIS/GIS_Stats/CONUS/streams/NHD_West_str_ord.shp")
 }
 
-lengths2df=as.data.frame(cbind(lengths2))
+lengths2df=as.data.frame(unlist(cbind(lengths2)))
 
 lengths3=list()
 for (s in 1:nrow(def_sites)){
