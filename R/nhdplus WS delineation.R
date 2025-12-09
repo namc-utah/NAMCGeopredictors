@@ -1,10 +1,8 @@
 # Quick Watershed Delineation using NHDPlusTools
-  # Coder: Nate Jones (cnjones7@ua.edu),
   # adapted for NAMC use by Andrew Caudillo
 
 
-  # 1.0 Setup Environment --------------------------------------------------------
-# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  # 1.0 Setup Environment
 #clear memory
 rm(list=ls())
 
@@ -13,9 +11,16 @@ library(tidyverse)
 library(mapview)
 library(raster)
 library(sf)
-library(tigris)
-library(nhdplusTools) #this was not loaded originally
+#library(tigris)
+library(nhdplusTools)
+  #remotes::install_github('DOI-USGS/nhdplusTools')
+#this was not loaded originally
 library(NAMCr)
+<<<<<<< HEAD
+=======
+#options(tigris_use_cache=T)
+#tigris_cache_dir('C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//Watersheds//nhdPlusTools//NHDShedPath')
+>>>>>>> 0839bc5a3fd53eafc724b387e4630586d68c914d
 #pred_geometry_base_path="C://Users//andrew.caudillo//Box//NAMC//"
 
 mastershed<-st_read(watershed_file_path)
@@ -23,6 +28,7 @@ mastershed<-st_read(watershed_file_path)
 #nv<-st_read('C://Users//andrew.caudillo//Box//NAMC//GIS//Watersheds//SnappedPointsSentStreamStats//CA_2023-11-01.shp')
 samps<-NAMCr::query(
   api_endpoint = "samples",
+<<<<<<< HEAD
   args=list(siteIds=c(46316,46317,46318,46319,
                       46320,46321,46322,46323,
                       46324,46325,46326,46327,
@@ -45,24 +51,36 @@ samps<-NAMCr::query(
                       46436,46437,46438,46388,
                       46380)))
 #samps<-samps[samps$sampleId==213513,]
+=======
+  args=list(projectId=5767))
+samps<-samps[samps$siteId %in% lilMS$siteId[44:89],]
+#samps<-samps[samps$siteId==46642,]
+>>>>>>> 0839bc5a3fd53eafc724b387e4630586d68c914d
 #for input from WS Delineation script...
-samps_For_sheds<-samps
+#samps_For_sheds<-samps[samps$siteId==46455,]
 
 #missings_sheds<-st_read('C://Users//andrew.caudillo//Box//NAMC//GIS//Watersheds//ManualDelineations//2023-11-01.shp')
 
 #missings_sheds<-missings_sheds[missings_sheds$siteId %in% mastershed$siteId==F,]
 
 missings_sheds<-samps[samps$siteId %in% mastershed$siteId==F,]
-#missings_sheds<-samps
+missings_sheds<-samps
 #missings_sheds<-samps$siteId[samps$siteId %in% missings_sheds]
 samps_For_sheds<-samps[samps$siteId %in% missings_sheds$siteId,]
-
+samps_For_sheds<-samps_For_sheds[samps_For_sheds$siteId==46642,]
 #samps_For_sheds<-missings_sheds
-#samps_For_sheds<-samps
+samps_For_sheds<-samps
 
 #Load state shape
 #it is imperative to change the state abbreviation!
+<<<<<<< HEAD
 bama <- states() %>% dplyr::filter((STUSPS %in% c('NV,WY')))
+=======
+bama <-paste0(NHD_config,'cb_2023_us_state_20m.shp')
+
+bama<-sf::st_read(bama)
+bama<- bama %>% dplyr::filter((STUSPS %in% c('NV')))
+>>>>>>> 0839bc5a3fd53eafc724b387e4630586d68c914d
 
 #making df of just the site points
 #remember that NAMC uses sites, not samples, for model application and predictors
@@ -71,8 +89,26 @@ samps_For_sheds_Coords<-samps_For_sheds[,c("siteLatitude","siteLongitude")]
 
 
 #this is the "pour point" essentially
+<<<<<<< HEAD
 outlet<-sf::st_as_sf(samps_For_sheds_Coords, coords = c("siteLongitude","siteLatitude"),crs=4269)
 outlet$siteId<-samps_For_sheds$siteId
+=======
+outlet<-sf::st_as_sf(samps_For_sheds_Coords, coords = c("siteLongitude","siteLatitude"),crs=4326)
+outlet$siteId<-samps_For_sheds$siteId
+# outlet<-outlet[outlet$siteId %in% c(46298,
+#                                     46299,
+#                                     46300,
+#                                     46301,
+#                                     46302,
+#                                     46303,
+#                                     46304,
+#                                     46305,
+#                                     46306,
+#                                     46307,
+#                                     46308,
+#                                     46309,
+#                                     46310),]
+>>>>>>> 0839bc5a3fd53eafc724b387e4630586d68c914d
 
 #Rerpoject and clip to continental US
 bama <- st_transform(bama, 5070)
@@ -83,28 +119,44 @@ outlet <- st_transform(outlet, 5070)
 # 2.0 Delineate ----------------------------------------------------------------
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #Create starting point
-NHDshed_list<-st_sfc(crs=5070)
 
 #for loop that allows N sheds to be delineated
 #and then binds them into one object at the end
 #excellent use for large sets, especially
 #AIM sets when they first come in.
+
+
+#create the list
+#needs to have a crs for this to work,
+#unlike the streamstats generation.
+NHDshed_list<-st_sfc(crs=5070)
+#this is just a check for failed sites
+siteIds<-as.data.frame(matrix(ncol=1,nrow = nrow(outlet)))
 for(i in 1:nrow(outlet)){
   print(i)
-start_comid <- discover_nhdplus_id(outlet$geometry[i])
-start_comid
+#isolate the geometry
+point_sf<-outlet$geometry[i, , drop=F]
+#make it a point
+point_geo<-st_geometry(point_sf)[[1]]
+#make it an sf object
+point_geo_sfc<-st_sfc(st_point(c(st_coordinates(point_geo)[1,1],st_coordinates(point_geo)[1,2])))
+st_crs(point_geo_sfc)<-5070
+#coerce the coordinate system
+print(point_geo_sfc)
+#determine comid
+start_comid <- discover_nhdplus_id(st_sfc(point_geo_sfc))
+#make sure it worked
+print(start_comid)
 
-# flowlines
+#isolating flowlines of interest
 flowlines <- navigate_nldi(list(featureSource = "comid",
                                 featureID = start_comid),
                            mode = "upstreamTributaries",
                            distance_km = 1000)
 
 
+# Note, the next step pulls NHDplus data from NLNDI server.
 
-# Note, the next step pulls NHDplus data from NLNDI server. For large watersheds,
-# it will likely be faster to download the WBD form the USGS National Map website (link below),
-# and intersect the "flowlines" shape above with the downloaded layer.
 # https://www.usgs.gov/national-hydrography/access-national-hydrography-products
 
 #get nhdplus files
@@ -114,33 +166,50 @@ subset <- subset_nhdplus(comids = as.integer(flowlines$UT$nhdplus_comid),
                          nhdplus_data = "download",
                          flowline_only = FALSE,
                          return_data = TRUE, overwrite = TRUE)
-#catchments
+#Get the watershed (catchment)
 catchment <- sf::read_sf(subset_file, "CatchmentSP")
 
 #Dissovle files to single catchment
+#making all subwatersheds into one
 catchment <- sf::st_union(catchment)
-ouch<-sfheaders::sf_remove_holes(catchment)
+#fill any holes from the geoprocessing
+catchment<-sfheaders::sf_remove_holes(catchment)
+#transform it to match the other crs
+catchment<-st_transform(catchment,5070)
 
-ouch<-st_transform(ouch,5070)
 #make a list of sheds that grows with each iteration
-NHDshed_list = rbind(NHDshed_list, st_as_sf(ouch))
-
+NHDshed_list = rbind(NHDshed_list, st_as_sf(catchment))
+#keep a list of the sites that made it through
+siteIds$V1[i]<-outlet$siteId[i]
 }
+<<<<<<< HEAD
 samps_For_sheds$siteId[samps_For_sheds$siteId %in% shed_list$siteId==F]
+=======
+st_geometry(NHDshed_list)<-'geometry'
+NHDshed_list$siteId<-siteIds
+
+#samps_For_sheds$siteId[samps_For_sheds$siteId %in% shed_list$siteId==F]
+>>>>>>> 0839bc5a3fd53eafc724b387e4630586d68c914d
 #plot just to see everything looks alright
 #if a shed looks incorrect, use a different method like whitebox.
 #could also use global watersheds for a quick look.
 mapview(list(outlet,NHDshed_list))
+<<<<<<< HEAD
 NHDshed_list$siteId<-outlet$siteId
 mapview(list(NHDshed_list,shed_list))
 mapview(NHDshed_list[10,])
 mapview(shed_list)
 pal=mapviewPalette("mapviewTopoColors")
 mapview(shed_list,col.regions=pal(11))
+=======
+>>>>>>> 0839bc5a3fd53eafc724b387e4630586d68c914d
 
-st_write(shed_list,dsn='C://Users//andrew.caudillo//Box//NAMC//GIS//Watersheds//nhdPlusTools//nv_sheds_231101.shp',append = F)
-st_write(ouch, dsn='C://Users//andrew.caudillo//Box//NAMC//GIS//Watersheds//NHD_streamstats_Compare_231102//ORID_shedtocomp.shp',append = F)
+#st_write(NHDshed_list,dsn='C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//Watersheds//nhdPlusTools//WY_10163.shp',append=F)
 
+
+<<<<<<< HEAD
 st_write(NHDshed_list,dsn='C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//Watersheds//nhdPlusTools//problem_sheds3_241008.shp',append=F)
 NHDshed_list$x
 st_geometry(NHDshed_list)<-'geometry'
+=======
+>>>>>>> 0839bc5a3fd53eafc724b387e4630586d68c914d
