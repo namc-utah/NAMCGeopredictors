@@ -5,7 +5,7 @@ shp <- st_read('C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department 
 shp2<-st_read('C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//Watersheds//PIBO_Shapefiles//PIBO Watersheds//NPS//Catchment_523_15_I.shp')
 
 
-shp<-shed_list
+shp<-listy[,c('siteId','geometry')]
 shp2<-listy[,c('siteId','geometry')]
 shp<-sf::st_transform(shp,crs(shp2))
 #shp2<-st_transform(shp2,crs(shp))

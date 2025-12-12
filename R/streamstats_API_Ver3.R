@@ -50,11 +50,7 @@ library(sf)
 if(exists("boxId")){
   points2process<-NAMCr::query(
     api_endpoint = "samples",
-    args=list(sampleIds=c(219722,
-                          220094,
-                          220096,
-                          220116,
-                          220490)))
+    args=list(siteIds=33671))
 }else{
   points2process<-NAMCr::query(
     api_endpoint = "samples",
@@ -132,7 +128,7 @@ f<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Fil
 g<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//WA_stream_stats_polyline_prj.shp")
 h<-st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//NM_streamstats_prj.shp")
 i<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//AZ_streamstats_prj.shp")
-sf_polyline <- rbind(b,d,e)
+sf_polyline <- a#rbind(b,d,e)
 
 #intersect the buffered points and lines
 intermed_intersect <- st_intersects(sf_polyline,buffered_pts_2)
