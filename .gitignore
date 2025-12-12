@@ -16,3 +16,7 @@
 *.shx
 *.geojson
 Config.R
+.Rproj.user
+*.zip
+*.sqlite
+*.tif
