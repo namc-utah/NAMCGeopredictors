@@ -14,7 +14,7 @@ temp_RASTER_path<-tempdir()
 #in this case, x = all Alaska sites that NAMC has determined need watersheds
 x<-NAMCr::query(
   api_endpoint = "sites",
-  args = list(siteIds=nonStStats$siteId))
+  args = list(siteIds=33671))
 #remove duplicates to save time and memory
 x<-x[!duplicated(x$siteId),]
 #define the function to donwload the DEM for each point
@@ -58,7 +58,7 @@ big_download_dem_tiles <- function(outlet_coords, buffer_distance_m) {
 #a bigger buffer distance is safer (i.e., lower chance of failing),
 #but at the cost of time and processing power.
 
-buffer_distance_m<-1900
+buffer_distance_m<-40000
 #create an empty list in which to store the sheds
 #crs 3338 is a good projection **for Alaska**
 shed_list<-sf::st_sfc(crs=5070)
