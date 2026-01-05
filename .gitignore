@@ -16,3 +16,4 @@
 *.shx
 *.geojson
 Config.R
+.Rproj.user
