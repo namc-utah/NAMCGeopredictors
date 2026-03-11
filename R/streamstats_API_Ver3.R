@@ -50,7 +50,7 @@ library(sf)
 if(exists("boxId")){
   points2process<-NAMCr::query(
     api_endpoint = "samples",
-    args=list(siteIds=33671))
+    boxId=boxId)
 }else{
   points2process<-NAMCr::query(
     api_endpoint = "samples",
@@ -59,9 +59,15 @@ if(exists("boxId")){
 }
 #read in master sheds
 
+# points3process=NAMCr::query(
+#   api_endpoint = "samples",
+#   sampleIds=220870)
+# points2process<-rbind(points2process,points3process)
+
 MS<-st_read(watershed_file_path)
 site_info<-NAMCr::query('sites',
                         siteIds=points2process$siteId)
+site_info<-site_info[site_info$usState!='Alaska',]
 #query to help us check WS area to see if watershed makes sense
 #or is just a tributary
 query<- paste0("SELECT WsAreaSqKm,COMID FROM StreamCat_2022 WHERE COMID IN (", paste(site_info$waterbodyCode,collapse=','), ")")
@@ -114,7 +120,7 @@ library(htmlwidgets)
 sf_data <- points2process
 #convert to projected so it is flat
 sf_data<- st_transform(sf_data, crs=5070)#convert to the streamstats CRS, projected for linear measurements
-buffered_pts <- st_buffer(sf_data,400) #400m
+buffered_pts <- st_buffer(sf_data,500) #500m
 #now convert back to 4326, since that is Shiny's preference
 buffered_pts_2<-st_transform(buffered_pts,4326)
 # Create polyline data
@@ -128,7 +134,7 @@ f<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Fil
 g<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//WA_stream_stats_polyline_prj.shp")
 h<-st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//NM_streamstats_prj.shp")
 i<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//AZ_streamstats_prj.shp")
-sf_polyline <- a#rbind(b,d,e)
+sf_polyline <- e#rbind(i,e,f)
 
 #intersect the buffered points and lines
 intermed_intersect <- st_intersects(sf_polyline,buffered_pts_2)
@@ -142,6 +148,7 @@ library(dplyr)
 
 #load coordinate data
 coords_data <- data.frame(id = points2process$siteId, lng = st_coordinates(points2process)[,1], lat = st_coordinates(points2process)[,2])
+#coords_data=coords_data[coords_data$id %in% c(46921,46927,46930,46932,46933,46936,46939,46941,46945,46970),]
 #and the isolated lines
 lines_sf<-isolated_segments
 #set up the UI
@@ -271,6 +278,7 @@ out_xy=out_xy[order(out_xy$siteId),]
 }
 
 
+
 #make the updated coords object the new data from which we will
 #delineate sheds
 snapt<-st_as_sf(updated_coords,coords=c('lng','lat'),crs=4326)
@@ -288,6 +296,8 @@ names(snapt)[names(snapt)=='waterbodyCode']<-'COMID'
 listy<-list()
 #assign temp directory for the jsons.
 shed_trashbin<-tempdir()
+#remove any artifacts of weird ingestion that makes sites in antarctica.
+snapt<-snapt[snapt$lat>0,]
 
 #This is the for loop that will download jsons via URLs
 #convert them to an sf object
@@ -297,6 +307,7 @@ shed_trashbin<-tempdir()
 #if a watershed is large, it may not work in this interface
 #due to 60s timeout limit.
 #if that is the case, use another method.
+
 for (i in 1:nrow(snapt)) {
   message(paste(i, ' of ', nrow(snapt)))
   # Remove any past sheds from previous iterations to avoid confusion
@@ -339,36 +350,27 @@ for (i in 1:nrow(snapt)) {
         message('Accessing URL...')
 
         # Creating the URL
-        url <- paste0('https://streamstats.usgs.gov/streamstatsservices/watershed.geojson?',
-                      'rcode=', y$STATE_ABBR, '&xlocation=', X, '&ylocation=', Y,
-                      '&crs=4269&includeparameters=false&includeflowtypes=false&includefeatures=true&simplify=false')
+        url<-paste0('https://streamstats.usgs.gov/ss-delineate/v1/delineate/features/',y$STATE_ABBR,'?lat=',
+               Y,'&lon=',X)
+        #url <- paste0('https://streamstats.usgs.gov/streamstatsservices/watershed.geojson?',
+                      #'rcode=', y$STATE_ABBR, '&xlocation=', X, '&ylocation=', Y,
+                      #'&crs=4269&includeparameters=false&includeflowtypes=false&includefeatures=true&simplify=false')
         #download the file to a temp directory
-        download.file(url, 'jsontest.geojson')
-        message('GeoJSON downloaded')
+        jj<-st_read(url)#download.file(url, 'jsontest.geojson')
+        message('GeoJSON downloaded and imported')
+        polygon<-jj[jj$scope=='split_catchment',]
 
-        # Read in the json
-        pp <- jsonlite::fromJSON('jsontest.geojson')
-        message('GeoJSON imported')
-
-        # convert the json to an sf object (see function at top of script for
-        #details)
-        jj <- convert_to_sf(jsonio = pp)
-
-        # Coerce to polygon because the sheds come back as points for some reason
-        polygon <- jj %>%
-          summarize(do_union = FALSE) %>%
-          st_cast("POLYGON")
-        message('The shed is now a polygon')
 
         # Assign siteId
         polygon$siteId <- site
         polygon$COMID <- y$COMID
         polygon<-st_transform(polygon,5070)
-        #polygon$SCArea<-Area_info$WSAREASQKM[Area_info$COMID==polygon$COMID]
+        #polygon$SCArea<-Area_info$WsAreaSqKm[as.integer(Area_info$COMID)==as.integer(polygon$COMID)]
         polygon$Area<-st_area(polygon)
-        polygon$Area<-polygon$Area / 1000000
+        #polygon$Area<-polygon$Area / 1000000
+        polygon$Area=units::set_units(polygon$Area, 'km2')
         polygon<-st_transform(polygon,4326)
-        units::set_units(polygon$Area, 'km2')
+
 
         # Assign to the list element
         listy[[i]] <- polygon
@@ -418,11 +420,13 @@ if(length(nonStStats)>0){
 #allsheds$Area<-set_units(allsheds$Area,'km2')
 #view to check sheds against topographic map. do they make sense? Are there bugaboos?
 #if yes, subset them manually into a new object!
-mapview(listy)+mapview(isolated_segments)+mapview(points2process)
+mapview(listy,map.types = "OpenTopoMap")+
+  mapview(isolated_segments,map.types = "OpenTopoMap")+
+  mapview(points2process,map.types = "OpenTopoMap")
 
 #allsheds$check<-ifelse(allsheds$Area > 1.7*allsheds$SCArea,'Check StreamCat',ifelse(allsheds$Area < allsheds$SCArea*0.02,"Hillslope",'all good'))
 
 st_write(listy,'C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//Watersheds//streamstats_R//10558_sheds.shp')
 
-
-
+listy2=listy[listy$siteId %in% c(46921,46927,46930,46932,46933,46936,46939,46941,46945,46970),]
+listy3=listy[!(listy$siteId %in% c(46921,46927,46930,46932,46933,46936,46939,46941,46945,46970)),]
