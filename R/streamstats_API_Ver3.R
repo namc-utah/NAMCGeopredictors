@@ -16,30 +16,9 @@ rm(list=ls())
 #using trycatch outside of a function can lead to issues
 #with variables not carrying over from outside the block
 #the result is an sf object.
-convert_to_sf <- function(jsonio) {
-  tryCatch({
-    # Attempt to convert data to sf object
-    sf_object <- st_as_sf(as.data.frame(jsonio[["featurecollection"]][["feature"]][["features"]][[2]][["geometry"]][["coordinates"]][[1]][[2]]),
-                          coords=c('V1','V2'),crs=4269)
-  }, error = function(e) {
-    message('Well, this is awkward. Unusual file format? Let us try this...')
 
-    # Handle the error by importing geometry as data frame and converting to sf
-    z<-as.data.frame(jsonio[["featurecollection"]][["feature"]][["features"]][[2]][["geometry"]][["coordinates"]][[1]])
-    message('shed imported as DF!')
-    zz<-data.frame(X=as.vector(as.matrix(z[,1:(ncol(z)/2)])),Y=as.vector(as.matrix(z[,(1+(ncol(z)/2)):ncol(z)])))
-    message('shed shaped into 2 field DF')
-    sf_object<-st_as_sf(zz,coords=c('X','Y'),crs=4269)
-    message('shed is now an SF object. Phew!')
-
-    # Return the sf object to be assigned
-    return(sf_object)
-  })
-
-  # Return the sf object (either from try or error)
-}
 #boxId<-10063
-max_retries<-5 #max number of retries allowed
+
 
 genpath<-'C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//Watersheds//'
 library(NAMCr)
@@ -281,7 +260,16 @@ out_xy=out_xy[order(out_xy$siteId),]
 
 #make the updated coords object the new data from which we will
 #delineate sheds
-snapt<-st_as_sf(updated_coords,coords=c('lng','lat'),crs=4326)
+updated_coords_sf=st_as_sf(updated_coords,coords=c('lng','lat'),crs=4269)
+updated_coords_sf=st_transform(updated_coords_sf,st_crs(isolated_segments))
+#ensure that points are snapped to the nearest line segment
+#the new StreamStats does not snap the point for you, it seems.
+nrst_lines_idx=st_nearest_feature(updated_coords_sf,isolated_segments)
+nrst_lines=isolated_segments[nrst_lines_idx,]
+segms=st_nearest_points(updated_coords_sf,nrst_lines,pairwise=T)
+snappy=st_cast(segms, "POINT")[seq(2, length(segms) * 2, by = 2)]
+#transform the new points to the WGS84 crs that StreamStats wants
+snapt<-st_transform(snappy,4326)
 snapt<-as.data.frame(st_coordinates(snapt))
 names(snapt)<-c('lng','lat')
 #add necessary columns
@@ -292,6 +280,7 @@ COMIDS<-COMIDS[!duplicated(COMIDS$site_info.siteId),]
 names(COMIDS)<-c('siteId','waterbodyCode')
 snapt<-plyr::join(snapt,COMIDS,by='siteId')
 names(snapt)[names(snapt)=='waterbodyCode']<-'COMID'
+
 #empty list to save sheds to
 listy<-list()
 #assign temp directory for the jsons.
@@ -310,37 +299,6 @@ snapt<-snapt[snapt$lat>0,]
 
 for (i in 1:nrow(snapt)) {
   message(paste(i, ' of ', nrow(snapt)))
-  # Remove any past sheds from previous iterations to avoid confusion
-  if (exists('pp')) {
-    message('Removing previous sheds...')
-    rm(pp)
-  }
-  #remove any old json file objects that R stored from a previous iteration
-  if (exists('jj')) {
-    rm(jj)
-  }
-#set some values for the retrying part
-#retries is the number of retries R has tried for a watershed
-#streamstats admins say that the API can sometimes return
-#failed objects and to try up to 5 times before quitting
-  retries <- 0
-#setting this value, which dictates whether the loop should retry a shed or
-#jump to the next iteration. This gets re-written lower in the code
-  success <- FALSE
-
-  #the while loop decides if a shed needs to be re-download or if it successful
-  #when we have fewer than 5 retries and still failed, then we restart the attempt
-  #and increase the retry counter by 1
-  while (retries < max_retries && !success) {
-    withRestarts(
-      retry = function() {
-        retries <<- retries + 1
-        message(sprintf("Retrying... Attempt %d of %d", retries, max_retries))
-      },
-      #this the actual json section
-      #tryCatch allows an error handler that can be customized
-      #instead of the code just breaking as soon as an error happens
-      tryCatch({
         # Subset out the ith
         #and define some variables
         y <- snapt[i,]
@@ -352,14 +310,47 @@ for (i in 1:nrow(snapt)) {
         # Creating the URL
         url<-paste0('https://streamstats.usgs.gov/ss-delineate/v1/delineate/features/',y$STATE_ABBR,'?lat=',
                Y,'&lon=',X)
-        #url <- paste0('https://streamstats.usgs.gov/streamstatsservices/watershed.geojson?',
-                      #'rcode=', y$STATE_ABBR, '&xlocation=', X, '&ylocation=', Y,
-                      #'&crs=4269&includeparameters=false&includeflowtypes=false&includefeatures=true&simplify=false')
-        #download the file to a temp directory
+
         jj<-st_read(url)#download.file(url, 'jsontest.geojson')
         message('GeoJSON downloaded and imported')
-        polygon<-jj[jj$scope=='split_catchment',]
-
+        #the new streamstats output has 3 different "datasets"
+        #1) the upstream_basin - If the pour point falls on the stream network topology
+        #(suggesting flow between different watersheds within the region),
+        #a search is conducted to find those other basins which contribute flow.
+        #There may be multiple upstream basins.
+        #If the pour point is not on the stream network, or if the pourpoint is in a headwater,
+        #the upstream_basin element will be empty.
+        #2) split catchment - This is the within-catchment geometry upstream of the pourpoint.
+        #It is computed by examination of the flow direction raster layer.
+        #(It is not incorrect, but is incomplete for NAMC's uses)
+        #3) adjoint catchment: This is the catchment geometry which is adjacent to
+        #and upstream of the catchment holding the pourpoint.
+        #If the supplied pour point does not fall on a designated stream
+        #(suggesting inter-catchment flow within the watershed),
+        #the adjoint catchment will be empty.
+        #The adjoint may also be empty if the pour point is in a headwater area with no upstream catchments.
+        #(this is the closest to what the previous StreamStats delineation tool did.)
+        if(!st_is_empty(jj[jj$scope=='adjoint_catchment',]$geometry)){
+          message('Using adjoint catchment!')
+          polygon=jj[jj$scope=='adjoint_catchment',]
+        } else{
+          if(st_is_empty(jj[jj$scope=='adjoint_catchment',]$geometry)){
+            message('adjoint catchment is empty. Trying others.')
+              if (!st_is_empty(jj[jj$scope=='split_catchment',]$geometry)){
+                 message('Using split catchment...')
+                   polygon=jj[jj$scope=='split_catchment',]
+                            if (st_is_empty(jj[jj$scope=='split_catchment',]$geometry)){
+                                  message('split and adjoint catchments are empty. Trying upstream basin')
+                                     if (!st_is_empty(jj[jj$scope=='split_catchment',]$geometry)){
+                                           message('Using upstream basin')
+                                              polygon=jj[jj$scope=='upstream_basin',]
+        }else{
+            message('polygon is empty. There is an issue with this point on the streamstats grid')
+        }
+                                     }
+                            }
+              }
+          }
 
         # Assign siteId
         polygon$siteId <- site
@@ -380,22 +371,9 @@ for (i in 1:nrow(snapt)) {
 
         # Tell us that it is done
         message('End of iteration\n')
-        message(paste('Processed shed ', i, ' of ', nrow(snapt)))
-        success <- TRUE
-      }, #here is the error handler
-      error = function(e) {
-        message('Error occurred while processing. Attempting to retry...')
-        invokeRestart("retry")
-      })
-    )
-  }
-#This message will appear if we have met all 5 retries and still failed.
-  if (!success) {
-    message(sprintf("Skipping iteration %d after %d failed attempts\n", i, retries))
-    # Handle skipped iteration if necessary
-    next  # Skip to next iteration
-  }
 }
+#This message will appear if we have met all 5 retries and still failed.
+
 #now for post-processing
 #convert the list to a dataframe
 listy<-do.call(rbind,listy)
@@ -422,7 +400,8 @@ if(length(nonStStats)>0){
 #if yes, subset them manually into a new object!
 mapview(listy,map.types = "OpenTopoMap")+
   mapview(isolated_segments,map.types = "OpenTopoMap")+
-  mapview(points2process,map.types = "OpenTopoMap")
+  mapview(points2process,map.types = "OpenTopoMap",col.regions='red')+
+  mapview(snapt,xcol='lng',ycol='lat',map.types='OpenTopoMap',col.regions='blue')
 
 #allsheds$check<-ifelse(allsheds$Area > 1.7*allsheds$SCArea,'Check StreamCat',ifelse(allsheds$Area < allsheds$SCArea*0.02,"Hillslope",'all good'))
 
