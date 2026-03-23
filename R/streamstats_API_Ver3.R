@@ -55,7 +55,7 @@ mydb=DBI::dbConnect(RSQLite::SQLite(),'C://NAMC_S3//streamcat_dat//StreamCat2022
 Area_info<-dbGetQuery(mydb,query)
 Area_info
 #omit sites already in mastersheds
-points2process<-points2process[points2process$siteId %in% MS$siteId ==F,]
+points2process<-points2process[points2process$siteId %in% as.integer(MS$siteId) ==F,]
 points2process<-points2process[!duplicated(points2process$siteId),]
 #assigning a state abbreviation
 #This only encompasses NAMC's main study region, but if we were
@@ -104,16 +104,17 @@ buffered_pts <- st_buffer(sf_data,500) #500m
 buffered_pts_2<-st_transform(buffered_pts,4326)
 # Create polyline data
 #read in as many as you need for the states that streamstat offers
-a<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//CA_stream_stats_polyline_prj.shp")# this will be whatever state you want to look at.
-b<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//CO_stream_stats_polyline_prj.shp")
-c<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//MT_stream_stats_polyline_prj.shp")
-d<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//ID_stream_stats_polyline_prj.shp")
-e<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//UT_stream_stats_polyline_prj.shp")
-f<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//OR_stream_stats_polyline_prj.shp")
-g<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//WA_stream_stats_polyline_prj.shp")
-h<-st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//NM_streamstats_prj.shp")
-i<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//AZ_streamstats_prj.shp")
-sf_polyline <- e#rbind(i,e,f)
+CA<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//CA_stream_stats_polyline_prj.shp")# this will be whatever state you want to look at.
+CO<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//CO_stream_stats_polyline_prj.shp")
+MT<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//MT_stream_stats_polyline_prj.shp")
+ID<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//ID_stream_stats_polyline_prj.shp")
+UT<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//UT_stream_stats_polyline_prj.shp")
+OR<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//OR_stream_stats_polyline_prj.shp")
+WA<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//WA_stream_stats_polyline_prj.shp")
+NM<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//NM_streamstats_prj_prj.shp")) #re-projected on 3/20 due to CRS issue
+AZ<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//AZ_streamstats_prj_prj.shp")) #re-projected on 3/20 due to CRS issue
+sf_polyline <- rbind(NM,AZ)
+
 
 #intersect the buffered points and lines
 intermed_intersect <- st_intersects(sf_polyline,buffered_pts_2)
@@ -312,6 +313,8 @@ for (i in 1:nrow(snapt)) {
                Y,'&lon=',X)
 
         jj<-st_read(url)#download.file(url, 'jsontest.geojson')
+
+        polygon=dplyr::bind_rows(jj[jj$scope %in% c('split_catchment','adjoint_catchment'),])# st_union(jj)
         message('GeoJSON downloaded and imported')
         #the new streamstats output has 3 different "datasets"
         #1) the upstream_basin - If the pour point falls on the stream network topology
@@ -330,29 +333,30 @@ for (i in 1:nrow(snapt)) {
         #the adjoint catchment will be empty.
         #The adjoint may also be empty if the pour point is in a headwater area with no upstream catchments.
         #(this is the closest to what the previous StreamStats delineation tool did.)
-        if(!st_is_empty(jj[jj$scope=='adjoint_catchment',]$geometry)){
-          message('Using adjoint catchment!')
-          polygon=jj[jj$scope=='adjoint_catchment',]
-        } else{
-          if(st_is_empty(jj[jj$scope=='adjoint_catchment',]$geometry)){
-            message('adjoint catchment is empty. Trying others.')
-              if (!st_is_empty(jj[jj$scope=='split_catchment',]$geometry)){
-                 message('Using split catchment...')
-                   polygon=jj[jj$scope=='split_catchment',]
-                            if (st_is_empty(jj[jj$scope=='split_catchment',]$geometry)){
-                                  message('split and adjoint catchments are empty. Trying upstream basin')
-                                     if (!st_is_empty(jj[jj$scope=='split_catchment',]$geometry)){
-                                           message('Using upstream basin')
-                                              polygon=jj[jj$scope=='upstream_basin',]
-        }else{
-            message('polygon is empty. There is an issue with this point on the streamstats grid')
-        }
-                                     }
-                            }
-              }
-          }
+        # if(!st_is_empty(jj[jj$scope=='adjoint_catchment',]$geometry)){
+        #   message('Using adjoint catchment!')
+        #   polygon=jj[jj$scope=='adjoint_catchment',]
+        # } else{
+        #   if(st_is_empty(jj[jj$scope=='adjoint_catchment',]$geometry)){
+        #     message('adjoint catchment is empty. Trying others.')
+        #       if (!st_is_empty(jj[jj$scope=='split_catchment',]$geometry)){
+        #          message('Using split catchment...')
+        #            polygon=jj[jj$scope=='split_catchment',]
+        #                     if (st_is_empty(jj[jj$scope=='split_catchment',]$geometry)){
+        #                           message('split and adjoint catchments are empty. Trying upstream basin')
+        #                              if (!st_is_empty(jj[jj$scope=='split_catchment',]$geometry)){
+        #                                    message('Using upstream basin')
+        #                                       polygon=jj[jj$scope=='upstream_basin',]
+        # }else{
+        #     message('polygon is empty. There is an issue with this point on the streamstats grid')
+        # }
+        #                              }
+        #                     }
+        #       }
+        #   }
 
         # Assign siteId
+        message('assigning site and COMID')
         polygon$siteId <- site
         polygon$COMID <- y$COMID
         polygon<-st_transform(polygon,5070)
@@ -361,6 +365,7 @@ for (i in 1:nrow(snapt)) {
         #polygon$Area<-polygon$Area / 1000000
         polygon$Area=units::set_units(polygon$Area, 'km2')
         polygon<-st_transform(polygon,4326)
+        polygon<-st_sf(geometry = st_union(polygon))
 
 
         # Assign to the list element
@@ -377,31 +382,20 @@ for (i in 1:nrow(snapt)) {
 #now for post-processing
 #convert the list to a dataframe
 listy<-do.call(rbind,listy)
-#if we are missing sheds because of NEXT
-if(nrow(listy)< nrow(snapt)){
-  warning('some of your sheds failed...')
-  #create a vector of sites that failed and use rivnet or nhd for them
-  #you can even call issue sheds from this script if you have the other
-  #scripts open in this environment.
-  issue_sheds<-snapt$siteId[snapt$siteId %in% listy$siteId==F]
-  message('some sites still require watersheds. Try another method.')
-  message('issue_sheds contains all sites that failed.')
-  allsheds<-listy[!is.null(listy),]
-}else{
-  message('All watersheds were delineated! Lucky you!')
-  allsheds<-listy
-}
-if(length(nonStStats)>0){
-  message(paste(nonStStats$siteId, 'need(s) watershed(s) delineated via rivnet or NHDplus'))
-}
+listy$siteId=snapt$siteId
 
-#allsheds$Area<-set_units(allsheds$Area,'km2')
+
 #view to check sheds against topographic map. do they make sense? Are there bugaboos?
 #if yes, subset them manually into a new object!
-mapview(listy,map.types = "OpenTopoMap")+
+splits=jj[jj$scope=='split_catchment',]
+ups=jj[jj$scope=='upstream_basin',]
+snapt_sf=st_as_sf(snapt,coords=c('lng','lat'),crs=4326)
+mapview(listy,map.types = "OpenTopoMap",col.regions='blue')+
   mapview(isolated_segments,map.types = "OpenTopoMap")+
-  mapview(points2process,map.types = "OpenTopoMap",col.regions='red')+
-  mapview(snapt,xcol='lng',ycol='lat',map.types='OpenTopoMap',col.regions='blue')
+  mapview(snapt_sf,map.types = "OpenTopoMap",col.regions='hotpink')
+  #mapview(MS[MS$siteId %in% listy$siteId,],col.regions='red')
+  #mapview(snapt,xcol='lng',ycol='lat',map.types='OpenTopoMap',col.regions='blue')+
+  #mapview(splits,col.regions='red')
 
 #allsheds$check<-ifelse(allsheds$Area > 1.7*allsheds$SCArea,'Check StreamCat',ifelse(allsheds$Area < allsheds$SCArea*0.02,"Hillslope",'all good'))
 
