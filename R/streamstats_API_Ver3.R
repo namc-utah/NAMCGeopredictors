@@ -1,24 +1,13 @@
 #YET ANOTHER Streamcat workaround.
-#Streamcat is no longer available for 4.3.2+
-#so we will just fetch the JSONs from their website. No... it is not stealing...
 #As long as we are using the correct areas that StreamStats covers, we should
 #not have any failed watersheds. The failures in the past are not from StreamStats,
 #but the streamstats package, which USGS apparently had no affiliation with.
-#Anomalies can happen with downloads, as per StreamStats Admin. They say to keep
-#attempting downloads until it works (up to 5 times)
+#Anomalies can happen with downloads, as per StreamStats Admin.
+#This code will be taking the shapefiles directly from the StreamStats API
+#via dynamic urls
+
 
 rm(list=ls())
-
-#this function will handle the json formats that streamstats returns.
-#it can either be the "expected" format, or a weird format
-#with a single record that has all the Xs and Ys.
-#just a try catch within a function.
-#using trycatch outside of a function can lead to issues
-#with variables not carrying over from outside the block
-#the result is an sf object.
-
-#boxId<-10063
-
 
 genpath<-'C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//Watersheds//'
 library(NAMCr)
@@ -38,15 +27,10 @@ if(exists("boxId")){
 }
 #read in master sheds
 
-# points3process=NAMCr::query(
-#   api_endpoint = "samples",
-#   sampleIds=220870)
-# points2process<-rbind(points2process,points3process)
-
 MS<-st_read(watershed_file_path)
 site_info<-NAMCr::query('sites',
                         siteIds=points2process$siteId)
-site_info<-site_info[site_info$usState!='Alaska',]
+#site_info<-site_info[site_info$usState!='Alaska',]
 #query to help us check WS area to see if watershed makes sense
 #or is just a tributary
 query<- paste0("SELECT WsAreaSqKm,COMID FROM StreamCat_2022 WHERE COMID IN (", paste(site_info$waterbodyCode,collapse=','), ")")
@@ -73,11 +57,22 @@ points2process$STATE_ABBR<-ifelse(points2process$usState=='California','CA',
                                                                                                  ifelse(points2process$usState=='Wyoming','WY','MT')))))))))))
 #remove duplicate siteIds from a box (which does happen)
 points2process<-points2process[!duplicated(points2process$siteId),]
-
-#remove any Alaska sites, since they cannot get watersheds
-points2process<-points2process[points2process$usState!='Alaska',]
-#making the above object an sf object
-points2process= sf::st_as_sf(points2process,coords=c("siteLongitude","siteLatitude"),crs=4269)
+points2process= sf::st_as_sf(points2process,coords=c("siteLongitude","siteLatitude"),crs=4326)
+#spatial check to see if any AK points fall into the StreamStats grid!
+#if so, we can keep them. If not, remove them for rivnet etc. delineation
+if(length(points2process$STATE_ABBR[points2process$STATE_ABBR=='AK'])>=1){
+  AK= sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//AK_stream_stats_polyline2026_prj.shp"))
+  AK_bbox=sf::st_bbox(AK)
+  bbox_poly=sf::st_as_sfc(AK_bbox)
+  points_in_bbox=points2process[bbox_poly,]
+}
+if(nrow(points_in_bbox)==0){
+  rm("points_in_bbox")
+  sites_for_AK=points2process$siteId
+}else{
+  points2process<-points2process[points2process$usState!='Alaska',]
+  points2process=dplyr::bind_rows(points2process,points_in_bbox)
+}
 
 #use this for rivnet or another delineation process
 #since streamstats does not cover NV or WY
@@ -104,13 +99,13 @@ buffered_pts <- st_buffer(sf_data,500) #500m
 buffered_pts_2<-st_transform(buffered_pts,4326)
 # Create polyline data
 #read in as many as you need for the states that streamstat offers
-CA<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//CA_stream_stats_polyline_prj.shp")# this will be whatever state you want to look at.
-CO<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//CO_stream_stats_polyline_prj.shp")
-MT<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//MT_stream_stats_polyline_prj.shp")
-ID<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//ID_stream_stats_polyline_prj.shp")
-UT<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//UT_stream_stats_polyline_prj.shp")
-OR<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//OR_stream_stats_polyline_prj.shp")
-WA<- st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//WA_stream_stats_polyline_prj.shp")
+CA<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//CA_stream_stats_polyline_prj.shp"))# this will be whatever state you want to look at.
+CO<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//CO_stream_stats_polyline_prj.shp"))
+MT<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//MT_stream_stats_polyline_prj.shp"))
+ID<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//ID_stream_stats_polyline_prj.shp"))
+UT<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//UT_stream_stats_polyline_prj.shp"))
+OR<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//OR_stream_stats_polyline_prj.shp"))
+WA<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//WA_stream_stats_polyline_prj.shp"))
 NM<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//NM_streamstats_prj_prj.shp")) #re-projected on 3/20 due to CRS issue
 AZ<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//AZ_streamstats_prj_prj.shp")) #re-projected on 3/20 due to CRS issue
 sf_polyline <- rbind(NM,AZ)
