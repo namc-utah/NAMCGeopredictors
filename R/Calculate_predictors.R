@@ -37,7 +37,7 @@ if(0){
 
 if (exists("boxId")){
   def_samples=NAMCr::query("samples",include = c("sampleId", "usState","siteId", "sampleDate"),
-                           sampleIds=c(def_samples$sampleId))
+                           boxId=boxId)
 }else {def_samples=NAMCr::query("samples",include = c("sampleId", "siteId", "sampleDate"),
                                 projectId=projectId)
 }

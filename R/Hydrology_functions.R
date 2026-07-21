@@ -189,6 +189,7 @@ A2_5<-function(point2process,geometry_input_path,...){
   return(media)
 }
 
+
 #' Drainage density of all streams in the watershed in NHD Plus
 #' @param SQLite_file_path
 #' @param COMIDs (should only be one and NHD plus v2)

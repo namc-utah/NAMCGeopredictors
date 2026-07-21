@@ -35,7 +35,34 @@ StreamCat_single_pred <-function(SQLite_file_path, predictor_name,COMIDs,...) {
     media = DBI::dbGetQuery(conn,sprintf("SELECT Precip8110Ws as Precip8110 FROM StreamCat_2022 WHERE COMID in (%s)",inLOOP(substr(COMIDs, 1, 10))))
   } else if (predictor_name == "PctSalLake"){
     media = DBI::dbGetQuery(conn,sprintf("SELECT PctSalLakeWs as PctSalLake FROM StreamCat_2022 WHERE COMID in (%s)",inLOOP(substr(COMIDs, 1, 10))))
-  }else{
+  }
+  else if (predictor_name == "PRECIP8110"){
+    media = DBI::dbGetQuery(conn,sprintf("SELECT Precip8110Ws as PRECIP8110 FROM StreamCat_2022 WHERE COMID in (%s)",inLOOP(substr(COMIDs, 1, 10))))
+  }
+  else if (predictor_name == "TMAX8110"){
+    media = DBI::dbGetQuery(conn,sprintf("SELECT Tmax8110Ws as TMAX8110 FROM StreamCat_2022 WHERE COMID in (%s)",inLOOP(substr(COMIDs, 1, 10))))
+  }
+  else if (predictor_name == "CLAY"){
+    media = DBI::dbGetQuery(conn,sprintf("SELECT ClayWs as CLAY FROM StreamCat_2022 WHERE COMID in (%s)",inLOOP(substr(COMIDs, 1, 10))))
+  }
+  else if (predictor_name == "OM"){
+    media = DBI::dbGetQuery(conn,sprintf("SELECT OmWs as OM FROM StreamCat_2022 WHERE COMID in (%s)",inLOOP(substr(COMIDs, 1, 10))))
+  }
+  else if (predictor_name == "KFFACT"){
+    media = DBI::dbGetQuery(conn,sprintf("SELECT KffactWs as KFFACT FROM StreamCat_2022 WHERE COMID in (%s)",inLOOP(substr(COMIDs, 1, 10))))
+  }
+  else if (predictor_name == "ELEV"){
+    media = DBI::dbGetQuery(conn,sprintf("SELECT ElevWs as ELEV FROM StreamCat_2022 WHERE COMID in (%s)",inLOOP(substr(COMIDs, 1, 10))))
+  }
+  else if (predictor_name == "PERM"){
+    media = DBI::dbGetQuery(conn,sprintf("SELECT PermWs as PERM FROM StreamCat_2022 WHERE COMID in (%s)",inLOOP(substr(COMIDs, 1, 10))))
+  }
+  else if (predictor_name == "P205"){
+    media = DBI::dbGetQuery(conn,sprintf("SELECT P2O5Ws as P205 FROM StreamCat_2022 WHERE COMID in (%s)",inLOOP(substr(COMIDs, 1, 10))))
+  }
+  else if (predictor_name == "AREASQKM"){
+    media = DBI::dbGetQuery(conn,sprintf("SELECT WsAreaSqkm as AREASQKM FROM StreamCat_2022 WHERE COMID in (%s)",inLOOP(substr(COMIDs, 1, 10))))
+  } else{
     media = DBI::dbGetQuery(conn,sprintf("SELECT %s FROM StreamCat_2022 WHERE COMID in (%s)",paste0(predictor_name),inLOOP(substr(COMIDs, 1, 10))))
   }
   return(media)
@@ -71,8 +98,8 @@ MAST_mean08091314=function(SQLite_file_path,COMIDs,...) {
 MSST_mean08091314=function(SQLite_file_path,COMIDs,...) {
   conn <- DBI::dbConnect(RSQLite::SQLite(), SQLite_file_path)
   rawtemps = DBI::dbGetQuery(conn,sprintf("SELECT MSST_2008,MSST_2009,MSST_2013,MSST_2014 FROM StreamCat_2022 WHERE COMID in (%s)",inLOOP(substr(COMIDs, 1, 10))))
-  MSST_mean08091314=rowMeans(rawtemps,na.rm=TRUE)
-  return(MSST_mean08091314)
+    MSST_mean08091314=rowMeans(rawtemps,na.rm=TRUE)
+    return(MSST_mean08091314)
 }
 
 #' Average mean winter stream temp across 2018-2014
