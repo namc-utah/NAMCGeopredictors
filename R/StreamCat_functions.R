@@ -57,8 +57,8 @@ StreamCat_single_pred <-function(SQLite_file_path, predictor_name,COMIDs,...) {
   else if (predictor_name == "PERM"){
     media = DBI::dbGetQuery(conn,sprintf("SELECT PermWs as PERM FROM StreamCat_2022 WHERE COMID in (%s)",inLOOP(substr(COMIDs, 1, 10))))
   }
-  else if (predictor_name == "P205"){
-    media = DBI::dbGetQuery(conn,sprintf("SELECT P2O5Ws as P205 FROM StreamCat_2022 WHERE COMID in (%s)",inLOOP(substr(COMIDs, 1, 10))))
+  else if (predictor_name == "P2O5"){
+    media = DBI::dbGetQuery(conn,sprintf("SELECT P2O5Ws as P2O5 FROM StreamCat_2022 WHERE COMID in (%s)",inLOOP(substr(COMIDs, 1, 10))))
   }
   else if (predictor_name == "AREASQKM"){
     media = DBI::dbGetQuery(conn,sprintf("SELECT WsAreaSqkm as AREASQKM FROM StreamCat_2022 WHERE COMID in (%s)",inLOOP(substr(COMIDs, 1, 10))))
