@@ -14,10 +14,14 @@ temp_RASTER_path<-tempdir()
 #in this case, x = all Alaska sites that NAMC has determined need watersheds
 x<-NAMCr::query(
   api_endpoint = "sites",
-  args = list(projectIds=6107))
+  args = list(sampleIds=c(157414,
+                          157892,
+                          157895,
+                          157908,
+                          164725)))
 #remove duplicates to save time and memory
 x<-x[!duplicated(x$siteId),]
-#define the function to donwload the DEM for each point
+#define the function to download the DEM for each point
 #Alaska is a huge region and a full DEM is not feasible (or available)
 #so, stitching smaller DEMS together is the way to go.
 #the function will download tiles from a bounding box (defined
@@ -164,4 +168,9 @@ for(i in 1:nrow(x)){
 #best to remove those sheds from the list, isolate the corresponding siteIds/coordinates
 #and run the process again on just those sites.
 #you can easily rbind any watershed lists together after the fact.
-mapview::mapview(shed_list,lwd=3, color='red')
+x_sf=st_as_sf(x,coords=c('longitude','latitude'),crs=4269)
+x_sf=st_transform(x_sf,st_crs(shed_list))
+mapview::mapview(shed_list,lwd=3, color='red')+mapview::mapview(x_sf,col.regions='blue')
+
+
+st_write(shed_list,'C://Users//andrew.caudillo.BUGLAB-I9//Box//GIS//Watersheds//rivnet_sheds//others//AK_test_sheds.shp')

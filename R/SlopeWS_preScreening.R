@@ -1,17 +1,9 @@
 MS<-sf::st_read(paste0(watershed_file_path))
 
 
-siteIds=c(23180,
-          23189,
-          23175,
-          23187,
-          46578,
-          46581,
-          46583,
-          23185)
-ok<-NAMCr::query('sites',siteIds=siteIds)
+ok<-NAMCr::query('sites',projectIds=projectId)
+siteIds=ok$siteId
 
-MS<-MS[,c(1,3)]
 lilMS<-MS[MS$siteId %in% siteIds,]
 
 #test<-terra::rast(elevatr::get_elev_raster(lilMS,z=13))
@@ -24,7 +16,7 @@ lilMS<-MS[MS$siteId %in% siteIds,]
 
 
 
-flowdir<- 'C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//GIS_Stats//Nevada//elevation//NVFLD8.tif'
+flowdir<- 'C://Users//andrew.caudillo.BUGLAB-I9//Box//GIS//GIS_Stats//Nevada//elevation//NVFLD8.tif'
 FL<-terra::rast(flowdir)
 sheddy_list<-list()
 for(i in 1:nrow(lilMS)){
@@ -45,7 +37,7 @@ s<-8
 terra::plot(sheddy_list[[s]],
             main=as.character(lilMS$siteId[s]))
 
-bad_sites<-c(43242,43261,43260,43262)
+bad_sites<-c(30605,30690,30659,30603)
 #subset only the sites that have good flow directions and run those
 #sites in the Slope_Ws script.
 #Once the Slope_WS script calculates the slope for the good sheds,
