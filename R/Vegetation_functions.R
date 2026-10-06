@@ -52,3 +52,31 @@ Evergr_ave<-function(polygon2process,predictor_geometry, ...){
 }
 
 
+#' Percent of landcover in the watershed
+#'
+#' @param polygon2process
+#' @param predictor_geometry
+#' @param predictor_name
+#' @param ...
+#'
+#' @return a single value of percent of evergreen landcover in the watershed in decimal values
+#' @export
+#'
+NLCD<-function(polygon2process,predictor_geometry, predictor_name,...){
+  shed_terra <- terra::vect(polygon2process)
+  shed_terra <- terra::project(shed_terra, terra::crs(predictor_geometry))
+  WatershedCover <- terra::crop(predictor_geometry,shed_terra, mask = T)
+  WatershedCover <- freq(WatershedCover)
+  TotalArea <- sum(WatershedCover$count)
+  WatershedCover$Proportion <- WatershedCover$count/TotalArea
+  WatershedCover$Proportion[is.na(WatershedCover$Proportion)] <- 0
+    if(predictor_name=='Proportion_Dwarf_Shrub'){
+  media=subset(WatershedCover,value=='Dwarf Shrub')
+} else if(predictor_name=='Proportion_Open_Water'){
+  media=subset(WatershedCover,value=='Open Water')
+}else if(predictor_name=='Prop_Perennial_Ice_Snow'){
+  media=subset(WatershedCover,value=='Perennial Ice/Snow')
+}else{}
+  return(media[,4])
+}
+

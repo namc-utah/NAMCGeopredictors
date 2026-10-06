@@ -217,3 +217,34 @@ SR_BIGHORNS<-function(point2process,predictor_geometry, ...){
   media<-tempinter$SR_BIGHORNS
   return(media)
 }
+
+
+#' Alaska Ecoregion that makes up the majority of the watershed
+#'
+#' @param polygon2process
+#' @param predictor_geometry
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+Ecoregion<-function(polygon2process,predictor_geometry, ...){
+    crs2use <- crs(polygon2process)
+  eco <- st_transform(predictor_geometry, crs = crs2use)
+  intersect_eco <- st_intersection(eco, polygon2process) %>%
+    dplyr::mutate(intersect_area = st_area(.)) %>%
+    dplyr::select(NA_L3NAME, intersect_area) %>%
+    st_drop_geometry()
+
+  # # Create a fresh area variable for counties
+  # sheds <- dplyr::mutate(polygon2process, eco_area = st_area(polygon2process))
+  # # Merge by county name
+  # sheds <- merge(sheds, intersect_eco, by = "SiteCode", all.x = TRUE)
+  # # Calculate coverage
+  sheds <- intersect_eco %>%
+    dplyr::mutate(coverage = as.numeric(intersect_area))
+  #Selects to row with the maximum value in each group
+  sheds2=sheds %>% top_n(1, coverage)
+  return(sheds2[,1])
+}

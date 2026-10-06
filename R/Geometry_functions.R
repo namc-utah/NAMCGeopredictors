@@ -112,3 +112,22 @@ st_snap_points <- function(points2process, line_geometry, namevar, max_dist = 20
 }
 
 #https://rdrr.io/cran/spNetwork/man/snapPointsToLines2.html
+
+
+#' watershed perimeter in km
+#'
+#' @param polygon2process
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+PerimKM<-function(polygon2process,...){
+  shed_terra <- terra::vect(polygon2process)
+ Perim <- terra::perim(shed_terra)
+ PerimKM <- Perim/1000
+  return(PerimKM)
+}
+
+

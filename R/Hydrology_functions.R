@@ -326,4 +326,20 @@ Buffer250WetlandAreaKm<-function(point2process,geometry_input_path,...){
   return(media)
   unlink(paste0(slope_bin,'/*'))
 }
-geometry_input_path="C:/Users/jenni/Box/NAMC WATS Department Files/GIS/GIS_Stats/CONUS/hydrology/NWI.gdb"
+#geometry_input_path="C:/Users/jenni/Box/NAMC WATS Department Files/GIS/GIS_Stats/CONUS/hydrology/NWI.gdb"
+
+
+#' Med_SnowFree
+#'
+#' @param polygon2process
+#' @param predictor_geometry
+#' @return
+#' @export
+#'
+#' @examples
+Med_SnowFree<-function(polygon2process,predictor_geometry, ...){
+statvalue <- terra::extract(predictor_geometry, polygon2process, fun=median, ID=FALSE)
+return(statvalue[1])
+}
+
+

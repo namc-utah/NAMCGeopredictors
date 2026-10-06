@@ -117,3 +117,37 @@ Tmax_PT<-function(point2process,predictor_geometry, ...){
 Tmax_WS<-function(polygon2process,predictor_name,predictor_geometry,...){
   media<-extract_watershed_mean(polygon2process,predictor_name,predictor_geometry)/10
 }
+
+#' TerraClimate temperature predictors
+#'
+#' @param polygon2process
+#' @param predictor_geometry
+#' @param predictor_name
+#' @param ...
+#' @return
+#' @export
+#'
+#' @examples
+temperature<-function(polygon2process,predictor_name,predictor_geometry,...){
+  shed_terra <- terra::vect(polygon2process)
+  shed_terra <- terra::project(shed_terra, terra::crs(predictor_geometry))
+  clim<-terra::extract(predictor_geometry, polygon2process, fun = mean, na.rm = TRUE)
+  if(predictor_name=='tmin_SON_terra'){
+     media <- rowMeans(clim[, c("tmin_9", "tmin_10", "tmin_11")], na.rm = TRUE)
+  }else if (predictor_name=='tmin_DJF_terra'){
+  media <- rowMeans(clim[, c("tmin_12", "tmin_1", "tmin_2")], na.rm = TRUE)
+  }else if (predictor_name=='tmax_DJF_terra'){
+    media <- rowMeans(clim[, c("tmax_12", "tmax_1", "tmax_2")], na.rm = TRUE)
+  }else if (predictor_name=='tmax_annual'){
+    media <- rowMeans(clim[, c("tmax_12", "tmax_1", "tmax_2",
+                               "tmax_3","tmax_4","tmax_5","tmax_6","tmax_7","tmax_8",
+                               "tmax_9","tmax_10","tmax_11")], na.rm = TRUE)
+  }else if (predictor_name=='tmax_JJA_terra'){
+    media <- rowMeans(clim[, c("tmax_6", "tmax_7", "tmax_8")], na.rm = TRUE)
+  }else if (predictor_name=='tmin_JJA_terra'){
+    media <- rowMeans(clim[, c("tmin_6", "tmin_7", "tmin_8")], na.rm = TRUE)
+  }else {
+
+  }
+  return(media)
+  }

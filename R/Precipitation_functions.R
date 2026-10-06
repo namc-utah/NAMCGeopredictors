@@ -114,3 +114,31 @@ precip<-function(point2process,predictor_geometry, ...){
 #'   media<-ee_extract(prism.accum.precip, point2process, fun = ee$Reducer$mean(), scale=4000)
 #'   return(media)
 #' }
+#'
+
+
+#' TerraClimate precipitation predictors
+#'
+#' @param polygon2process
+#' @param predictor_geometry
+#' @param predictor_name
+#' @param ...
+#' @return
+#' @export
+#'
+#' @examples
+precipitation<-function(polygon2process,predictor_name,predictor_geometry,...){
+  shed_terra <- terra::vect(polygon2process)
+  shed_terra <- terra::project(shed_terra, crs(predictor_geometry))
+  clim<-terra::extract(predictor_geometry, polygon2process, fun = mean, na.rm = TRUE)
+  if(predictor_name=='ppt_SON_terra'){
+    media <- rowMeans(clim[, c("ppt_9", "ppt_10", "ppt_11")], na.rm = TRUE)
+  }else if (predictor_name=='pet_SON_terra'){
+    media <- rowMeans(clim[, c("pet_9", "pet_10", "pet_11")], na.rm = TRUE)
+  }else if(predictor_name=='pet_MAM_terra'){
+    media <- rowMeans(clim[, c("pet_3", "pet_4", "pet_5")], na.rm = TRUE)
+  } else{
+
+    }
+    return(media)
+}

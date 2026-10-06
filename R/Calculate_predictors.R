@@ -248,7 +248,10 @@ for (p in 1:length(predlist)) {
       pred_geometries[[predictors$abbreviation[p]]] = NA
     } else if (is.na(predictors$geometryFilePath[p]) == TRUE|predictors$geometryFilePath[p]=="") {
       pred_geometries[[predictors$abbreviation[p]]] = NA
-    } else if (!grepl(".shp", predictors$geometryFilePath[p])) {
+    } else if(modelId %in% c(24,631,664)&!grepl(".shp", predictors$geometryFilePath[p])){
+      pred_geometries[[predictors$abbreviation[p]]] = terra::rast(paste0(pred_geometry_base_path,
+                                                                                        predictors$geometryFilePath[p]))
+    }else if (!grepl(".shp", predictors$geometryFilePath[p])) {
       pred_geometries[[predictors$abbreviation[p]]] = raster::raster(terra::rast(paste0(pred_geometry_base_path,
                                                                                         predictors$geometryFilePath[p])))
     } else {
@@ -279,7 +282,6 @@ names(def_predictors)[2]<-'absurd'
 # ---------------------------------------------------------------
 #subset the predictor values to be calculated to only one predictor at a time
 calculatedPredictorslist=list()
-def_predictors=def_predictors[def_predictors$sampleId!=213089,]
 for (p in 1:length(predlist)){
   message(p)
   tryCatch({
