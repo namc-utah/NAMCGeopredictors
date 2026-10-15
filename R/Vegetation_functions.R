@@ -69,7 +69,7 @@ NLCD<-function(polygon2process,predictor_geometry, predictor_name,...){
   WatershedCover <- freq(WatershedCover)
   TotalArea <- sum(WatershedCover$count)
   WatershedCover$Proportion <- WatershedCover$count/TotalArea
-  WatershedCover$Proportion[is.na(WatershedCover$Proportion)] <- 0
+  WatershedCover$Proportion <- ifelse(is.na(WatershedCover$Proportion), 0, WatershedCover$Proportion)
     if(predictor_name=='Proportion_Dwarf_Shrub'){
   media=subset(WatershedCover,value=='Dwarf Shrub')
 } else if(predictor_name=='Proportion_Open_Water'){
