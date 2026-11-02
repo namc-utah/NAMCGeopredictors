@@ -125,6 +125,7 @@ st_snap_points <- function(points2process, line_geometry, namevar, max_dist = 20
 #' @examples
 PerimKM<-function(polygon2process,...){
   shed_terra <- terra::vect(polygon2process)
+  shed_terra<-terra::project(shed_terra,"epsg:3338")
  Perim <- terra::perim(shed_terra)
  PerimKM <- Perim/1000
   return(PerimKM)

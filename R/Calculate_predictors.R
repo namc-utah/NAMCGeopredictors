@@ -23,7 +23,7 @@
 #create an object that is just the list of sites with no sheds in MS
 #allows us to quickly look for sites without sheds, despite the error messages
 #no_sheds<-list()
-watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23)
+watershed_models=c(1,2,3,7,8,9,13,14,15,16,17,18,19,20,21,22,23,24,631,664,697)
 #small addition for OR models (10,11,and 12)
 #run this section for OR and no not run the if (exists ("boxID"))
 if(0){
