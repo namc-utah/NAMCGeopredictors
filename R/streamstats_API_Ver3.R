@@ -25,9 +25,13 @@ if(exists("boxId")){
      projectId=projectId)
 
 }
-#read in master sheds
 
+
+#read in master sheds
+points2process=points2process[!is.na(points2process$siteId),]
+points2process=points2process[points2process$usState!='Alaska',]
 MS<-st_read(watershed_file_path)
+
 site_info<-NAMCr::query('sites',
                         siteIds=points2process$siteId)
 #site_info<-site_info[site_info$usState!='Alaska',]
@@ -68,12 +72,40 @@ if(length(points2process$STATE_ABBR[points2process$STATE_ABBR=='AK'])>=1){
 }
 if(nrow(points_in_bbox)==0){
   rm("points_in_bbox")
-  sites_for_AK=points2process$siteId
+  rm('AK')
 }else{
   points2process<-points2process[points2process$usState!='Alaska',]
   points2process=dplyr::bind_rows(points2process,points_in_bbox)
 }
 
+if(length(points2process$STATE_ABBR[points2process$STATE_ABBR=='NV'])>=1){
+  NV= sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//GIS//StreamStatsGrids//4326_WGS84//NV_streamstats_prj.shp"))
+  NV_bbox=sf::st_bbox(NV)
+  bbox_poly=sf::st_as_sfc(NV_bbox)
+  points_in_bbox=points2process[bbox_poly,]
+  points_in_bbox_NV=points_in_bbox[points_in_bbox$usState=='Nevada',]
+}
+if(nrow(points_in_bbox)==0){
+  rm("points_in_bbox")
+  rm("NV")
+}else{
+  points2process<-points2process[points2process$usState!='Nevada',]
+  points2process=dplyr::bind_rows(points2process,points_in_bbox_NV)
+}
+if(length(points2process$STATE_ABBR[points2process$STATE_ABBR=='WY'])>=1){
+  WY= sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//GIS//StreamStatsGrids//4326_WGS84//WY_streamstats_prj.shp"))
+  WY_bbox=sf::st_bbox(WY)
+  bbox_poly=sf::st_as_sfc(WY_bbox)
+  points_in_bbox=points2process[bbox_poly,]
+  points_in_bbox_WY=points_in_bbox[points_in_bbox$usState=='Wyoming',]
+}
+if(nrow(points_in_bbox)==0){
+  rm("points_in_bbox")
+  rm('WY')
+}else{
+  points2process<-points2process[points2process$usState!='Wyoming',]
+  points2process=dplyr::bind_rows(points2process,points_in_bbox_WY)
+}
 #use this for rivnet or another delineation process
 #since streamstats does not cover NV or WY
 nonStStats<-points2process[points2process$STATE_ABBR %in% c('NV','WY'),]
@@ -99,18 +131,28 @@ buffered_pts <- st_buffer(sf_data,500) #500m
 buffered_pts_2<-st_transform(buffered_pts,4326)
 # Create polyline data
 #read in as many as you need for the states that streamstat offers
-CA<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//CA_stream_stats_polyline_prj.shp"))# this will be whatever state you want to look at.
-CO<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//CO_stream_stats_polyline_prj.shp"))
-MT<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//MT_stream_stats_polyline_prj.shp"))
-ID<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//ID_stream_stats_polyline_prj.shp"))
-UT<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//UT_stream_stats_polyline_prj.shp"))
-OR<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//OR_stream_stats_polyline_prj.shp"))
-WA<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//WA_stream_stats_polyline_prj.shp"))
-NM<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//NM_streamstats_prj_prj.shp")) #re-projected on 3/20 due to CRS issue
-AZ<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//StreamStatsGrids//4326_WGS84//AZ_streamstats_prj_prj.shp")) #re-projected on 3/20 due to CRS issue
-sf_polyline <- rbind(NM,AZ)
-
-
+CA<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//GIS//StreamStatsGrids//4326_WGS84//CA_stream_stats_polyline_prj.shp"))# this will be whatever state you want to look at.
+CO<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//GIS//StreamStatsGrids//4326_WGS84//CO_stream_stats_polyline_prj.shp"))
+MT<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//GIS//StreamStatsGrids//4326_WGS84//MT_stream_stats_polyline_prj.shp"))
+ID<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//GIS//StreamStatsGrids//4326_WGS84//ID_stream_stats_polyline_prj.shp"))
+UT<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//GIS//StreamStatsGrids//4326_WGS84//UT_stream_stats_polyline_prj.shp"))
+OR<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//GIS//StreamStatsGrids//4326_WGS84//OR_stream_stats_polyline_prj.shp"))
+WA<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//GIS//StreamStatsGrids//4326_WGS84//WA_stream_stats_polyline_prj.shp"))
+NM<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//GIS//StreamStatsGrids//4326_WGS84//NM_streamstats_prj_prj.shp")) #re-projected on 3/20 due to CRS issue
+AZ<- sf::st_make_valid(st_read("C://Users//andrew.caudillo.BUGLAB-I9//Box//GIS//StreamStatsGrids//4326_WGS84//AZ_streamstats_prj_prj.shp")) #re-projected on 3/20 due to CRS issue
+if(exists("NV")){
+  NV=NV
+}
+if(exists("WY")){
+  WY=WY
+}
+if(exists('AK')){
+  AK=AK
+}
+sf_polyline <- rbind(CA,CO,ID,MT,NV,NM,OR,UT,WY)#rbind(NM,AZ)
+rm('CA');rm('CO');rm('ID');rm('MT');rm('NV');rm('OR');rm('UT');rm('WY');rm('NM')
+sf_polyline = rbind(sf_polyline,AZ)
+rm('AZ')
 #intersect the buffered points and lines
 intermed_intersect <- st_intersects(sf_polyline,buffered_pts_2)
 isolated_segments <- sf_polyline[sapply(intermed_intersect, length) > 0, ]
@@ -121,8 +163,242 @@ isolated_segments <- sf_polyline[sapply(intermed_intersect, length) > 0, ]
 library(dplyr)
 
 
+if (1){#new
+  #-----------------------------------
+  # FULL INPUT DATA
+  #-----------------------------------
+
+  coords_data <- data.frame(
+    id = points2process$siteId,
+    lng = st_coordinates(points2process)[,1],
+    lat = st_coordinates(points2process)[,2]
+  )
+
+  # stream/waterbody features
+  lines_sf <- isolated_segments
+
+  # OPTIONAL:
+  # use projected CRS for proper buffering
+  # (example uses Albers Equal Area CONUS)
+  lines_sf <- st_transform(lines_sf, 5070)
+
+  #-----------------------------------
+  # FUNCTION TO PROCESS ONE BATCH
+  #-----------------------------------
+
+  process_batch <- function(batch_data, lines_subset) {
+
+    updated_coords <- NULL
+
+    ui <- fluidPage(
+      leafletOutput('map', height = 700),
+      tableOutput('coordsTable'),
+      actionButton("done", "Save and Continue")
+    )
+
+    server <- function(input, output, session) {
+
+      coords_rv <- reactiveValues(data = batch_data)
+
+      iconDefault <- makeIcon(
+        iconUrl = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
+        iconWidth = 25,
+        iconHeight = 41,
+        iconAnchorX = 12,
+        iconAnchorY = 41
+      )
+
+      iconDragged <- makeIcon(
+        iconUrl = "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+        iconWidth = 25,
+        iconHeight = 41,
+        iconAnchorX = 12,
+        iconAnchorY = 41
+      )
+
+      #-----------------------------------
+      # RENDER MAP
+      #-----------------------------------
+
+      output$map <- renderLeaflet({
+
+        leaflet() %>%
+          addProviderTiles('Esri.WorldImagery') %>%
+
+          addMarkers(
+            data = coords_rv$data,
+            lng = ~lng,
+            lat = ~lat,
+            layerId = ~id,
+            icon = iconDefault,
+            options = markerOptions(draggable = TRUE)
+          ) %>%
+
+          # ONLY nearby lines for this batch
+          addPolylines(
+            data = lines_subset,
+            color = "blue",
+            weight = 3
+          ) %>%
+
+          # auto zoom to batch extent
+          fitBounds(
+            lng1 = min(batch_data$lng),
+            lat1 = min(batch_data$lat),
+            lng2 = max(batch_data$lng),
+            lat2 = max(batch_data$lat)
+          )
+      })
+
+      #-----------------------------------
+      # DRAG EVENT
+      #-----------------------------------
+
+      observeEvent(input$map_marker_dragend, {
+
+        markerId <- input$map_marker_dragend$id
+        lat <- input$map_marker_dragend$lat
+        lng <- input$map_marker_dragend$lng
+
+        # update coordinates
+        coords_rv$data[
+          coords_rv$data$id == markerId,
+          c("lat", "lng")
+        ] <- c(lat, lng)
+
+        # redraw markers
+        leafletProxy('map') %>%
+          clearMarkers() %>%
+
+          addMarkers(
+            data = coords_rv$data,
+            lng = ~lng,
+            lat = ~lat,
+            layerId = ~id,
+            icon = iconDragged,
+            options = markerOptions(draggable = TRUE)
+          )
+      })
+
+      #-----------------------------------
+      # TABLE OUTPUT
+      #-----------------------------------
+
+      output$coordsTable <- renderTable({
+        coords_rv$data
+      })
+
+      #-----------------------------------
+      # SAVE + CLOSE APP
+      #-----------------------------------
+
+      observeEvent(input$done, {
+
+        updated_coords <<- coords_rv$data
+
+        stopApp(updated_coords)
+      })
+    }
+
+    runApp(shinyApp(ui, server))
+  }
+
+  #-----------------------------------
+  # CREATE BATCHES OF 10
+  #-----------------------------------
+
+  batch_size <- 10
+
+  batch_indices <- split(
+    seq_len(nrow(coords_data)),
+    ceiling(seq_len(nrow(coords_data)) / batch_size)
+  )
+
+  # container for all outputs
+  all_updated <- list()
+
+  #-----------------------------------
+  # LOOP THROUGH BATCHES
+  #-----------------------------------
+
+  for(i in seq_along(batch_indices)) {
+
+    cat(
+      "\nProcessing batch",
+      i,
+      "of",
+      length(batch_indices),
+      "\n"
+    )
+
+    # current batch rows
+    batch_data <- coords_data[
+      batch_indices[[i]],
+    ]
+
+    #-----------------------------------
+    # CREATE SF POINTS
+    #-----------------------------------
+
+    batch_points_sf <- st_as_sf(
+      batch_data,
+      coords = c("lng", "lat"),
+      crs = 4326
+    )
+
+    # transform to projected CRS
+    batch_points_sf <- st_transform(
+      batch_points_sf,
+      st_crs(lines_sf)
+    )
+
+    #-----------------------------------
+    # BUFFER POINTS
+    #-----------------------------------
+
+    batch_buffer <- st_buffer(
+      batch_points_sf,
+      dist = 500
+    )
+
+    #-----------------------------------
+    # SUBSET ONLY NEARBY LINES
+    #-----------------------------------
+
+    lines_subset <- lines_sf[
+      lengths(
+        st_intersects(lines_sf, batch_buffer)
+      ) > 0,
+    ]
+    batch_data_sf=st_as_sf(batch_data,coords=c('lng','lat'),crs=4326)
+    lines_subset<-st_transform(lines_subset,4326)
+    #-----------------------------------
+    # RUN SHINY APP FOR THIS BATCH
+    #-----------------------------------
+
+    result <- process_batch(
+      batch_data,
+      lines_subset
+    )
+
+    # store results
+    all_updated[[i]] <- result
+  }
+
+  #-----------------------------------
+  # COMBINE FINAL OUTPUT
+  #-----------------------------------
+
+  updated_coords <- do.call(
+    rbind,
+    all_updated
+  )
+
+  # inspect results
+  head(updated_coords)
+  } #end new
 #load coordinate data
-coords_data <- data.frame(id = points2process$siteId, lng = st_coordinates(points2process)[,1], lat = st_coordinates(points2process)[,2])
+if(0){coords_data <- data.frame(id = points2process$siteId, lng = st_coordinates(points2process)[,1], lat = st_coordinates(points2process)[,2])
 #coords_data=coords_data[coords_data$id %in% c(46921,46927,46930,46932,46933,46936,46939,46941,46945,46970),]
 #and the isolated lines
 lines_sf<-isolated_segments
@@ -193,7 +469,7 @@ server <- function(input, output, session) {
 
 #run the server and UI!
 shinyApp(ui, server)
-#closed previous streamstats code to avoid confusion
+}#closed previous streamstats code to avoid confusion #old app
 if(0){
 #set buffer distance for snapping etc.
 if (inherits(points2process, "sf")) n = nrow(points2process)
@@ -250,7 +526,7 @@ out_xy=dplyr::rename(out_xy,OrgLONG=X)
 out_xy$distm=round(acos(sin(as.numeric(out_xy$OrgLAT)*3.141593/180)*sin(as.numeric(out_xy$SnpLAT)*3.141593/180) + cos(as.numeric(out_xy$OrgLAT)*3.141593/180)*cos(as.numeric(out_xy$SnpLAT)*3.141593/180)*cos(as.numeric(out_xy$SnpLONG)*3.141593/180-as.numeric(out_xy$OrgLONG)*3.141593/180)) * 6371000,digits=0)
 #order points by siteId so that we get the points back from Streamstats in a consistent order
 out_xy=out_xy[order(out_xy$siteId),]
-}
+} #old buffer distance
 
 
 
@@ -283,7 +559,7 @@ listy<-list()
 shed_trashbin<-tempdir()
 #remove any artifacts of weird ingestion that makes sites in antarctica.
 snapt<-snapt[snapt$lat>0,]
-
+snapt=snapt[!duplicated(snapt$siteId),]
 #This is the for loop that will download jsons via URLs
 #convert them to an sf object
 #and save the outputs to list elements.
@@ -292,7 +568,7 @@ snapt<-snapt[snapt$lat>0,]
 #if a watershed is large, it may not work in this interface
 #due to 60s timeout limit.
 #if that is the case, use another method.
-
+failed_sites=character()
 for (i in 1:nrow(snapt)) {
   message(paste(i, ' of ', nrow(snapt)))
         # Subset out the ith
@@ -307,7 +583,16 @@ for (i in 1:nrow(snapt)) {
         url<-paste0('https://streamstats.usgs.gov/ss-delineate/v1/delineate/features/',y$STATE_ABBR,'?lat=',
                Y,'&lon=',X)
 
-        jj<-st_read(url)#download.file(url, 'jsontest.geojson')
+        jj <- tryCatch(
+          st_read(url),
+          error = function(e) {
+            message("This site is invalid!\nSkipping to the next iteration\nsiteID saved to failed_sites")
+            failed_sites<<- c(failed_sites,as.character(y$siteId))
+            NULL
+          }
+        )
+
+        if (is.null(jj)) next
 
         polygon=dplyr::bind_rows(jj[jj$scope %in% c('split_catchment','adjoint_catchment'),])# st_union(jj)
         message('GeoJSON downloaded and imported')
@@ -351,16 +636,19 @@ for (i in 1:nrow(snapt)) {
         #   }
 
         # Assign siteId
-        message('assigning site and COMID')
-        polygon$siteId <- site
-        polygon$COMID <- y$COMID
+
+
+        #polygon$COMID= y$COMID
         polygon<-st_transform(polygon,5070)
-        #polygon$SCArea<-Area_info$WsAreaSqKm[as.integer(Area_info$COMID)==as.integer(polygon$COMID)]
+       # polygon$SCArea<-Area_info$WsAreaSqKm[as.integer(Area_info$COMID)==as.integer(polygon$COMID)]
         polygon$Area<-st_area(polygon)
-        #polygon$Area<-polygon$Area / 1000000
+        polygon$Area<-polygon$Area / 1000000
         polygon$Area=units::set_units(polygon$Area, 'km2')
         polygon<-st_transform(polygon,4326)
         polygon<-st_sf(geometry = st_union(polygon))
+        polygon= polygon %>% mutate(siteId= site,
+                                    COMID = y$COMID)
+        message('assigned site and COMID')
 
 
         # Assign to the list element
@@ -376,8 +664,18 @@ for (i in 1:nrow(snapt)) {
 
 #now for post-processing
 #convert the list to a dataframe
-listy<-do.call(rbind,listy)
-listy$siteId=snapt$siteId
+
+listy_2<-do.call(rbind,listy)
+listy_2$Area=st_area(listy_2)
+listy_2$Area=listy_2$Area/ 1000000
+listy_2$Area=units::set_units(listy_2$Area, 'km2')
+#listy_2$siteId=snapt$siteId
+
+extra_fails=snapt_sf[c(142,139,138,148,45,46,103),]
+sites_for_NHD=c(extra_fails$siteId,failed_sites,points2process$siteId[points2process$siteId %in% listy_2$siteId==F],points_in_bbox$siteId,
+                NV_samps$siteId[NV_samps$siteId %in% listy_2$siteId==F])
+sites_for_NHD=sites_for_NHD[!duplicated(sites_for_NHD)]
+
 
 
 #view to check sheds against topographic map. do they make sense? Are there bugaboos?
@@ -385,7 +683,7 @@ listy$siteId=snapt$siteId
 splits=jj[jj$scope=='split_catchment',]
 ups=jj[jj$scope=='upstream_basin',]
 snapt_sf=st_as_sf(snapt,coords=c('lng','lat'),crs=4326)
-mapview(listy,map.types = "OpenTopoMap",col.regions='blue')+
+mapview(listy_2,map.types = "OpenTopoMap",col.regions='blue')+
   mapview(isolated_segments,map.types = "OpenTopoMap")+
   mapview(snapt_sf,map.types = "OpenTopoMap",col.regions='hotpink')
   #mapview(MS[MS$siteId %in% listy$siteId,],col.regions='red')
@@ -398,3 +696,6 @@ st_write(listy,'C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department 
 
 listy2=listy[listy$siteId %in% c(46921,46927,46930,46932,46933,46936,46939,46941,46945,46970),]
 listy3=listy[!(listy$siteId %in% c(46921,46927,46930,46932,46933,46936,46939,46941,46945,46970)),]
+
+listy_3=listy_2[listy_2$siteId %in% sites_for_NHD==F,]
+

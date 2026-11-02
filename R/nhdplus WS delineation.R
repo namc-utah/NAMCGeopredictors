@@ -27,7 +27,7 @@ mastershed<-st_read(watershed_file_path)
 #nv<-st_read('C://Users//andrew.caudillo//Box//NAMC//GIS//Watersheds//SnappedPointsSentStreamStats//CA_2023-11-01.shp')
 samps<-NAMCr::query(
   api_endpoint = "samples",
-  projectId=6569)
+  sampleIds=points2process$sampleId)
 #samps<-samps[samps$sampleId==213513,]
 
 #samps<-samps[samps$siteId %in% lilMS$siteId[44:89],]
@@ -49,11 +49,9 @@ samps_For_sheds<-samps
 #Load state shape
 #it is imperative to change the state abbreviation!
 
-bama <- states() %>% dplyr::filter((STUSPS %in% c('AZ','CA','CO','ID',
-                                                  'MT','NV','NM','OR',
-                                                  'SD','TX','UT','WA','WY')))
+bama <- states() %>% dplyr::filter((STUSPS %in% c('CA','ID','MT','NV','OR','UT')))
 
-bama <-paste0(NHD_config,'cb_2023_us_state_20m.shp')
+bama <-paste0(userpath,NHD_config,'cb_2023_us_state_20m.shp')
 
 bama<-sf::st_read(bama)
 
@@ -67,7 +65,7 @@ bama<-sf::st_read(bama)
 #making df of just the site points
 #remember that NAMC uses sites, not samples, for model application and predictors
 site_info<-NAMCr::query('sites',
-                        projectIds=6569)
+                        sampleIds=points2process$sampleId)
 site_info<-site_info[site_info$usState!='Alaska',]
 query<- paste0("SELECT WsAreaSqKm,COMID FROM StreamCat_2022 WHERE COMID IN (", paste(site_info$waterbodyCode,collapse=','), ")")
 
@@ -77,6 +75,7 @@ names(site_info)[names(site_info)=='waterbodyCode']<-'COMID'
 Area_info<-plyr::join(Area_info,site_info[,c('siteId','COMID')])
 #samps_For_sheds=site_info
 samps_For_sheds<-samps_For_sheds[!duplicated(samps_For_sheds$siteId),]
+samps_For_sheds=plyr::join(samps_For_sheds,site_info[,c('siteId','COMID')])
 samps_For_sheds=plyr::join(samps_For_sheds,Area_info[,c('siteId','COMID')],by='siteId')
 #sites_for_COMIDS=NAMCr::query('sites',sampleIds=missings_sheds$sampleId)
 samps_For_sheds_Coords<-samps_For_sheds[,c("siteLatitude","siteLongitude",'COMID')]
@@ -113,14 +112,15 @@ outlet <- st_transform(outlet, 5070)
 #outlet<-st_transform(missings_sheds,5070)
 library(purrr)
 
-
+outlet=outlet[outlet$COMID!=358744]
 NHDsheds_sf2 <- outlet$COMID %>%
   # Use map_df to iterate and bind results into one sf object automatically
   map_df(~ {
     tryCatch({
+      #add this to avoid errors associated with too many calls
       Sys.sleep(1)
       # Call get_nldi_basin for each COMID
-      get_nldi_basin(list(featureSource = "comid", featureID = as.character(.x)),split=T) %>%
+      get_nldi_basin(list(featureSource = "comid", featureID = as.character(.x)),split=F) %>%
         st_transform(5070) %>%
         sfheaders::sf_remove_holes() %>%
         # Keep the COMID to join back to your original data later
@@ -353,4 +353,10 @@ st_geometry(NHDshed_list)<-'geometry'
 
 }
 
+NHDsheds_sf2$siteId=outlet$siteId
+
+NHDsheds_sf2=NHDsheds_sf2[,names(listy_3)[names(listy_3)!='Area']]
+
 #sf::st_write(NHDsheds_sf,'C://Users//andrew.caudillo.BUGLAB-I9//Box//NAMC WATS Department Files//GIS//Watersheds//nhdPlusTools//6965_sheds//6965_sheds.shp')
+
+mapview(NHDsheds_sf2)
