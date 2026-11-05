@@ -18,7 +18,7 @@ for (t in 1:length(siteIds)){
   if(t==1){
     def_sites= unlist(NAMCr::query(
       api_endpoint = "siteInfo",
-      include = c("siteId", "siteName", "usState", "location","waterbodyCode"),
+      include = c("siteId", "siteName", "usState", "location","waterbodyCode",'longitude','latitude'),
       siteId = siteIds[t]
     ))
     #forcing named vector to be dataframe for subsetting
@@ -26,7 +26,7 @@ for (t in 1:length(siteIds)){
     def_sites<-data.frame(as.list(def_sites))
   } else {def_sites1= unlist(NAMCr::query(
     api_endpoint = "siteInfo",
-    include = c("siteId", "siteName", "usState", "location","waterbodyCode"),
+    include = c("siteId", "siteName", "usState", "location","waterbodyCode",'longitude','latitude'),
     siteId = siteIds[t]
   ))
   def_sites=as.data.frame(rbind(def_sites,def_sites1))
@@ -35,13 +35,13 @@ for (t in 1:length(siteIds)){
 }
 
 sites_sf=st_as_sf(def_sites,coords=c('longitude','latitude'),crs=4326)
-write_sf(sites_sf,"sites.shp")
+#write_sf(sites_sf,"sites.shp")
 
 
 #### 2. Load NHD and HydroBASINS shapefile https://www.hydrosheds.org/products/hydrosheds-v2
 ###these files are massive and might need to be downloaded and read in from your computer rather than box
 NHD <- st_make_valid(st_read(paste0(pred_geometry_base_path,"GIS/GIS_Stats/Alaska/hydrosheds/blm_natl_admu_field_pol_ClipNHD.shp")))
-basins<-st_make_valid(st_read(paste0(pred_geometry_base_path,"GIS/GIS_Stats/Alaska/hydrosheds/blm_natl_admu_field_pol_Clip.shp")))
+basins<-st_make_valid(st_read(paste0(pred_geometry_base_path,"GIS/GIS_Stats/Alaska/hydrosheds/AKhydrobasins.gdb")))
 
 ##### 3. intersect sites with basins to get STRM_ID
 sitesinter=st_join(sites_sf,basins)
@@ -62,9 +62,12 @@ get_upstream_ids <- function(target_id, df) {
 
 
 ##### 5. apply function in a loop to get watersheds
-target_outlet_ids <- sites$STRM_ID  # Replace with your specific basin ID
+#### not all samples will be in areas with coverage (North Slope, for example, has no coverage)
+### so we need to remove those blank IDs
+target_outlet_ids <- sitesinter$STRM_ID[!is.na(sitesinter$STRM_ID)]  # Replace with your specific basin ID
 combined_upstream_polygon=list()
-for (i in 1:length(sites$STRM_ID)){
+###for the rest of the code, use target_outlet_ids instead of sitesinter$STRM_ID
+for (i in 1:length(target_outlet_ids)){
 # Get unique list of all upstream IDs including the outlet itself
   all_upstream_ids <- unique(get_upstream_ids(target_outlet_ids[i], NHD))
 
@@ -79,9 +82,9 @@ for (i in 1:length(sites$STRM_ID)){
 ### 6. format file for database
 watershedsdf=do.call(c,combined_upstream_polygon)
 sfge=st_sf(geometry=watershedsdf)
-sfge$STRM_ID=sites$STRM_ID
-sfge$siteId=sites$siteId
-st_write(sfge,"AKhydrosheds.shp")
+sfge$STRM_ID=target_outlet_ids
+sfge$siteId=target_outlet_ids
+st_write(sfge,paste0(userpath,"GIS//Watersheds//AK//AKhydrosheds_14788_20261105.shp"))
 
 #### 7. load watershed shapefile into ArcPro and the sites
 # load above NHD file into arcPro
