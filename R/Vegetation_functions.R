@@ -63,10 +63,13 @@ Evergr_ave<-function(polygon2process,predictor_geometry, ...){
 #' @export
 #'
 NLCD<-function(polygon2process,predictor_geometry, predictor_name,...){
-  vars_of_int=predictor_name
+  vars_of_int=ifelse(predictor_name=='Proportion_Open_Water','Open Water',
+                     ifelse(predictor_name=='Proportion_Dwarf_Shrub','Dwarf Shrub',
+                            ifelse(predictor_name=='Prop_Perennial_Ice_Snow',
+                                   "Perennial Ice/Snow")))
   shed_terra <- terra::vect(polygon2process)
-  shed_terra <- terra::project(shed_terra, terra::crs(predictor_geometry))
-  WatershedCover <- terra::crop(predictor_geometry,shed_terra, mask = T)
+  shed_terra <- terra::project(shed_terra, terra::crs(pred_geometries[[paste0(samples$abbreviation[s])]]))
+  WatershedCover <- terra::crop(pred_geometries[[paste0(samples$abbreviation[s])]],shed_terra, mask = T)
   WatershedCover <- freq(WatershedCover)
   TotalArea <- sum(WatershedCover$count)
   WatershedCover$Proportion <- WatershedCover$count/TotalArea
@@ -89,6 +92,6 @@ NLCD<-function(polygon2process,predictor_geometry, predictor_name,...){
     WatershedCover=rbind(WatershedCover,temp_df)
 
   }
-  return(WatershedCover[,4])
+return(WatershedCover[,4])
 }
 
