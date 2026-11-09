@@ -63,20 +63,31 @@ Evergr_ave<-function(polygon2process,predictor_geometry, ...){
 #' @export
 #'
 NLCD<-function(polygon2process,predictor_geometry, predictor_name,...){
+  vars_of_int=predictor_name
   shed_terra <- terra::vect(polygon2process)
   shed_terra <- terra::project(shed_terra, terra::crs(predictor_geometry))
   WatershedCover <- terra::crop(predictor_geometry,shed_terra, mask = T)
   WatershedCover <- freq(WatershedCover)
   TotalArea <- sum(WatershedCover$count)
   WatershedCover$Proportion <- WatershedCover$count/TotalArea
-  WatershedCover$Proportion <- ifelse(is.na(WatershedCover$Proportion), 0, WatershedCover$Proportion)
-    if(predictor_name=='Proportion_Dwarf_Shrub'){
-  media=subset(WatershedCover,value=='Dwarf Shrub')
-} else if(predictor_name=='Proportion_Open_Water'){
-  media=subset(WatershedCover,value=='Open Water')
-}else if(predictor_name=='Prop_Perennial_Ice_Snow'){
-  media=subset(WatershedCover,value=='Perennial Ice/Snow')
-}else{}
+  WatershedCover=WatershedCover[WatershedCover$value %in% vars_of_int,]
+  vals=unique(WatershedCover$value)
+
+  if(length(vars_of_int)!=length(vals)){
+    if(length(vals)==0){
+      temp_df=data.frame(layer=1,
+                         value=vars_of_int,
+                         count=0,
+                         Proportion = 0)
+    }else{
+      temp_df=data.frame(layer=1,
+                         value=vars_of_int[vars_of_int %in% vals==F],
+                         count=0,
+                         Proportion = 0)
+    }
+    WatershedCover=rbind(WatershedCover,temp_df)
+
+  }
   return(media[,4])
 }
 
