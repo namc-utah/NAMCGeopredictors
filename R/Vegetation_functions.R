@@ -79,6 +79,7 @@ NLCD<-function(polygon2process,predictor_geometry, predictor_name,...){
                          value=vars_of_int,
                          count=0,
                          Proportion = 0)
+
     }else{
       temp_df=data.frame(layer=1,
                          value=vars_of_int[vars_of_int %in% vals==F],
@@ -88,6 +89,6 @@ NLCD<-function(polygon2process,predictor_geometry, predictor_name,...){
     WatershedCover=rbind(WatershedCover,temp_df)
 
   }
-  return(media[,4])
+  return(WatershedCover[,4])
 }
 
